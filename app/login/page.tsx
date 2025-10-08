@@ -10,6 +10,7 @@ export default function LoginPage() {
         <div className="hidden lg:flex justify-center gap-2 lg:justify-start">
           <Link href="#">
             <Logo
+              priority
               type="rectangle"
               width={200}
               height={60}
@@ -24,6 +25,7 @@ export default function LoginPage() {
               className="flex lg:hidden items-center justify-center gap-2 font-medium px-3 py-1 mb-10"
             >
               <Logo
+                priority
                 type="rectangle"
                 width={250}
                 height={75}

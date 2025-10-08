@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -20,6 +21,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
+import { loginAction } from "@/data/auth";
 import { cn } from "@/lib/utils";
 
 type LoginFormData = {
@@ -50,13 +52,13 @@ export function LoginForm({
     e.preventDefault();
     setFormData({ email: "", password: "" });
     startTransition(async () => {
-      // const res = await loginAction(formData);
-      // if (res.statusText === "OK") {
-      //   router.refresh();
-      //   toast.success(res.data.message);
-      // } else {
-      //   setError(res.data.message);
-      // }
+      const { data, statusText } = await loginAction(formData);
+      if (statusText === "OK") {
+        router.refresh();
+        toast.success(data.message);
+      } else {
+        setError(data.message);
+      }
     });
   };
 
