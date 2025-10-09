@@ -6,10 +6,32 @@ export class FetchAPIError<T> extends Error {
 
   constructor(message: string, response: FetchAPIResponse<T>) {
     super(message);
-    this.name = "FechApiError";
+    this.name = "FetchAPIError";
     this.isAPIError = true;
     this.response = response;
     this.config = response.config;
+  }
+}
+
+export class FetchAPINetWorkError extends Error {
+  isAPINetworkError: boolean;
+  config: FetchAPIRequestConfig;
+  statusText: string;
+  status: number;
+  constructor(
+    message: string,
+    response: {
+      config: FetchAPIRequestConfig;
+      status: number;
+      statusText: string;
+    }
+  ) {
+    super(message);
+    this.name = "FetchAPINetWorkError";
+    this.isAPINetworkError = true;
+    this.config = response.config;
+    this.statusText = response.statusText;
+    this.status = response.status;
   }
 }
 
@@ -98,30 +120,27 @@ export class FetchAPI {
     let res: Response;
     try {
       res = await fetch(url, fetchConfig);
-    } catch (error: any) {
-      // Nhận dạng lỗi ECONNREFUSED hoặc network error
-      if (error?.cause?.code === "ECONNREFUSED") {
-        throw new FetchAPIError(
-          `Không thể kết nối đến server (${url}): ${error.cause.message}`,
-          {
-            data: null,
-            status: 0,
-            statusText: "ECONNREFUSED",
-            headers: new Headers(),
-            config,
-            request: new Response(),
-          }
-        );
+    } catch (error: unknown) {
+      let message: string = `Lỗi mạng khi gọi ${url}`;
+      let statusText: string = "NETWORK_ERROR";
+
+      if (error instanceof TypeError) {
+        const cause = (error as NodeJS.ErrnoException).cause;
+        if (cause && typeof cause === "object" && "code" in cause) {
+          statusText = (cause as { code?: string }).code || "";
+          message =
+            statusText === "ECONNREFUSED"
+              ? "Kết nối với server bị từ chuối."
+              : "Lỗi mạng không xác định";
+        } else {
+          message = `Lỗi TypeError không rõ nguyên nhân: ${error.message}`;
+        }
       }
 
-      // Các lỗi fetch khác (timeout, DNS, ...)
-      throw new FetchAPIError(`Lỗi mạng khi gọi ${url}: ${error.message}`, {
-        data: null,
-        status: 0,
-        statusText: "NETWORK_ERROR",
-        headers: new Headers(),
+      throw new FetchAPINetWorkError(message, {
         config,
-        request: new Response(),
+        statusText,
+        status: 503,
       });
     }
 

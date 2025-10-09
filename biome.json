@@ -22,7 +22,7 @@
         "noUnknownAtRules": "off"
       },
       "correctness": {
-        "noUnusedVariables": "warn"
+        "noUnusedVariables": "off"
       }
     },
     "domains": {

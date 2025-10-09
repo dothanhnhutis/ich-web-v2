@@ -1,18 +1,18 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
 
-export interface CookieOpt {
-  domain?: string | undefined;
-  encode?(value: string): string;
-  expires?: Date | undefined;
-  httpOnly?: boolean | undefined;
-  maxAge?: number | undefined;
-  partitioned?: boolean | undefined;
-  path?: string | undefined;
-  priority?: "low" | "medium" | "high" | undefined;
-  sameSite?: true | false | "lax" | "strict" | "none" | undefined;
-  secure?: boolean | undefined;
-}
+// export interface CookieOpt {
+//   domain?: string | undefined;
+//   encode?(value: string): string;
+//   expires?: Date | undefined;
+//   httpOnly?: boolean | undefined;
+//   maxAge?: number | undefined;
+//   partitioned?: boolean | undefined;
+//   path?: string | undefined;
+//   priority?: "low" | "medium" | "high" | undefined;
+//   sameSite?: true | false | "lax" | "strict" | "none" | undefined;
+//   secure?: boolean | undefined;
+// }
 
 export const getHeaders = async () => {
   const allCookie = (await cookies())

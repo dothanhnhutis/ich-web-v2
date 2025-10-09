@@ -1,4 +1,4 @@
-export interface CookieOpt {
+interface CookieOpt {
   domain?: string | undefined;
   encode?(value: string): string;
   expires?: Date | undefined;
@@ -11,7 +11,7 @@ export interface CookieOpt {
   secure?: boolean | undefined;
 }
 
-export type Metadata = {
+type Metadata = {
   totalItem: number;
   totalPage: number;
   hasNextPage: number | boolean;

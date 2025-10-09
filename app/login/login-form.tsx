@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -24,10 +25,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { loginAction } from "@/data/auth";
 import { cn } from "@/lib/utils";
 
-type LoginFormData = {
-  email: string;
-  password: string;
-};
 export function LoginForm({
   className,
   ...props
@@ -36,7 +33,7 @@ export function LoginForm({
   const [error, setError] = React.useState<string | null>(null);
   const [isPassword, setIsPassword] = React.useState<boolean>(true);
   const [isPending, startTransition] = React.useTransition();
-  const [formData, setFormData] = React.useState<LoginFormData>({
+  const [formData, setFormData] = React.useState<Login>({
     email: "",
     password: "",
   });
@@ -122,6 +119,9 @@ export function LoginForm({
               </InputGroupButton>
             </InputGroupAddon>
           </InputGroup>
+          {error ? (
+            <p className="text-destructive font-normal text-sm">{error}</p>
+          ) : null}
         </Field>
 
         <Field>

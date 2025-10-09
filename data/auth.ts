@@ -1,6 +1,11 @@
 "use server";
-import config from "@/config";
-import { FetchAPI, FetchAPIError, type FetchAPIResponse } from "./api";
+import { env } from "@/config";
+import {
+  FetchAPI,
+  FetchAPIError,
+  FetchAPINetWorkError,
+  type FetchAPIResponse,
+} from "./api";
 import { getHeaders, loadCookie } from "./utils";
 
 const authInstance = FetchAPI.create({
@@ -10,21 +15,8 @@ const authInstance = FetchAPI.create({
     Accept: "application/json",
     "Accept-Encoding": "gzip, deflate, br",
   },
-  baseUrl: `${config.SERVER_URL}/api/v1/auth`,
+  baseUrl: `${env.SERVER_URL}/api/v1/auth`,
 });
-
-export type Login = {
-  email: string;
-  password: string;
-};
-
-export type LoginAPIRes = {
-  statusCode: number;
-  statusText: string;
-  data: {
-    message: string;
-  };
-};
 
 export async function loginAction(data: Login): Promise<LoginAPIRes> {
   try {
@@ -42,6 +34,16 @@ export async function loginAction(data: Login): Promise<LoginAPIRes> {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<LoginAPIRes>;
       return res.data;
+    }
+
+    if (error instanceof FetchAPINetWorkError) {
+      return {
+        statusCode: error.status,
+        statusText: error.statusText,
+        data: {
+          message: error.message,
+        },
+      };
     }
 
     return {
