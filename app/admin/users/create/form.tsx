@@ -34,33 +34,21 @@ import { Switch } from "@/components/ui/switch";
 import { queryRolesAction } from "@/data/role";
 import { cn } from "@/lib/utils";
 
-const people = [
+const roles = [
   {
-    username: "shadcn",
-    avatar: "https://github.com/shadcn.png",
-    email: "shadcn@vercel.com",
+    id: "1",
+    name: "Super Admin",
+    description: "Có quyền cao nhất trong hệ thông",
   },
   {
-    username: "maxleiter",
-    avatar: "https://github.com/maxleiter.png",
-    email: "maxleiter@vercel.com",
-  },
-  {
-    username: "evilrabbit",
-    avatar: "https://github.com/evilrabbit.png",
-    email: "evilrabbit@vercel.com",
-  },
-  {
-    username: "evilrabbit1",
-    avatar: "https://github.com/evilrabbit.png",
-    email: "evilrabbit@vercel.com",
-  },
-  {
-    username: "evilrabbit2",
-    avatar: "https://github.com/evilrabbit.png",
-    email: "evilrabbit@vercel.com",
+    id: "2",
+    name: "warehouse",
+    description: "Toàn quyền kiểm soát kho hàng",
   },
 ];
+
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]+$/;
 
 const CreateUserForm = () => {
   const [formData, setFormData] = React.useState<{
@@ -79,13 +67,13 @@ const CreateUserForm = () => {
     isHidden: true,
   });
 
-  //   React.useEffect(() => {
-  //     async function fetchData() {
-  //       const data = await queryRolesAction([["limit", "1"]]);
-  //       console.log(data);
-  //     }
-  //     fetchData();
-  //   }, []);
+  React.useEffect(() => {
+    async function fetchData() {
+      const { data } = await queryRolesAction([["limit", "1"]]);
+      console.log(data);
+    }
+    fetchData();
+  }, []);
 
   return (
     <div className="p-4 w-full max-w-3xl mx-auto">
@@ -213,7 +201,10 @@ const CreateUserForm = () => {
                       <p
                         className={cn(
                           "inline-flex gap-x-2 items-center",
-                          true ? "" : "text-green-400"
+                          passwordData.value.length >= 8 &&
+                            passwordData.value.length <= 60
+                            ? "text-green-400"
+                            : ""
                         )}
                       >
                         <CheckIcon size={16} />
@@ -222,7 +213,9 @@ const CreateUserForm = () => {
                       <p
                         className={cn(
                           "inline-flex gap-x-2 items-center",
-                          false ? "" : "text-green-400"
+                          passwordRegex.test(passwordData.value)
+                            ? "text-green-400"
+                            : ""
                         )}
                       >
                         <CheckIcon size={16} />
@@ -242,20 +235,37 @@ const CreateUserForm = () => {
             <FieldDescription>
               Chọn vai trò cho tài khoản người dùng. có thể chọn nhiều vai trò
             </FieldDescription>
-            <ScrollArea className="h-[315px] pr-2">
+            <ScrollArea className="max-h-[315px] pr-2">
               <ItemGroup>
-                {people.map((person, index) => (
-                  <React.Fragment key={person.username}>
+                {roles.map((role, index) => (
+                  <React.Fragment key={role.id}>
                     <Item>
                       <ItemContent className="gap-1">
-                        <ItemTitle>{person.username}</ItemTitle>
-                        <ItemDescription>{person.email}</ItemDescription>
+                        <ItemTitle>{role.name}</ItemTitle>
+                        <ItemDescription>{role.description}</ItemDescription>
                       </ItemContent>
                       <ItemActions>
-                        <Switch />
+                        <Switch
+                          checked={formData.roleIds.includes(role.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData((prev) => ({
+                                ...prev,
+                                roleIds: [...prev.roleIds, role.id],
+                              }));
+                            } else {
+                              setFormData((prev) => ({
+                                ...prev,
+                                roleIds: prev.roleIds.filter(
+                                  (id) => id !== role.id
+                                ),
+                              }));
+                            }
+                          }}
+                        />
                       </ItemActions>
                     </Item>
-                    {index !== people.length - 1 && <ItemSeparator />}
+                    {index !== roles.length - 1 && <ItemSeparator />}
                   </React.Fragment>
                 ))}
               </ItemGroup>
