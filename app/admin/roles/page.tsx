@@ -54,8 +54,8 @@ const RolesPage = () => {
           <div className="flex items-center gap-2 justify-between">
             <h3 className="text-2xl font-bold shrink-0">Quản vai trò </h3>
             <Link
-              href="/admin/warehouses/create"
-              className={cn(buttonVariants({ variant: "default" }))}
+              href="/admin/roles/create"
+              className={cn(buttonVariants({ variant: "link" }))}
             >
               <span className="hidden xs:inline">Tạo vai trò mới</span>
               <PlusIcon className="w-4 h-4 shrink-0" />
