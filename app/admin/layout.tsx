@@ -10,19 +10,12 @@ const AdminLayout = ({
 }>) => {
   return (
     <UserProvider>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <SidebarProvider>
-          <AdminSidebar />
-          <SidebarInset className="block w-[calc(100%_-_var(--sidebar-width))]">
-            {children}
-          </SidebarInset>
-        </SidebarProvider>
-      </ThemeProvider>
+      <SidebarProvider>
+        <AdminSidebar />
+        <SidebarInset className="block w-[calc(100%_-_var(--sidebar-width))]">
+          {children}
+        </SidebarInset>
+      </SidebarProvider>
     </UserProvider>
   );
 };

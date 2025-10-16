@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import React from "react";
 import { currentUser, logout } from "@/data/user";
 
@@ -22,6 +23,7 @@ export function useUser() {
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+
   const [loading, setLoading] = React.useState<boolean>(true);
   const [user, setUser] = React.useState<UserDetail | null>(null);
 
