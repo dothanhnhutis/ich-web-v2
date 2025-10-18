@@ -15,7 +15,7 @@ declare global {
   type Metadata = {
     totalItem: number;
     totalPage: number;
-    hasNextPage: number | boolean;
+    hasNextPage: boolean;
     limit: number;
     itemStart: number;
     itemEnd: number;

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { env } from "@/config";
 import {
+  type DefaultAPIRes,
   FetchAPI,
   FetchAPIError,
   FetchAPINetWorkError,
@@ -68,6 +69,15 @@ export type CreateUserAPIRes = {
   };
 };
 
+export type QueryUsersAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: {
+    metadata: Metadata;
+    users: User[];
+  };
+};
+
 export const createUserAction = async (
   data: CreateUserData
 ): Promise<CreateUserAPIRes> => {
@@ -101,6 +111,47 @@ export const createUserAction = async (
       statusText: "BAD_REQUEST",
       data: {
         message: "Tạo người dùng thất bại.",
+      },
+    };
+  }
+};
+
+export const queryUserAction = async (
+  searchParams?: Record<string, string> | string | [string, string][]
+): Promise<QueryUsersAPIRes> => {
+  const q = new URLSearchParams(searchParams || "").toString();
+
+  try {
+    const { data: dataRes } = await userInstance.get<QueryUsersAPIRes>(
+      q ? `?${q}` : "",
+      {
+        headers: await getHeaders(),
+      }
+    );
+    return dataRes;
+  } catch (error: unknown) {
+    if (error instanceof FetchAPIError) {
+      const res = error.response as FetchAPIResponse<{ message: string }>;
+      console.log(`queryUser func error: `, res.data.message);
+    }
+    if (error instanceof FetchAPINetWorkError) {
+      console.log(`createUserAction func error: ${error.message}`);
+    } else {
+      console.log(`createUserAction func error: ${error}`);
+    }
+    return {
+      statusText: "BAD_REQUEST",
+      statusCode: 400,
+      data: {
+        metadata: {
+          hasNextPage: false,
+          itemStart: 0,
+          itemEnd: 0,
+          limit: 0,
+          totalItem: 0,
+          totalPage: 0,
+        },
+        users: [],
       },
     };
   }

@@ -35,6 +35,14 @@ export class FetchAPINetWorkError extends Error {
   }
 }
 
+export type DefaultAPIRes = {
+  statusText: string;
+  statusCode: number;
+  data: {
+    message: string;
+  };
+};
+
 export interface FetchAPIRequestConfig extends RequestInit {
   url?: string;
   baseUrl?: string;
