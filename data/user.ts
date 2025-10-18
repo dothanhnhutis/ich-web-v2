@@ -1,4 +1,6 @@
 "use server";
+import { cookies } from "next/headers";
+import { cache } from "react";
 import { env } from "@/config";
 import {
   FetchAPI,
@@ -6,7 +8,40 @@ import {
   FetchAPINetWorkError,
   type FetchAPIResponse,
 } from "./api";
+import type { Role } from "./role";
 import { getHeaders } from "./utils";
+
+export type User = {
+  id: string;
+  email: string;
+  username: string;
+  status: string;
+  avatar: ImageURL | null;
+  deactived_at: Date;
+  role_count: number;
+  created_at: Date;
+  updated_at: Date;
+};
+
+export type UserWithoutPassword = User & {
+  has_password: boolean;
+};
+
+export type UserPassword = User & {
+  password_hash: string;
+};
+
+export type QueryUsers = { users: UserWithoutPassword[]; metadata: Metadata };
+
+export type UserDetail = UserWithoutPassword & {
+  roles: Role[];
+};
+
+export type UserDetailAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: UserDetail;
+};
 
 const userInstance = FetchAPI.create({
   credentials: "include",
@@ -18,7 +53,60 @@ const userInstance = FetchAPI.create({
   baseUrl: `${env.SERVER_URL}/api/v1/users`,
 });
 
-export async function currentUser(): Promise<UserDetail | null> {
+export type CreateUserData = {
+  email: string;
+  username: string;
+  roleIds: string[];
+  password?: string;
+};
+
+export type CreateUserAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: {
+    message: string;
+  };
+};
+
+export const createUserAction = async (
+  data: CreateUserData
+): Promise<CreateUserAPIRes> => {
+  try {
+    const { data: dataRes } = await userInstance.post<CreateUserAPIRes>(
+      "/",
+      data,
+      {
+        headers: await getHeaders(),
+      }
+    );
+    return dataRes;
+  } catch (error: unknown) {
+    if (error instanceof FetchAPIError) {
+      const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
+      return res.data;
+    }
+    if (error instanceof FetchAPINetWorkError) {
+      console.log(`createUserAction func error: ${error.message}`);
+      return {
+        statusCode: error.status,
+        statusText: error.statusText,
+        data: {
+          message: error.message,
+        },
+      };
+    }
+    console.log(`createUserAction func error: ${error}`);
+    return {
+      statusCode: 400,
+      statusText: "BAD_REQUEST",
+      data: {
+        message: "Tạo người dùng thất bại.",
+      },
+    };
+  }
+};
+
+export const currentUserAction = cache(async (): Promise<UserDetail | null> => {
   try {
     const {
       data: { data },
@@ -27,19 +115,22 @@ export async function currentUser(): Promise<UserDetail | null> {
     });
     return data;
   } catch (error: unknown) {
+    const cookieList = await cookies();
+    if (cookieList.has("sid")) cookieList.delete("sid");
+
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<{ message: string }>;
-      console.log(`currentUser func error: ${res.data.message}`);
+      console.log(`currentUserAction func error: ${res.data.message}`);
     }
     if (error instanceof FetchAPINetWorkError) {
-      console.log(`currentUser func error: ${error.message}`);
+      console.log(`currentUserAction func error: ${error.message}`);
     }
-    console.log(`currentUser func error: ${error}`);
+    console.log(`currentUserAction func error: ${error}`);
     return null;
   }
-}
+});
 
-export async function logout() {
+export const logoutAction = async (): Promise<void> => {
   try {
     await userInstance.delete("/logout", {
       headers: await getHeaders(),
@@ -47,11 +138,11 @@ export async function logout() {
   } catch (error: unknown) {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<{ message: string }>;
-      console.log(`logout func error: ${res.data.message}`);
+      console.log(`logoutAction func error: ${res.data.message}`);
     }
     if (error instanceof FetchAPINetWorkError) {
-      console.log(`logout func error: ${error.message}`);
+      console.log(`logoutAction func error: ${error.message}`);
     }
-    console.log(`logout func error: ${error}`);
+    console.log(`logoutAction func error: ${error}`);
   }
-}
+};

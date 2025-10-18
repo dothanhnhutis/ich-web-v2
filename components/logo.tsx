@@ -11,6 +11,7 @@ const Logo = ({ type = "square", width, height, ...props }: Props) => {
       <Image
         {...props}
         src={"/images/logo-square.png"}
+        priority
         alt="logo-square"
         width={width || 48}
         height={height || 48}
@@ -22,6 +23,7 @@ const Logo = ({ type = "square", width, height, ...props }: Props) => {
     <Image
       {...props}
       src={"/images/logo-rectangle.png"}
+      priority
       alt="logo-rectangle"
       width={width || 150}
       height={height || 56}

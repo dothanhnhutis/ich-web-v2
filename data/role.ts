@@ -6,7 +6,34 @@ import {
   FetchAPINetWorkError,
   type FetchAPIResponse,
 } from "./api";
+import type { User, UserWithoutPassword } from "./user";
 import { getHeaders } from "./utils";
+
+export type Role = {
+  id: string;
+  name: string;
+  permissions: string[];
+  description: string;
+  status: string;
+  deactived_at: Date;
+  created_at: Date;
+  updated_at: Date;
+  user_count: number;
+};
+
+export type RoleDetail = Role & {
+  users: UserWithoutPassword[];
+};
+
+export type QueryRoles = {
+  roles: Role[];
+  metadata: Metadata;
+};
+
+export type QueryUsersByRoleId = {
+  users: User[];
+  metadata: Metadata;
+};
 
 const roleInstance = FetchAPI.create({
   credentials: "include",
@@ -23,7 +50,7 @@ export async function queryRolesAction(
 ) {
   try {
     const q = new URLSearchParams(searchParams || "").toString();
-    console.log("q", q);
+
     const { data: dataRes } = await roleInstance.get<{
       statusCode: number;
       statusText: string;

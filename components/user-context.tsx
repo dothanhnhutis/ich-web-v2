@@ -1,8 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 import React from "react";
-import { currentUser, logout } from "@/data/user";
+import { currentUserAction, logoutAction, type UserDetail } from "@/data/user";
 
 type UserContextProps = {
   user: UserDetail | null;
@@ -29,7 +28,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     async function fetchUser() {
-      const user = await currentUser();
+      const user = await currentUserAction();
       setUser(user);
       setLoading(false);
     }
@@ -48,7 +47,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleLogout = React.useCallback(async () => {
-    await logout();
+    await logoutAction();
     router.push("/login");
   }, [router]);
 

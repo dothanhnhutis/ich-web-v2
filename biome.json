@@ -20,9 +20,6 @@
       "recommended": true,
       "suspicious": {
         "noUnknownAtRules": "off"
-      },
-      "correctness": {
-        "noUnusedVariables": "off"
       }
     },
     "domains": {

@@ -18,6 +18,19 @@ const authInstance = FetchAPI.create({
   baseUrl: `${env.SERVER_URL}/api/v1/auth`,
 });
 
+export type Login = {
+  email: string;
+  password: string;
+};
+
+export type LoginAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: {
+    message: string;
+  };
+};
+
 export async function loginAction(data: Login): Promise<LoginAPIRes> {
   try {
     const { data: dataRes, headers } = await authInstance.post<LoginAPIRes>(

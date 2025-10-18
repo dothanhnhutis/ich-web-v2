@@ -50,7 +50,7 @@ export function NavUser() {
     <>
       <Avatar className="h-8 w-8 rounded-lg">
         <AvatarImage
-          src={user.avatar?.url || "/images/logo.png"}
+          src={user.avatar?.url || "/images/logo-square.png"}
           alt={user.username}
         />
         <AvatarFallback className="rounded-lg">

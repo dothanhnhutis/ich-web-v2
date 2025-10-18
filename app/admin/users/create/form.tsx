@@ -1,7 +1,11 @@
 "use client";
 import { CheckIcon, EyeClosedIcon, EyeIcon } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import z from "zod/v4";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Field,
   FieldContent,
@@ -30,27 +34,18 @@ import {
 } from "@/components/ui/item";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
-import { queryRolesAction } from "@/data/role";
+import { queryRolesAction, type Role } from "@/data/role";
+import { type CreateUserAPIRes, createUserAction } from "@/data/user";
 import { cn } from "@/lib/utils";
-
-const roles = [
-  {
-    id: "1",
-    name: "Super Admin",
-    description: "Có quyền cao nhất trong hệ thông",
-  },
-  {
-    id: "2",
-    name: "warehouse",
-    description: "Toàn quyền kiểm soát kho hàng",
-  },
-];
 
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]+$/;
 
 const CreateUserForm = () => {
+  const router = useRouter();
+  const [isPending, startTransition] = React.useTransition();
   const [formData, setFormData] = React.useState<{
     email: string;
     username: string;
@@ -61,6 +56,8 @@ const CreateUserForm = () => {
     roleIds: [],
   });
 
+  const [roles, setRoles] = React.useState<Role[]>([]);
+
   const [passwordData, setPasswordData] = React.useState({
     type: "auto",
     value: "",
@@ -69,15 +66,57 @@ const CreateUserForm = () => {
 
   React.useEffect(() => {
     async function fetchData() {
-      const { data } = await queryRolesAction([["limit", "1"]]);
-      console.log(data);
+      const { data } = await queryRolesAction([["sort", "created_at.desc"]]);
+      setRoles(data.roles);
     }
     fetchData();
   }, []);
 
+  const handleRestData = () => {
+    setFormData({
+      email: "",
+      username: "",
+      roleIds: [],
+    });
+    setPasswordData({
+      type: "auto",
+      value: "",
+      isHidden: true,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    let res: CreateUserAPIRes;
+    if (!z.email().safeParse(formData.email).success) {
+      toast.warning("Email không hợp lệ.");
+      setFormData({ ...formData, email: "" });
+      return;
+    }
+
+    startTransition(async () => {
+      if (passwordData.type === "auto") {
+        res = await createUserAction(formData);
+      } else {
+        res = await createUserAction({
+          ...formData,
+          password: passwordData.value,
+        });
+      }
+
+      if (res.statusCode === 200) {
+        router.push("/admin/users");
+        toast.success(res.data.message);
+      } else {
+        handleRestData();
+        toast.error(res.data.message);
+      }
+    });
+  };
+
   return (
     <div className="p-4 w-full max-w-3xl mx-auto">
-      <form>
+      <form onSubmit={handleSubmit}>
         <FieldGroup>
           <FieldSet>
             <FieldLegend>Tạo Người Dùng Mới</FieldLegend>
@@ -87,13 +126,21 @@ const CreateUserForm = () => {
             <FieldGroup>
               <div className="grid sm:grid-cols-2 gap-4">
                 <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <FieldLabel
+                    htmlFor="email"
+                    className="block after:ml-0.5 after:text-red-500 after:content-['*']"
+                  >
+                    Email
+                  </FieldLabel>
                   <Input
+                    disabled={isPending}
                     id="email"
                     placeholder="m@example.com"
                     name="email"
+                    type="email"
                     required
                     value={formData.email}
+                    className="border-destructive focus-visible:border-destructive ring-destructive/50 focus-visible:ring-destructive/50"
                     onChange={(e) => {
                       setFormData((prev) => ({
                         ...prev,
@@ -103,12 +150,18 @@ const CreateUserForm = () => {
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="username">Họ và tên</FieldLabel>
+                  <FieldLabel
+                    htmlFor="username"
+                    className="block after:ml-0.5 after:text-red-500 after:content-['*']"
+                  >
+                    Họ và tên
+                  </FieldLabel>
                   <Input
                     id="username"
                     placeholder="Nguyễn Văn A"
                     name="username"
                     required
+                    disabled={isPending}
                     value={formData.username}
                     onChange={(e) => {
                       setFormData((prev) => ({
@@ -122,11 +175,17 @@ const CreateUserForm = () => {
             </FieldGroup>
           </FieldSet>
           <FieldSet>
-            <FieldLabel htmlFor="">Mật khẩu</FieldLabel>
+            <FieldLabel
+              htmlFor=""
+              className="block after:ml-0.5 after:text-red-500 after:content-['*']"
+            >
+              Mật khẩu
+            </FieldLabel>
             <FieldDescription>
               Chọn cách thức tạo mật khẩu cho tài khoản
             </FieldDescription>
             <RadioGroup
+              disabled={isPending}
               value={passwordData.type}
               onValueChange={(v) =>
                 setPasswordData({
@@ -149,7 +208,7 @@ const CreateUserForm = () => {
               </FieldLabel>
               <FieldLabel
                 htmlFor="custom"
-                className="has-[button[data-slot=radio-group-item]:is([data-state=checked])]:[&>[data-slot=field][data-orientation=vertical]]:block"
+                className="has-[button[data-slot=radio-group-item]:is([data-state=checked])]:[&>[data-slot=field][data-orientation=vertical]]:block "
               >
                 <Field orientation="horizontal">
                   <FieldContent>
@@ -162,9 +221,11 @@ const CreateUserForm = () => {
                 </Field>
                 <Field className="hidden py-2">
                   <FieldContent>
-                    <InputGroup>
+                    <InputGroup className=" border-destructive  has-[[data-slot=input-group-control]:focus-visible]:border-destructive">
                       <InputGroupInput
+                        disabled={isPending}
                         required={passwordData.type === "custom"}
+                        className="font-normal"
                         id="password"
                         name="password"
                         autoComplete="off"
@@ -246,6 +307,7 @@ const CreateUserForm = () => {
                       </ItemContent>
                       <ItemActions>
                         <Switch
+                          disabled={isPending}
                           checked={formData.roleIds.includes(role.id)}
                           onCheckedChange={(checked) => {
                             if (checked) {
@@ -273,10 +335,17 @@ const CreateUserForm = () => {
           </Field>
 
           <Field orientation="horizontal" className="justify-end">
-            <Button variant="outline" type="button">
-              Cancel
+            <Link
+              href={"/admin/users"}
+              className={cn(buttonVariants({ variant: "outline" }))}
+            >
+              Huỷ
+            </Link>
+
+            <Button disabled={isPending} type="submit">
+              {isPending && <Spinner />}
+              Tạo
             </Button>
-            <Button type="submit">Submit</Button>
           </Field>
         </FieldGroup>
       </form>

@@ -22,7 +22,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
-import { loginAction } from "@/data/auth";
+import { type Login, loginAction } from "@/data/auth";
 import { cn } from "@/lib/utils";
 
 export function LoginForm({
