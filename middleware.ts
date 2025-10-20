@@ -20,6 +20,13 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  if (sid && nextUrl.pathname.startsWith("/login")) {
+    const redirectUrl = new URL("/admin", url);
+    const response = NextResponse.redirect(redirectUrl);
+    response.headers.set("x-redirected-from", nextUrl.pathname);
+    return response;
+  }
+
   return response;
 
   // let user: UserDetail | null = null;

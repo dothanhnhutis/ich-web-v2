@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-
+import { redirect } from "next/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,12 +19,13 @@ export const metadata: Metadata = {
     follow: false,
   },
 };
-const UsersPage = async ({
-  searchParams,
-}: {
+const UsersPage = async (props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
-  const { slug } = await searchParams;
+  const searchParams = await props.searchParams;
+
+  if (Object.keys(searchParams).length === 0)
+    redirect(`/admin/users?limit=10&page=1`);
 
   return (
     <>

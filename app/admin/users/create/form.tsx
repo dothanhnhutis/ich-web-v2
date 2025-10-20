@@ -42,10 +42,13 @@ import { cn } from "@/lib/utils";
 
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]+$/;
+const passwordSchema = z.string().min(8).max(125).regex(passwordRegex);
 
 const CreateUserForm = () => {
   const router = useRouter();
   const [isPending, startTransition] = React.useTransition();
+  const [invalidEmail, setInvalidEmail] = React.useState<boolean>(false);
+
   const [formData, setFormData] = React.useState<{
     email: string;
     username: string;
@@ -55,13 +58,14 @@ const CreateUserForm = () => {
     username: "",
     roleIds: [],
   });
-
   const [roles, setRoles] = React.useState<Role[]>([]);
 
   const [passwordData, setPasswordData] = React.useState({
     type: "auto",
     value: "",
     isHidden: true,
+    focused: false,
+    invalid: true,
   });
 
   React.useEffect(() => {
@@ -82,6 +86,8 @@ const CreateUserForm = () => {
       type: "auto",
       value: "",
       isHidden: true,
+      focused: false,
+      invalid: true,
     });
   };
 
@@ -91,6 +97,19 @@ const CreateUserForm = () => {
     if (!z.email().safeParse(formData.email).success) {
       toast.warning("Email không hợp lệ.");
       setFormData({ ...formData, email: "" });
+      setInvalidEmail(true);
+      return;
+    }
+
+    if (
+      passwordData.type === "custom" &&
+      !passwordSchema.safeParse(passwordData.value).success
+    ) {
+      toast.warning("Mật khẩu không hợp lệ.");
+      setPasswordData((prev) => ({
+        ...prev,
+        value: "",
+      }));
       return;
     }
 
@@ -132,7 +151,9 @@ const CreateUserForm = () => {
                   >
                     Email
                   </FieldLabel>
+
                   <Input
+                    data-invalid={invalidEmail}
                     disabled={isPending}
                     id="email"
                     placeholder="m@example.com"
@@ -140,12 +161,15 @@ const CreateUserForm = () => {
                     type="email"
                     required
                     value={formData.email}
-                    className="border-destructive focus-visible:border-destructive ring-destructive/50 focus-visible:ring-destructive/50"
+                    className="data-[invalid=true]:border-destructive focus-visible:data-[invalid=true]:border-destructive data-[invalid=true]:ring-destructive/50 focus-visible:data-[invalid=true]:ring-destructive/50"
                     onChange={(e) => {
                       setFormData((prev) => ({
                         ...prev,
                         email: e.target.value,
                       }));
+                      if (invalidEmail) {
+                        setInvalidEmail(false);
+                      }
                     }}
                   />
                 </Field>
@@ -192,13 +216,20 @@ const CreateUserForm = () => {
                   value: "",
                   isHidden: true,
                   type: v,
+                  focused: false,
+                  invalid: true,
                 })
               }
             >
               <FieldLabel htmlFor="auto">
                 <Field orientation="horizontal">
                   <FieldContent>
-                    <FieldTitle>Tạo tự động</FieldTitle>
+                    <FieldTitle>
+                      Tạo tự động
+                      <span>
+                        <b>(Khuyến khích)</b>
+                      </span>
+                    </FieldTitle>
                     <FieldDescription>
                       Mật khẩu được tạo ngẫu nhiên gửi đến người dùng.
                     </FieldDescription>
@@ -208,7 +239,13 @@ const CreateUserForm = () => {
               </FieldLabel>
               <FieldLabel
                 htmlFor="custom"
-                className="has-[button[data-slot=radio-group-item]:is([data-state=checked])]:[&>[data-slot=field][data-orientation=vertical]]:block "
+                className={cn(
+                  "has-[input[data-slot=input-group-control][data-invalid=false][data-focused=true]]:has-[button[data-slot=radio-group-item]:is([data-state=checked])]:bg-destructive/5 ",
+                  "has-[input[data-slot=input-group-control][data-invalid=false][data-focused=true]]:has-[button[data-slot=radio-group-item]:is([data-state=checked])]:border-destructive",
+                  "has-[input[data-slot=input-group-control][data-invalid=false][data-focused=true]]:has-[button[data-slot=radio-group-item]:is([data-state=checked])]:[&_div[data-slot=input-group][role=group]]:border-destructive",
+                  "focus-within:has-[input[data-slot=input-group-control][data-invalid=false][data-focused=true]]:has-[button[data-slot=radio-group-item]:is([data-state=checked])]:[&_div[data-slot=input-group][role=group]]:ring-destructive/50",
+                  "has-[button[data-slot=radio-group-item]:is([data-state=checked])]:[&>[data-slot=field][data-orientation=vertical]]:block"
+                )}
               >
                 <Field orientation="horizontal">
                   <FieldContent>
@@ -221,20 +258,31 @@ const CreateUserForm = () => {
                 </Field>
                 <Field className="hidden py-2">
                   <FieldContent>
-                    <InputGroup className=" border-destructive  has-[[data-slot=input-group-control]:focus-visible]:border-destructive">
+                    <InputGroup className="bg-background dark:bg-background shadow-0">
                       <InputGroupInput
+                        data-invalid={passwordData.invalid}
+                        data-focused={passwordData.focused}
                         disabled={isPending}
                         required={passwordData.type === "custom"}
                         className="font-normal"
                         id="password"
                         name="password"
                         autoComplete="off"
+                        placeholder="Nhập mật khẩu...."
                         type={passwordData.isHidden ? "password" : "text"}
                         value={passwordData.value}
                         onChange={(e) => {
                           setPasswordData({
                             ...passwordData,
                             value: e.target.value,
+                            invalid: passwordSchema.safeParse(e.target.value)
+                              .success,
+                          });
+                        }}
+                        onBlur={() => {
+                          setPasswordData({
+                            ...passwordData,
+                            focused: true,
                           });
                         }}
                       />
