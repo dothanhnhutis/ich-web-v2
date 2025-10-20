@@ -7,13 +7,18 @@ import {
   ChevronsRightIcon,
   ChevronsUpDown,
   EllipsisVerticalIcon,
+  FilterIcon,
+  MailIcon,
   PlusIcon,
+  SearchIcon,
+  UserSearchIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Command,
   CommandGroup,
@@ -29,6 +34,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Label } from "@/components/ui/label";
 import {
   Pagination,
   PaginationContent,
@@ -40,7 +52,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -49,6 +71,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useUser } from "@/components/user-context";
 import { type QueryUsersAPIRes, queryUserAction } from "@/data/user";
 import calcPages from "@/lib/calcPages";
@@ -66,6 +89,7 @@ const LoadingData = () => {
               <TableRow>
                 <TableHead>Người dùng</TableHead>
                 <TableHead>Vai trò</TableHead>
+                <TableHead>Trạng thái</TableHead>
                 <TableHead className="text-right w-[130px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -80,6 +104,9 @@ const LoadingData = () => {
                         <Skeleton className="w-20 h-2 rounded-full" />
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="w-12 h-3 rounded-full" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="w-12 h-3 rounded-full" />
@@ -138,7 +165,248 @@ const LoadingData = () => {
   );
 };
 
+const ViewUserId = ({ id }: { id: string }) => {
+  return <div>{id}</div>;
+};
+
+const FilterUser = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [searchEmail, setSearchEmail] = React.useState<string>("");
+  const [searchUsername, setSearchUsername] = React.useState<string>("");
+  const [status, setStatus] = React.useState<string>("");
+
+  return (
+    <div className="grid gap-4 border rounded-md p-2">
+      <Label>Bộ lọc</Label>
+      <div className="flex gap-4 items-center flex-col sm:flex-row">
+        <InputGroup>
+          <InputGroupInput
+            type="text"
+            placeholder="Tìm kím bằng email"
+            value={searchEmail}
+            onChange={(e) => {
+              setSearchEmail(e.target.value);
+            }}
+          />
+          <InputGroupAddon>
+            <MailIcon />
+          </InputGroupAddon>
+          <InputGroupAddon align="inline-end" className="pr-2">
+            <Button
+              variant={"ghost"}
+              size={"icon-sm"}
+              onClick={() => {
+                const newSearchParams = new URLSearchParams(searchParams);
+                if (searchEmail !== "") {
+                  if (newSearchParams.has("username")) {
+                    newSearchParams.delete("username");
+                  }
+                  newSearchParams.set("email", searchEmail);
+                  newSearchParams.set("page", "1");
+                  newSearchParams.set("limit", "10");
+                  setSearchEmail("");
+                } else {
+                  newSearchParams.delete("email");
+                }
+                router.push(`/admin/users?${newSearchParams.toString()}`);
+              }}
+            >
+              <SearchIcon />
+            </Button>
+          </InputGroupAddon>
+        </InputGroup>
+        <InputGroup>
+          <InputGroupInput
+            type="text"
+            placeholder="Tìm kím bằng tên"
+            value={searchUsername}
+            onChange={(e) => {
+              setSearchUsername(e.target.value);
+            }}
+          />
+          <InputGroupAddon>
+            <UserSearchIcon />
+          </InputGroupAddon>
+          <InputGroupAddon align="inline-end" className="pr-2">
+            <Button
+              variant={"ghost"}
+              size={"icon-sm"}
+              onClick={() => {
+                const newSearchParams = new URLSearchParams(searchParams);
+                if (searchUsername !== "") {
+                  if (newSearchParams.has("email")) {
+                    newSearchParams.delete("email");
+                  }
+                  newSearchParams.set("username", searchUsername);
+                  newSearchParams.set("page", "1");
+                  newSearchParams.set("limit", "10");
+                  setSearchUsername("");
+                } else {
+                  newSearchParams.delete("username");
+                }
+                router.push(`/admin/users?${newSearchParams.toString()}`);
+              }}
+            >
+              <SearchIcon />
+            </Button>
+          </InputGroupAddon>
+        </InputGroup>
+        <Select
+          value={status}
+          onValueChange={(newValue) => {
+            if (newValue === status) {
+              setStatus("");
+            } else {
+              setStatus(newValue);
+            }
+          }}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Trạng thái" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Trạng thái</SelectLabel>
+              <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+              <SelectItem value="INACTIVE">Vô hiệu hoá</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant={"outline"}>
+              <FilterIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-80" align="end">
+            <DropdownMenuLabel>Sắp xếp</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <div className="flex flex-col gap-2 p-1">
+              <div className="flex gap-2 justify-between items-center">
+                <Label>Email</Label>
+                <Switch />
+              </div>
+              <div className="flex gap-2 items-center justify-between">
+                <p className="text-sm">Sắp xếp theo email</p>
+                <ToggleGroup variant="outline" type="single">
+                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                    <p>Tăng</p>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                    <p>Giảm</p>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <div className="flex flex-col gap-2 p-1">
+              <div className="flex gap-2 justify-between items-center">
+                <Label>Họ và tên</Label>
+                <Switch />
+              </div>
+              <div className="flex gap-2 items-center justify-between">
+                <p className="text-sm">Sắp xếp theo tên người dùng</p>
+                <ToggleGroup variant="outline" type="single">
+                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                    <p>Tăng</p>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                    <p>Giảm</p>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <div className="flex flex-col gap-2 p-1">
+              <div className="flex gap-2 justify-between items-center">
+                <Label>Trạng Thái</Label>
+                <Switch />
+              </div>
+              <div className="flex gap-2 items-center justify-between">
+                <p className="text-sm">Sắp xếp theo trạng thái</p>
+                <ToggleGroup variant="outline" type="single">
+                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                    <p>Tăng</p>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                    <p>Giảm</p>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <div className="flex flex-col gap-2 p-1">
+              <div className="flex gap-2 justify-between items-center">
+                <Label>Ngày vô hiệu hoá</Label>
+                <Switch />
+              </div>
+              <div className="flex gap-2 items-center justify-between">
+                <p className="text-sm">Sắp xếp theo ngày vô hiệu hoá</p>
+                <ToggleGroup variant="outline" type="single">
+                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                    <p>Tăng</p>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                    <p>Giảm</p>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <div className="flex flex-col gap-2 p-1">
+              <div className="flex gap-2 justify-between items-center">
+                <Label>Ngày tạo</Label>
+                <Switch />
+              </div>
+              <div className="flex gap-2 items-center justify-between">
+                <p className="text-sm">Sắp xếp theo ngày tạo</p>
+                <ToggleGroup variant="outline" type="single">
+                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                    <p>Tăng</p>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                    <p>Giảm</p>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <div className="flex flex-col gap-2 p-1">
+              <div className="flex gap-2 justify-between items-center">
+                <Label>Ngày cập nhật</Label>
+                <Switch />
+              </div>
+              <div className="flex gap-2 items-center justify-between">
+                <p className="text-sm">Sắp xếp theo ngày cập nhật</p>
+                <ToggleGroup variant="outline" type="single">
+                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                    <p>Tăng</p>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                    <p>Giảm</p>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <div className="flex items-center justify-between">
+              <Button type="button" variant={"outline"}>
+                Đặt lại
+              </Button>
+              <Button>Áp dụng</Button>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+};
+
 const UserTable = () => {
+  const [viewId, setViewId] = React.useState<string | null>(null);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = React.useState(false);
   const [itemPerPage, setItemPerPage] = React.useState<string>("10");
@@ -182,6 +450,8 @@ const UserTable = () => {
           ) : null}
         </div>
 
+        <FilterUser />
+
         {isLoading ? (
           <LoadingData />
         ) : (
@@ -193,6 +463,7 @@ const UserTable = () => {
                     <TableRow>
                       <TableHead>Người dùng</TableHead>
                       <TableHead>Vai trò</TableHead>
+                      <TableHead>Trạng thái</TableHead>
                       <TableHead className="text-right w-[130px]"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -231,6 +502,11 @@ const UserTable = () => {
                             </div>
                           </TableCell>
                           <TableCell>{u.role_count}</TableCell>
+                          <TableCell>
+                            {u.status === "ACTIVE"
+                              ? "Hoạt động"
+                              : "Vô hiệu hoá"}
+                          </TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -238,14 +514,18 @@ const UserTable = () => {
                                   <EllipsisVerticalIcon className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                className="w-30"
-                                align="start"
-                              >
+                              <DropdownMenuContent className="w-30" align="end">
                                 <DropdownMenuLabel>Hành động</DropdownMenuLabel>
                                 <DropdownMenuGroup>
                                   <DropdownMenuItem>
                                     Sao chép ID
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setViewId(u.id);
+                                    }}
+                                  >
+                                    Xem trước
                                   </DropdownMenuItem>
                                   <DropdownMenuItem>Chỉnh sửa</DropdownMenuItem>
                                 </DropdownMenuGroup>
@@ -281,9 +561,6 @@ const UserTable = () => {
                           className="w-[70px] justify-between"
                         >
                           {itemPerPage}
-                          {/* {itemPerPage
-                            ? itemPerPages.find((item) => item === itemPerPage)
-                            : "Chọn..."} */}
                           <ChevronsUpDown className="opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -298,6 +575,20 @@ const UserTable = () => {
                                   onSelect={(currentValue) => {
                                     setItemPerPage(currentValue);
                                     setOpen(false);
+                                    const newSearchParams = new URLSearchParams(
+                                      searchParams.toString()
+                                    );
+                                    if (currentValue === "All") {
+                                      newSearchParams.delete("limit");
+                                    } else {
+                                      newSearchParams.set(
+                                        "limit",
+                                        currentValue
+                                      );
+                                    }
+                                    router.push(
+                                      `/admin/users?${newSearchParams.toString()}`
+                                    );
                                   }}
                                 >
                                   {item}
@@ -318,6 +609,20 @@ const UserTable = () => {
                                   onSelect={(currentValue) => {
                                     setItemPerPage(currentValue);
                                     setOpen(false);
+                                    const newSearchParams = new URLSearchParams(
+                                      searchParams.toString()
+                                    );
+                                    if (currentValue === "All") {
+                                      newSearchParams.delete("limit");
+                                    } else {
+                                      newSearchParams.set(
+                                        "limit",
+                                        currentValue
+                                      );
+                                    }
+                                    router.push(
+                                      `/admin/users?${newSearchParams.toString()}`
+                                    );
                                   }}
                                 >
                                   {itemPerPage}
@@ -334,22 +639,89 @@ const UserTable = () => {
                   <p className="@2xl:hidden">
                     {`Trang ${Math.ceil(
                       userData.metadata.itemEnd / userData.metadata.limit
-                    )} / ${Math.ceil(
-                      userData.metadata.totalItem / userData.metadata.limit
-                    )}`}
+                    )} / ${userData.metadata.totalPage}`}
                   </p>
 
                   <div className="flex items-center gap-2 @2xl:hidden">
-                    <Button disabled variant={"outline"} size={"icon"}>
+                    <Button
+                      disabled={userData.metadata.itemStart === 1}
+                      variant={"outline"}
+                      size={"icon"}
+                      onClick={() => {
+                        const newSearchParams = new URLSearchParams(
+                          searchParams.toString()
+                        );
+                        newSearchParams.set("page", "1");
+                        router.push(
+                          `/admin/users?${newSearchParams.toString()}`
+                        );
+                      }}
+                    >
                       <ChevronsLeftIcon className="w-4 h-4" />
                     </Button>
-                    <Button disabled variant={"outline"} size={"icon"}>
+                    <Button
+                      disabled={userData.metadata.itemStart === 1}
+                      variant={"outline"}
+                      size={"icon"}
+                      onClick={() => {
+                        const currentPage =
+                          Math.ceil(
+                            userData.metadata.itemEnd / userData.metadata.limit
+                          ) - 1;
+                        const newSearchParams = new URLSearchParams(
+                          searchParams.toString()
+                        );
+                        newSearchParams.set("page", currentPage.toString());
+                        router.push(
+                          `/admin/users?${newSearchParams.toString()}`
+                        );
+                      }}
+                    >
                       <ChevronLeftIcon className="w-4 h-4" />
                     </Button>
-                    <Button variant={"outline"} size={"icon"}>
+                    <Button
+                      variant={"outline"}
+                      size={"icon"}
+                      disabled={
+                        userData.metadata.totalPage.toString() ===
+                        searchParams.get("page")
+                      }
+                      onClick={() => {
+                        const currentPage =
+                          Math.ceil(
+                            userData.metadata.itemEnd / userData.metadata.limit
+                          ) + 1;
+                        const newSearchParams = new URLSearchParams(
+                          searchParams.toString()
+                        );
+                        newSearchParams.set("page", currentPage.toString());
+                        router.push(
+                          `/admin/users?${newSearchParams.toString()}`
+                        );
+                      }}
+                    >
                       <ChevronRightIcon className="w-4 h-4" />
                     </Button>
-                    <Button variant={"outline"} size={"icon"}>
+                    <Button
+                      disabled={
+                        userData.metadata.totalPage.toString() ===
+                        searchParams.get("page")
+                      }
+                      variant={"outline"}
+                      size={"icon"}
+                      onClick={() => {
+                        const newSearchParams = new URLSearchParams(
+                          searchParams.toString()
+                        );
+                        newSearchParams.set(
+                          "page",
+                          userData.metadata.totalPage.toString()
+                        );
+                        router.push(
+                          `/admin/users?${newSearchParams.toString()}`
+                        );
+                      }}
+                    >
                       <ChevronsRightIcon className="w-4 h-4" />
                     </Button>
                   </div>
@@ -360,6 +732,20 @@ const UserTable = () => {
                           disabled={userData.metadata.itemStart === 1}
                           variant={"outline"}
                           size={"icon"}
+                          onClick={() => {
+                            const currentPage =
+                              Math.ceil(
+                                userData.metadata.itemEnd /
+                                  userData.metadata.limit
+                              ) - 1;
+                            const newSearchParams = new URLSearchParams(
+                              searchParams.toString()
+                            );
+                            newSearchParams.set("page", currentPage.toString());
+                            router.push(
+                              `/admin/users?${newSearchParams.toString()}`
+                            );
+                          }}
                         >
                           <ChevronLeftIcon className="w-4 h-4" />
                         </Button>
@@ -379,9 +765,32 @@ const UserTable = () => {
                               <PaginationEllipsis />
                             </PaginationItem>
                           );
+                        if (p.toString() === searchParams.get("page"))
+                          return (
+                            <PaginationItem key={p}>
+                              <button
+                                type="button"
+                                className="h-9 w-9 shrink-0 text-center align-middle border rounded-md text-primary border-primary"
+                              >
+                                {p}
+                              </button>
+                            </PaginationItem>
+                          );
                         return (
                           <PaginationItem key={p}>
-                            <Button variant={"outline"} size={"icon"}>
+                            <Button
+                              variant={"outline"}
+                              size={"icon"}
+                              onClick={() => {
+                                const newSearchParams = new URLSearchParams(
+                                  searchParams.toString()
+                                );
+                                newSearchParams.set("page", p.toString());
+                                router.push(
+                                  `/admin/users?${newSearchParams.toString()}`
+                                );
+                              }}
+                            >
                               {p}
                             </Button>
                           </PaginationItem>
@@ -393,6 +802,20 @@ const UserTable = () => {
                           variant={"outline"}
                           size={"icon"}
                           disabled={!userData.metadata.hasNextPage}
+                          onClick={() => {
+                            const currentPage =
+                              Math.ceil(
+                                userData.metadata.itemEnd /
+                                  userData.metadata.limit
+                              ) + 1;
+                            const newSearchParams = new URLSearchParams(
+                              searchParams.toString()
+                            );
+                            newSearchParams.set("page", currentPage.toString());
+                            router.push(
+                              `/admin/users?${newSearchParams.toString()}`
+                            );
+                          }}
                         >
                           <ChevronRightIcon className="w-4 h-4" />
                         </Button>
@@ -405,6 +828,7 @@ const UserTable = () => {
           </div>
         )}
       </div>
+      {viewId && <ViewUserId id={viewId} />}
     </div>
   );
 };
