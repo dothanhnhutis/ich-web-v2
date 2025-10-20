@@ -132,12 +132,12 @@ export const queryUserAction = async (
   } catch (error: unknown) {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<{ message: string }>;
-      console.log(`queryUser func error: `, res.data.message);
+      console.log(`queryUserAction func error: `, res.data.message);
     }
     if (error instanceof FetchAPINetWorkError) {
-      console.log(`createUserAction func error: ${error.message}`);
+      console.log(`queryUserAction func error: ${error.message}`);
     } else {
-      console.log(`createUserAction func error: ${error}`);
+      console.log(`queryUserAction func error: ${error}`);
     }
     return {
       statusText: "BAD_REQUEST",

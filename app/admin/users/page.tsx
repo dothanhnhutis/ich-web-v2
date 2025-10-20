@@ -27,6 +27,16 @@ const UsersPage = async (props: {
   if (Object.keys(searchParams).length === 0)
     redirect(`/admin/users?limit=10&page=1`);
 
+  // if (searchParams.has("email") && searchParams.has("username")) {
+  //   let lastKey: string;
+  //   for (const [key] of Array.from(searchParams.entries()).reverse()) {
+  //     if (key === "email" || key === "username") {
+  //       lastKey = key;
+  //       break;
+  //     }
+  //   }
+  // }
+
   return (
     <>
       <header className="sticky top-0 right-0 z-50 bg-background/10 backdrop-blur-lg flex h-16 shrink-0 items-center gap-2 border-b px-4">

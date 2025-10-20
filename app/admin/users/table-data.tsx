@@ -193,16 +193,60 @@ const FilterUser = () => {
   const [open, setOpen] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const paramSetters = {
-      email: setSearchEmail,
-      username: setSearchUsername,
-    };
+    if (searchParams.has("email") && searchParams.has("username")) {
+      let lastKey: string;
+      for (const [key] of Array.from(searchParams.entries()).reverse()) {
+        if (key === "email" || key === "username") {
+          lastKey = key;
+          break;
+        }
+      }
 
-    Object.entries(paramSetters).forEach(([key, setter]) => {
-      const value = searchParams.get(key);
-      if (value) setter(value);
-    });
-  }, [searchParams]);
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.delete("email");
+      router.push(`/admin/users?${newSearchParams.toString()}`);
+    } else {
+      const paramSetters = {
+        email: setSearchEmail,
+        username: setSearchUsername,
+      };
+      Object.entries(paramSetters).forEach(([key, setter]) => {
+        const value = searchParams.get(key);
+        if (value) setter(value);
+      });
+    }
+
+    // const paramSetters = {
+    //   email: setSearchEmail,
+    //   username: setSearchUsername,
+    // };
+
+    // if (searchParams.has("email") && searchParams.has("username")) {
+    //   let lastKey: string;
+    //   for (const [key] of Array.from(searchParams.entries()).reverse()) {
+    //     if (key === "email" || key === "username") {
+    //       lastKey = key;
+    //       break;
+    //     }
+    //   }
+    //   console.log(lastKey);
+    //   Object.entries(paramSetters).forEach(([key, setter]) => {
+    //     const value = searchParams.get(key);
+    //     if (value) {
+    //       if (key === "email" || key === "username") {
+
+    //       } else {
+    //         setter(value);
+    //       }
+    //     }
+    //   });
+    // } else {
+    //   Object.entries(paramSetters).forEach(([key, setter]) => {
+    //     const value = searchParams.get(key);
+    //     if (value) setter(value);
+    //   });
+    // }
+  }, [searchParams, router]);
 
   return (
     <div className="relative grid gap-4 border rounded-md p-3">
@@ -264,6 +308,7 @@ const FilterUser = () => {
             </Button>
           </InputGroupAddon>
         </InputGroup>
+
         <InputGroup>
           <InputGroupInput
             type="text"
@@ -275,6 +320,30 @@ const FilterUser = () => {
           />
           <InputGroupAddon>
             <UserSearchIcon />
+          </InputGroupAddon>
+          <InputGroupAddon
+            align="inline-end"
+            className={cn(
+              "p-0",
+              searchUsername.length === 0 ? "hidden" : "block"
+            )}
+          >
+            <button
+              type="button"
+              className=" p-2"
+              onClick={() => {
+                const newSearchParams = new URLSearchParams(searchParams);
+                setSearchUsername("");
+                if (newSearchParams.has("username")) {
+                  newSearchParams.delete("username");
+                  newSearchParams.set("page", "1");
+                  newSearchParams.set("limit", "10");
+                  router.push(`/admin/users?${newSearchParams.toString()}`);
+                }
+              }}
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
           </InputGroupAddon>
           <InputGroupAddon align="inline-end" className="pr-2">
             <Button
