@@ -1,6 +1,7 @@
 "use client";
 import {
   CheckIcon,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsLeftIcon,
@@ -12,6 +13,7 @@ import {
   PlusIcon,
   SearchIcon,
   UserSearchIcon,
+  XIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -21,7 +23,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Command,
+  CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -169,15 +173,39 @@ const ViewUserId = ({ id }: { id: string }) => {
   return <div>{id}</div>;
 };
 
+const statusData = [
+  {
+    label: "Hoạt động",
+    value: "ACTIVE",
+  },
+  {
+    label: "Vô hiệu hoá",
+    value: "INACTIVE",
+  },
+];
+
 const FilterUser = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchEmail, setSearchEmail] = React.useState<string>("");
   const [searchUsername, setSearchUsername] = React.useState<string>("");
   const [status, setStatus] = React.useState<string>("");
+  const [open, setOpen] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const paramSetters = {
+      email: setSearchEmail,
+      username: setSearchUsername,
+    };
+
+    Object.entries(paramSetters).forEach(([key, setter]) => {
+      const value = searchParams.get(key);
+      if (value) setter(value);
+    });
+  }, [searchParams]);
 
   return (
-    <div className="grid gap-4 border rounded-md p-2">
+    <div className="relative grid gap-4 border rounded-md p-3">
       <Label>Bộ lọc</Label>
       <div className="flex gap-4 items-center flex-col sm:flex-row">
         <InputGroup>
@@ -192,6 +220,27 @@ const FilterUser = () => {
           <InputGroupAddon>
             <MailIcon />
           </InputGroupAddon>
+          <InputGroupAddon
+            align="inline-end"
+            className={cn("p-0", searchEmail.length === 0 ? "hidden" : "block")}
+          >
+            <button
+              type="button"
+              className=" p-2"
+              onClick={() => {
+                const newSearchParams = new URLSearchParams(searchParams);
+                setSearchEmail("");
+                if (newSearchParams.has("email")) {
+                  newSearchParams.delete("email");
+                  newSearchParams.set("page", "1");
+                  newSearchParams.set("limit", "10");
+                  router.push(`/admin/users?${newSearchParams.toString()}`);
+                }
+              }}
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
+          </InputGroupAddon>
           <InputGroupAddon align="inline-end" className="pr-2">
             <Button
               variant={"ghost"}
@@ -205,7 +254,6 @@ const FilterUser = () => {
                   newSearchParams.set("email", searchEmail);
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
-                  setSearchEmail("");
                 } else {
                   newSearchParams.delete("email");
                 }
@@ -252,153 +300,203 @@ const FilterUser = () => {
             </Button>
           </InputGroupAddon>
         </InputGroup>
-        <Select
-          value={status}
-          onValueChange={(newValue) => {
-            if (newValue === status) {
-              setStatus("");
-            } else {
-              setStatus(newValue);
-            }
-          }}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Trạng thái" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Trạng thái</SelectLabel>
-              <SelectItem value="ACTIVE">Hoạt động</SelectItem>
-              <SelectItem value="INACTIVE">Vô hiệu hoá</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant={"outline"}>
-              <FilterIcon />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-80" align="end">
-            <DropdownMenuLabel>Sắp xếp</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <div className="flex flex-col gap-2 p-1">
-              <div className="flex gap-2 justify-between items-center">
-                <Label>Email</Label>
-                <Switch />
-              </div>
-              <div className="flex gap-2 items-center justify-between">
-                <p className="text-sm">Sắp xếp theo email</p>
-                <ToggleGroup variant="outline" type="single">
-                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                    <p>Tăng</p>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                    <p>Giảm</p>
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </div>
-            <DropdownMenuSeparator />
-            <div className="flex flex-col gap-2 p-1">
-              <div className="flex gap-2 justify-between items-center">
-                <Label>Họ và tên</Label>
-                <Switch />
-              </div>
-              <div className="flex gap-2 items-center justify-between">
-                <p className="text-sm">Sắp xếp theo tên người dùng</p>
-                <ToggleGroup variant="outline" type="single">
-                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                    <p>Tăng</p>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                    <p>Giảm</p>
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </div>
-            <DropdownMenuSeparator />
-            <div className="flex flex-col gap-2 p-1">
-              <div className="flex gap-2 justify-between items-center">
-                <Label>Trạng Thái</Label>
-                <Switch />
-              </div>
-              <div className="flex gap-2 items-center justify-between">
-                <p className="text-sm">Sắp xếp theo trạng thái</p>
-                <ToggleGroup variant="outline" type="single">
-                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                    <p>Tăng</p>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                    <p>Giảm</p>
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </div>
-            <DropdownMenuSeparator />
-            <div className="flex flex-col gap-2 p-1">
-              <div className="flex gap-2 justify-between items-center">
-                <Label>Ngày vô hiệu hoá</Label>
-                <Switch />
-              </div>
-              <div className="flex gap-2 items-center justify-between">
-                <p className="text-sm">Sắp xếp theo ngày vô hiệu hoá</p>
-                <ToggleGroup variant="outline" type="single">
-                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                    <p>Tăng</p>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                    <p>Giảm</p>
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </div>
-            <DropdownMenuSeparator />
-            <div className="flex flex-col gap-2 p-1">
-              <div className="flex gap-2 justify-between items-center">
-                <Label>Ngày tạo</Label>
-                <Switch />
-              </div>
-              <div className="flex gap-2 items-center justify-between">
-                <p className="text-sm">Sắp xếp theo ngày tạo</p>
-                <ToggleGroup variant="outline" type="single">
-                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                    <p>Tăng</p>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                    <p>Giảm</p>
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </div>
-            <DropdownMenuSeparator />
-            <div className="flex flex-col gap-2 p-1">
-              <div className="flex gap-2 justify-between items-center">
-                <Label>Ngày cập nhật</Label>
-                <Switch />
-              </div>
-              <div className="flex gap-2 items-center justify-between">
-                <p className="text-sm">Sắp xếp theo ngày cập nhật</p>
-                <ToggleGroup variant="outline" type="single">
-                  <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                    <p>Tăng</p>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                    <p>Giảm</p>
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </div>
-            <DropdownMenuSeparator />
-            <div className="flex items-center justify-between">
-              <Button type="button" variant={"outline"}>
-                Đặt lại
+        <div className="relative flex gap-4 items-center w-full sm:w-[180px]">
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "flex w-full shrink justify-between hover:bg-transparent text-start text-sm font-normal",
+                  status === ""
+                    ? "text-muted-foreground hover:text-muted-foreground"
+                    : "hover:text-black"
+                )}
+              >
+                <span>
+                  {status === ""
+                    ? "Trạng thái"
+                    : status === "ACTIVE"
+                    ? "Hoạt động"
+                    : "Vô hiệu hoá"}
+                </span>
+                <ChevronDownIcon className="opacity-50" />
               </Button>
-              <Button>Áp dụng</Button>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </PopoverTrigger>
+            <PopoverContent
+              className="p-0 w-full min-w-[var(--radix-popover-trigger-width)]"
+              align="end"
+              side="bottom"
+            >
+              <Command>
+                <CommandList>
+                  <CommandGroup heading="Trạng thái">
+                    {statusData.map((s) => (
+                      <CommandItem
+                        key={s.label}
+                        value={s.value}
+                        onSelect={(currentValue) => {
+                          setStatus(
+                            currentValue === status ? "" : currentValue
+                          );
+                          setOpen(false);
+
+                          const newSearchParams = new URLSearchParams(
+                            searchParams.toString()
+                          );
+                          if (currentValue === status) {
+                            newSearchParams.delete("status");
+                          } else {
+                            newSearchParams.set("status", currentValue);
+                          }
+                          newSearchParams.set("page", "1");
+                          newSearchParams.set("limit", "10");
+                          router.push(
+                            `/admin/users?${newSearchParams.toString()}`
+                          );
+                        }}
+                      >
+                        {s.label}
+                        <CheckIcon
+                          className={cn(
+                            "ml-auto",
+                            status === s.value ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant={"outline"}>
+                <FilterIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-80" align="end">
+              <DropdownMenuLabel>Sắp xếp</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="flex flex-col gap-2 p-1">
+                <div className="flex gap-2 justify-between items-center">
+                  <Label>Email</Label>
+                  <Switch />
+                </div>
+                <div className="flex gap-2 items-center justify-between">
+                  <p className="text-sm">Sắp xếp theo email</p>
+                  <ToggleGroup variant="outline" type="single">
+                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                      <p>Tăng</p>
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                      <p>Giảm</p>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="flex flex-col gap-2 p-1">
+                <div className="flex gap-2 justify-between items-center">
+                  <Label>Họ và tên</Label>
+                  <Switch />
+                </div>
+                <div className="flex gap-2 items-center justify-between">
+                  <p className="text-sm">Sắp xếp theo tên người dùng</p>
+                  <ToggleGroup variant="outline" type="single">
+                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                      <p>Tăng</p>
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                      <p>Giảm</p>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="flex flex-col gap-2 p-1">
+                <div className="flex gap-2 justify-between items-center">
+                  <Label>Trạng Thái</Label>
+                  <Switch />
+                </div>
+                <div className="flex gap-2 items-center justify-between">
+                  <p className="text-sm">Sắp xếp theo trạng thái</p>
+                  <ToggleGroup variant="outline" type="single">
+                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                      <p>Tăng</p>
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                      <p>Giảm</p>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="flex flex-col gap-2 p-1">
+                <div className="flex gap-2 justify-between items-center">
+                  <Label>Ngày vô hiệu hoá</Label>
+                  <Switch />
+                </div>
+                <div className="flex gap-2 items-center justify-between">
+                  <p className="text-sm">Sắp xếp theo ngày vô hiệu hoá</p>
+                  <ToggleGroup variant="outline" type="single">
+                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                      <p>Tăng</p>
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                      <p>Giảm</p>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="flex flex-col gap-2 p-1">
+                <div className="flex gap-2 justify-between items-center">
+                  <Label>Ngày tạo</Label>
+                  <Switch />
+                </div>
+                <div className="flex gap-2 items-center justify-between">
+                  <p className="text-sm">Sắp xếp theo ngày tạo</p>
+                  <ToggleGroup variant="outline" type="single">
+                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                      <p>Tăng</p>
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                      <p>Giảm</p>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="flex flex-col gap-2 p-1">
+                <div className="flex gap-2 justify-between items-center">
+                  <Label>Ngày cập nhật</Label>
+                  <Switch />
+                </div>
+                <div className="flex gap-2 items-center justify-between">
+                  <p className="text-sm">Sắp xếp theo ngày cập nhật</p>
+                  <ToggleGroup variant="outline" type="single">
+                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                      <p>Tăng</p>
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                      <p>Giảm</p>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="flex items-center justify-between">
+                <Button type="button" variant={"outline"}>
+                  Đặt lại
+                </Button>
+                <Button>Áp dụng</Button>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </div>
   );
@@ -471,7 +569,7 @@ const UserTable = () => {
                   {!userData || userData.users.length === 0 ? (
                     <TableBody>
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center h-16">
+                        <TableCell colSpan={4} className="text-center h-16">
                           <p>Không có kết quả...</p>
                         </TableCell>
                       </TableRow>
