@@ -12,6 +12,7 @@ import {
   MailIcon,
   PlusIcon,
   SearchIcon,
+  SlidersHorizontalIcon,
   UserSearchIcon,
   XIcon,
 } from "lucide-react";
@@ -189,7 +190,7 @@ const sortUserEnum = buildSortField([
   "updated_at",
 ]);
 
-const sortData = {
+const sortData: Record<string, { title: string; description: string }> = {
   email: {
     title: "Email",
     description: "Sắp xếp theo email",
@@ -223,11 +224,12 @@ const FilterUser = () => {
   const [searchUsername, setSearchUsername] = React.useState<string>("");
   const [status, setStatus] = React.useState<string>("");
   const [open, setOpen] = React.useState<boolean>(false);
+  const [sortOpen, setSortOpen] = React.useState<boolean>(false);
   const [sorts, setSorts] = React.useState<
     Record<string, { isOn: boolean; dir: string }>
   >({
     email: {
-      isOn: true,
+      isOn: false,
       dir: "asc",
     },
     username: { isOn: false, dir: "asc" },
@@ -240,17 +242,13 @@ const FilterUser = () => {
   // redirect lại trang nếu có key không hợp lệ
   React.useEffect(() => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
-    // xoá key không hợp lệ
+    // xoá key không hợp lệ và đồng bộ lại dữ liệu
     for (const k of newSearchParams.keys()) {
       if (k === "sort") {
         const values = newSearchParams.getAll(k);
         values.forEach((v) => {
           if (!sortUserEnum.includes(v)) newSearchParams.delete(k, v);
         });
-
-        // values.forEach((v, index) => {
-        //   if (index !== values.length - 1) newSearchParams.delete(k, v);
-        // });
       } else if (accessSearchParamKeys.includes(k)) {
         const values = newSearchParams.getAll(k);
         values.forEach((v, index) => {
@@ -275,6 +273,7 @@ const FilterUser = () => {
       username: setSearchUsername,
       status: setStatus,
     };
+    // cập nhật dữ liệu
     Object.entries(paramSetters).forEach(([key, setter]) => {
       const value = newSearchParams.get(key);
       if (value) setter(value);
@@ -294,6 +293,50 @@ const FilterUser = () => {
     },
     [sorts]
   );
+
+  const handleResetSorts = React.useCallback(() => {
+    const sortValues = searchParams.getAll("sort");
+
+    const newSorts: Record<
+      string,
+      {
+        isOn: boolean;
+        dir: string;
+      }
+    > = {
+      email: {
+        isOn: false,
+        dir: "asc",
+      },
+      username: { isOn: false, dir: "asc" },
+      status: { isOn: false, dir: "asc" },
+      deactived_at: { isOn: false, dir: "asc" },
+      created_at: { isOn: false, dir: "asc" },
+      updated_at: { isOn: false, dir: "asc" },
+    };
+
+    sortValues.forEach((v) => {
+      const [key, dir] = v.split(".");
+      newSorts[key] = {
+        isOn: true,
+        dir,
+      };
+    });
+
+    setSorts(newSorts);
+  }, [searchParams]);
+
+  const handleSorts = () => {
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.delete("sort");
+    Object.keys(sorts).forEach((k) => {
+      if (sorts[k].isOn) {
+        newSearchParams.append("sort", `${k}.${sorts[k].dir}`);
+      }
+    });
+    setSortOpen(false);
+    router.push(`/admin/users?${newSearchParams.toString()}`);
+  };
 
   return (
     <div className="relative grid gap-4 border rounded-md p-3">
@@ -488,39 +531,64 @@ const FilterUser = () => {
             </PopoverContent>
           </Popover>
 
-          <DropdownMenu>
+          <DropdownMenu
+            open={sortOpen}
+            onOpenChange={(isOpen) => {
+              setSortOpen(isOpen);
+              if (!isOpen) {
+                handleResetSorts();
+              }
+            }}
+          >
             <DropdownMenuTrigger asChild>
               <Button variant={"outline"}>
-                <FilterIcon />
+                <SlidersHorizontalIcon />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-80" align="end">
               <DropdownMenuLabel>Sắp xếp</DropdownMenuLabel>
 
               {Object.keys(sortData).map((key) => (
-                <>
+                <React.Fragment key={key}>
                   <DropdownMenuSeparator />
                   <div className="flex flex-col gap-2 p-1">
                     <div className="flex gap-2 justify-between items-center">
-                      <Label>{key.}</Label>
-                      <Switch checked={hasSort("email")} />
+                      <Label>{sortData[key].title}</Label>
+                      <Switch
+                        checked={hasSort(key)}
+                        onCheckedChange={(isOn) => {
+                          setSorts((prev) => ({
+                            ...prev,
+                            [key]: {
+                              ...prev[key],
+                              isOn,
+                            },
+                          }));
+                        }}
+                      />
                     </div>
                     <div className="flex gap-2 items-center justify-between">
-                      <p className="text-sm">Sắp xếp theo email</p>
+                      <p className="text-sm">{sortData[key].description}</p>
                       <ToggleGroup
-                        defaultValue="email.desc"
                         variant="outline"
                         type="single"
-                        disabled={!hasSort("email")}
+                        disabled={!hasSort(key)}
+                        value={sorts[key].dir}
+                        onValueChange={(v) => {
+                          setSorts((prev) => ({
+                            ...prev,
+                            [key]: {
+                              ...prev[key],
+                              dir: v,
+                            },
+                          }));
+                        }}
                       >
-                        <ToggleGroupItem
-                          value="email.asc"
-                          aria-label="Toggle bold"
-                        >
+                        <ToggleGroupItem value="asc" aria-label="Toggle bold">
                           <p>Tăng</p>
                         </ToggleGroupItem>
                         <ToggleGroupItem
-                          value="email.desc"
+                          value="desc"
                           aria-label="Toggle italic"
                         >
                           <p>Giảm</p>
@@ -528,105 +596,19 @@ const FilterUser = () => {
                       </ToggleGroup>
                     </div>
                   </div>
-                </>
+                </React.Fragment>
               ))}
 
               <DropdownMenuSeparator />
-              <div className="flex flex-col gap-2 p-1">
-                <div className="flex gap-2 justify-between items-center">
-                  <Label>Họ và tên</Label>
-                  <Switch />
-                </div>
-                <div className="flex gap-2 items-center justify-between">
-                  <p className="text-sm">Sắp xếp theo tên người dùng</p>
-                  <ToggleGroup variant="outline" type="single">
-                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                      <p>Tăng</p>
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                      <p>Giảm</p>
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-              <DropdownMenuSeparator />
-              <div className="flex flex-col gap-2 p-1">
-                <div className="flex gap-2 justify-between items-center">
-                  <Label>Trạng Thái</Label>
-                  <Switch />
-                </div>
-                <div className="flex gap-2 items-center justify-between">
-                  <p className="text-sm">Sắp xếp theo trạng thái</p>
-                  <ToggleGroup variant="outline" type="single">
-                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                      <p>Tăng</p>
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                      <p>Giảm</p>
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-              <DropdownMenuSeparator />
-              <div className="flex flex-col gap-2 p-1">
-                <div className="flex gap-2 justify-between items-center">
-                  <Label>Ngày vô hiệu hoá</Label>
-                  <Switch />
-                </div>
-                <div className="flex gap-2 items-center justify-between">
-                  <p className="text-sm">Sắp xếp theo ngày vô hiệu hoá</p>
-                  <ToggleGroup variant="outline" type="single">
-                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                      <p>Tăng</p>
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                      <p>Giảm</p>
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-              <DropdownMenuSeparator />
-              <div className="flex flex-col gap-2 p-1">
-                <div className="flex gap-2 justify-between items-center">
-                  <Label>Ngày tạo</Label>
-                  <Switch />
-                </div>
-                <div className="flex gap-2 items-center justify-between">
-                  <p className="text-sm">Sắp xếp theo ngày tạo</p>
-                  <ToggleGroup variant="outline" type="single">
-                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                      <p>Tăng</p>
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                      <p>Giảm</p>
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-              <DropdownMenuSeparator />
-              <div className="flex flex-col gap-2 p-1">
-                <div className="flex gap-2 justify-between items-center">
-                  <Label>Ngày cập nhật</Label>
-                  <Switch />
-                </div>
-                <div className="flex gap-2 items-center justify-between">
-                  <p className="text-sm">Sắp xếp theo ngày cập nhật</p>
-                  <ToggleGroup variant="outline" type="single">
-                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                      <p>Tăng</p>
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                      <p>Giảm</p>
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-              <DropdownMenuSeparator />
               <div className="flex items-center justify-between">
-                <Button type="button" variant={"outline"}>
+                <Button
+                  type="button"
+                  variant={"outline"}
+                  onClick={handleResetSorts}
+                >
                   Đặt lại
                 </Button>
-                <Button>Áp dụng</Button>
+                <Button onClick={handleSorts}>Áp dụng</Button>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
