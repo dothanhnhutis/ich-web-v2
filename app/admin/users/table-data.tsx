@@ -20,12 +20,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -38,7 +35,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
@@ -56,15 +52,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -79,7 +66,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useUser } from "@/components/user-context";
 import { type QueryUsersAPIRes, queryUserAction } from "@/data/user";
 import calcPages from "@/lib/calcPages";
-import { cn, getShortName } from "@/lib/utils";
+import { buildSortField, cn, getShortName } from "@/lib/utils";
 
 const itemPerPages = ["10", "20", "30", "40", "50", "All"];
 
@@ -184,6 +171,51 @@ const statusData = [
   },
 ];
 
+const accessSearchParamKeys = [
+  "email",
+  "username",
+  "status",
+  "sort",
+  "page",
+  "limit",
+];
+
+const sortUserEnum = buildSortField([
+  "username",
+  "email",
+  "status",
+  "deactived_at",
+  "created_at",
+  "updated_at",
+]);
+
+const sortData = {
+  email: {
+    title: "Email",
+    description: "Sắp xếp theo email",
+  },
+  username: {
+    title: "Họ và Tên",
+    description: "Sắp xếp theo tên người dùng",
+  },
+  status: {
+    title: "Trạng thái",
+    description: "Sắp xếp theo trạng thái",
+  },
+  deactived_at: {
+    title: "Ngày vô hiệu hoá",
+    description: "Sắp xếp theo ngày vô hiệu hoá",
+  },
+  created_at: {
+    title: "Ngày tạo",
+    description: "Sắp xếp theo ngày tạo",
+  },
+  updated_at: {
+    title: "Ngày cập nhật",
+    description: "Sắp xếp theo ngày cập nhật",
+  },
+};
+
 const FilterUser = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -191,62 +223,77 @@ const FilterUser = () => {
   const [searchUsername, setSearchUsername] = React.useState<string>("");
   const [status, setStatus] = React.useState<string>("");
   const [open, setOpen] = React.useState<boolean>(false);
+  const [sorts, setSorts] = React.useState<
+    Record<string, { isOn: boolean; dir: string }>
+  >({
+    email: {
+      isOn: true,
+      dir: "asc",
+    },
+    username: { isOn: false, dir: "asc" },
+    status: { isOn: false, dir: "asc" },
+    deactived_at: { isOn: false, dir: "asc" },
+    created_at: { isOn: false, dir: "asc" },
+    updated_at: { isOn: false, dir: "asc" },
+  });
 
+  // redirect lại trang nếu có key không hợp lệ
   React.useEffect(() => {
-    if (searchParams.has("email") && searchParams.has("username")) {
-      let lastKey: string;
-      for (const [key] of Array.from(searchParams.entries()).reverse()) {
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    // xoá key không hợp lệ
+    for (const k of newSearchParams.keys()) {
+      if (k === "sort") {
+        const values = newSearchParams.getAll(k);
+        values.forEach((v) => {
+          if (!sortUserEnum.includes(v)) newSearchParams.delete(k, v);
+        });
+
+        // values.forEach((v, index) => {
+        //   if (index !== values.length - 1) newSearchParams.delete(k, v);
+        // });
+      } else if (accessSearchParamKeys.includes(k)) {
+        const values = newSearchParams.getAll(k);
+        values.forEach((v, index) => {
+          if (index !== values.length - 1) newSearchParams.delete(k, v);
+        });
+      } else {
+        newSearchParams.delete(k);
+      }
+    }
+    // nếu có email và username thì sẽ giữ cái nào cuối cùng
+    if (newSearchParams.has("email") && newSearchParams.has("username")) {
+      for (const [key] of Array.from(newSearchParams.entries()).reverse()) {
         if (key === "email" || key === "username") {
-          lastKey = key;
+          newSearchParams.delete(key === "email" ? "username" : "email");
           break;
         }
       }
-
-      const newSearchParams = new URLSearchParams(searchParams.toString());
-      newSearchParams.delete("email");
-      router.push(`/admin/users?${newSearchParams.toString()}`);
-    } else {
-      const paramSetters = {
-        email: setSearchEmail,
-        username: setSearchUsername,
-      };
-      Object.entries(paramSetters).forEach(([key, setter]) => {
-        const value = searchParams.get(key);
-        if (value) setter(value);
-      });
     }
 
-    // const paramSetters = {
-    //   email: setSearchEmail,
-    //   username: setSearchUsername,
-    // };
+    const paramSetters = {
+      email: setSearchEmail,
+      username: setSearchUsername,
+      status: setStatus,
+    };
+    Object.entries(paramSetters).forEach(([key, setter]) => {
+      const value = newSearchParams.get(key);
+      if (value) setter(value);
+    });
 
-    // if (searchParams.has("email") && searchParams.has("username")) {
-    //   let lastKey: string;
-    //   for (const [key] of Array.from(searchParams.entries()).reverse()) {
-    //     if (key === "email" || key === "username") {
-    //       lastKey = key;
-    //       break;
-    //     }
-    //   }
-    //   console.log(lastKey);
-    //   Object.entries(paramSetters).forEach(([key, setter]) => {
-    //     const value = searchParams.get(key);
-    //     if (value) {
-    //       if (key === "email" || key === "username") {
-
-    //       } else {
-    //         setter(value);
-    //       }
-    //     }
-    //   });
-    // } else {
-    //   Object.entries(paramSetters).forEach(([key, setter]) => {
-    //     const value = searchParams.get(key);
-    //     if (value) setter(value);
-    //   });
-    // }
+    router.push(`/admin/users?${newSearchParams.toString()}`);
   }, [searchParams, router]);
+
+  const hasSort = React.useCallback(
+    (key: string, dir?: string) => {
+      if (sorts[key]) {
+        return dir
+          ? sorts[key].dir === dir && sorts[key].isOn
+          : sorts[key].isOn;
+      }
+      return false;
+    },
+    [sorts]
+  );
 
   return (
     <div className="relative grid gap-4 border rounded-md p-3">
@@ -294,6 +341,7 @@ const FilterUser = () => {
                 if (searchEmail !== "") {
                   if (newSearchParams.has("username")) {
                     newSearchParams.delete("username");
+                    setSearchUsername("");
                   }
                   newSearchParams.set("email", searchEmail);
                   newSearchParams.set("page", "1");
@@ -354,11 +402,11 @@ const FilterUser = () => {
                 if (searchUsername !== "") {
                   if (newSearchParams.has("email")) {
                     newSearchParams.delete("email");
+                    setSearchEmail("");
                   }
                   newSearchParams.set("username", searchUsername);
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
-                  setSearchUsername("");
                 } else {
                   newSearchParams.delete("username");
                 }
@@ -448,24 +496,41 @@ const FilterUser = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-80" align="end">
               <DropdownMenuLabel>Sắp xếp</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="flex flex-col gap-2 p-1">
-                <div className="flex gap-2 justify-between items-center">
-                  <Label>Email</Label>
-                  <Switch />
-                </div>
-                <div className="flex gap-2 items-center justify-between">
-                  <p className="text-sm">Sắp xếp theo email</p>
-                  <ToggleGroup variant="outline" type="single">
-                    <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                      <p>Tăng</p>
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                      <p>Giảm</p>
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
+
+              {Object.keys(sortData).map((key) => (
+                <>
+                  <DropdownMenuSeparator />
+                  <div className="flex flex-col gap-2 p-1">
+                    <div className="flex gap-2 justify-between items-center">
+                      <Label>{key.}</Label>
+                      <Switch checked={hasSort("email")} />
+                    </div>
+                    <div className="flex gap-2 items-center justify-between">
+                      <p className="text-sm">Sắp xếp theo email</p>
+                      <ToggleGroup
+                        defaultValue="email.desc"
+                        variant="outline"
+                        type="single"
+                        disabled={!hasSort("email")}
+                      >
+                        <ToggleGroupItem
+                          value="email.asc"
+                          aria-label="Toggle bold"
+                        >
+                          <p>Tăng</p>
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                          value="email.desc"
+                          aria-label="Toggle italic"
+                        >
+                          <p>Giảm</p>
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
+                  </div>
+                </>
+              ))}
+
               <DropdownMenuSeparator />
               <div className="flex flex-col gap-2 p-1">
                 <div className="flex gap-2 justify-between items-center">

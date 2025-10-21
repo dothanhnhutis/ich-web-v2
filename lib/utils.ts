@@ -12,3 +12,7 @@ export function getShortName(name: string) {
     .map((word) => word.charAt(0).toUpperCase()) // lấy ký tự đầu và viết hoa
     .join("");
 }
+
+export const buildSortField = (fields: string[]) => {
+  return fields.flatMap((f) => [`${f}.asc`, `${f}.desc`]);
+};
