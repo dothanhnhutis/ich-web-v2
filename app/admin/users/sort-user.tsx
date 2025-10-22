@@ -60,7 +60,7 @@ const SortUser = () => {
     updated_at: { isOn: false, dir: "asc" },
   });
 
-  // redirect lại trang nếu có key không hợp lệ
+  // cập nhật lại dữ liệu
   React.useEffect(() => {
     setOpen(false);
     const sorts = searchParams.getAll("sort");
@@ -115,15 +115,27 @@ const SortUser = () => {
   }, [searchParams]);
 
   const handleSorts = React.useCallback(() => {
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-    newSearchParams.delete("sort");
-    Object.keys(sorts).forEach((k) => {
-      if (sorts[k].isOn) {
-        console.log(`${k}.${sorts[k].dir}`);
-        newSearchParams.append("sort", `${k}.${sorts[k].dir}`);
-      }
+    // kiểm tra sort có thay đổi không
+    const oldSorts = searchParams.getAll("sort");
+    const notChange = Object.keys(sorts).every((key) => {
+      const s = oldSorts.find((s) => s.startsWith(key));
+      return s
+        ? sorts[key].isOn && sorts[key].dir === s.split(".")[1]
+        : !sorts[key].isOn;
     });
-    router.push(`${pathname}?${newSearchParams.toString()}`);
+
+    if (notChange) {
+      setOpen(false);
+    } else {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.delete("sort");
+      Object.keys(sorts).forEach((k) => {
+        if (sorts[k].isOn) {
+          newSearchParams.append("sort", `${k}.${sorts[k].dir}`);
+        }
+      });
+      router.push(`${pathname}?${newSearchParams.toString()}`);
+    }
   }, [router, searchParams, pathname, sorts]);
 
   return (
