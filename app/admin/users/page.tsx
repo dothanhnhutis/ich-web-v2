@@ -19,6 +19,7 @@ export const metadata: Metadata = {
     follow: false,
   },
 };
+
 const UsersPage = async (props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
@@ -26,16 +27,6 @@ const UsersPage = async (props: {
 
   if (Object.keys(searchParams).length === 0)
     redirect(`/admin/users?limit=10&page=1`);
-
-  // if (searchParams.has("email") && searchParams.has("username")) {
-  //   let lastKey: string;
-  //   for (const [key] of Array.from(searchParams.entries()).reverse()) {
-  //     if (key === "email" || key === "username") {
-  //       lastKey = key;
-  //       break;
-  //     }
-  //   }
-  // }
 
   return (
     <>
@@ -63,6 +54,7 @@ const UsersPage = async (props: {
           </BreadcrumbList>
         </Breadcrumb>
       </header>
+
       <UserTable />
     </>
   );

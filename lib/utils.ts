@@ -16,3 +16,11 @@ export function getShortName(name: string) {
 export const buildSortField = (fields: string[]) => {
   return fields.flatMap((f) => [`${f}.asc`, `${f}.desc`]);
 };
+
+export const awaitCus = (ms: number) => {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, ms);
+  });
+};
