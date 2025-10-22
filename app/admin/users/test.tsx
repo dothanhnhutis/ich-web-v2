@@ -425,3 +425,85 @@ const DisplaySort = () => {
 };
 
 export default DisplaySort;
+
+React.useEffect(() => {
+  const validateSearchParams = () => {
+    // 1️⃣ Kiểm tra khóa không hợp lệ
+    const invalidKey = Array.from(searchParams.keys()).some(
+      (k) => !accessSearchParamKeys.includes(k)
+    );
+
+    // 2️⃣ Các key chỉ được có 1 giá trị
+    const multiValueKeys = ["email", "username", "status", "page", "limit"];
+    const hasMultipleValues = multiValueKeys.some(
+      (key) => searchParams.getAll(key).length > 1
+    );
+
+    // 3️⃣ Kiểm tra giá trị sort không hợp lệ
+    const invalidSortValue = searchParams
+      .getAll("sort")
+      .some((v) => !sortUserEnum.includes(v));
+
+    // 4️⃣ Kiểm tra trùng sort key
+    const hasDuplicateSort = hasDuplicateKey(searchParams.getAll("sort"));
+
+    // 5️⃣ Không được có cả email & username cùng lúc
+    const hasEmailAndUsername =
+      searchParams.has("email") && searchParams.has("username");
+
+    return (
+      invalidKey ||
+      hasMultipleValues ||
+      invalidSortValue ||
+      hasDuplicateSort ||
+      hasEmailAndUsername
+    );
+  };
+
+  const buildValidSearchParams = () => {
+    const newParams = new URLSearchParams();
+
+    for (const [key, value] of searchParams.entries()) {
+      if (!accessSearchParamKeys.includes(key)) continue;
+
+      if (key === "sort") {
+        if (!sortUserEnum.includes(value)) continue;
+
+        const values = newParams.getAll(key);
+        const [sortType] = value.split(".");
+        const existing = values.find((v) => v.startsWith(sortType));
+        if (existing) newParams.delete(key, existing);
+        newParams.append(key, value);
+      } else {
+        newParams.set(key, value);
+        // Không để tồn tại cả email & username
+        const opposite = key === "email" ? "username" : "email";
+        if (newParams.has(opposite)) newParams.delete(opposite);
+      }
+    }
+
+    return newParams;
+  };
+
+  const fetchData = async () => {
+    try {
+      const { data } = await queryUserAction(searchParams.toString());
+      setUserData(data);
+    } catch (err) {
+      console.error("Fetch user data failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🚀 Thực thi
+  if (validateSearchParams()) {
+    const newParams = buildValidSearchParams();
+    const newUrl = `${pathName}?${newParams.toString()}`;
+    if (newUrl !== `${pathName}?${searchParams.toString()}`) {
+      router.push(newUrl);
+    }
+  } else {
+    fetchData();
+  }
+}, [searchParams, router, pathName]);

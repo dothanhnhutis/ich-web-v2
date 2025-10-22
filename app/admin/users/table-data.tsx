@@ -595,7 +595,6 @@ const UserTable = () => {
 
   React.useEffect(() => {
     async function fetchData() {
-      // await awaitCus(10000);
       const { data } = await queryUserAction(searchParams.toString());
       setUserData(data);
       setLoading(false);
