@@ -58,7 +58,6 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -70,7 +69,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
-import { type QueryUsersAPIRes, queryUserAction } from "@/data/user";
+import {
+  getUserDetailAction,
+  type QueryUsersAPIRes,
+  queryUserAction,
+  type UserDetail,
+} from "@/data/user";
 import { buildSortField, cn, getShortName } from "@/lib/utils";
 import FilterUser from "./filter-user";
 
@@ -160,277 +164,225 @@ const LoadingData = () => {
   );
 };
 
-const itemPerPages = ["10", "20", "30", "40", "50", "All"];
-
-type Order = {
-  id: string;
-  recipient: string;
-  shippingAddress: string;
-  phone: string;
-  itemsCount: number;
-  status: "PENDING" | "CONFIRMED" | "SHIPPING" | "COMPLETED" | "CANCELED";
-  createdAt: string;
-  updatedAt: string;
-};
-
-const status: Order["status"][] = [
-  "PENDING",
-  "CONFIRMED",
-  "SHIPPING",
-  "COMPLETED",
-  "CANCELED",
-];
-
-const OrderStatus = ({
-  status,
-  className,
+const ViewUserId = ({
+  id,
+  onClose,
 }: {
-  status: Order["status"];
-  className?: string;
+  id: string | null;
+  onClose: () => void;
 }) => {
-  if (status === "PENDING")
-    return (
-      <p className={cn("font-bold text-amber-500", className)}>{status}</p>
-    );
+  const [open, setOpen] = React.useState<boolean>(false);
+  const [user, setUser] = React.useState<UserDetail | null>(null);
 
-  if (status === "CONFIRMED")
-    return <p className={cn("font-bold text-sky-500", className)}>{status}</p>;
+  React.useEffect(() => {
+    setOpen(!!id);
 
-  if (status === "SHIPPING")
-    return <p className={cn("font-bold text-teal-500", className)}>{status}</p>;
+    async function loadUser(id: string) {
+      const user = await getUserDetailAction(id);
+      setUser(user);
+    }
+    if (id) loadUser(id);
+  }, [id]);
 
-  if (status === "CANCELED")
-    return <p className={cn("font-bold text-red-500", className)}>{status}</p>;
-
-  return <p className={cn("font-bold text-green-500", className)}>{status}</p>;
-};
-
-const ViewUserId = ({ id }: { id: string }) => {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState<string>("10");
+  console.log(user);
 
   return (
-    <Sheet defaultOpen={true}>
-      <SheetTrigger asChild>
-        <Button variant="outline">Open</Button>
-      </SheetTrigger>
-      {/* <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Edit profile</SheetTitle>
-            <SheetDescription>
-              Make changes to your profile here. Click save when you&apos;re
-              done.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="grid flex-1 auto-rows-min gap-6 px-4">
-            <div className="grid gap-3">
-              <Label htmlFor="sheet-demo-name">Name</Label>
-              <Input id="sheet-demo-name" defaultValue="Pedro Duarte" />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="sheet-demo-username">Username</Label>
-              <Input id="sheet-demo-username" defaultValue="@peduarte" />
-            </div>
-          </div>
-          <SheetFooter>
-            <Button type="submit">Save changes</Button>
-            <SheetClose asChild>
-              <Button variant="outline">Close</Button>
-            </SheetClose>
-          </SheetFooter>
-        </SheetContent> */}
-
+    <Sheet
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+          onClose();
+          setUser(null);
+        }
+      }}
+    >
       <SheetContent className="w-full xs:max-w-lg sm:max-w-lg gap-0 h-screen flex flex-col">
         <SheetHeader className="border-b py-1 gap-0">
           <SheetTitle className="flex items-center gap-2 max-w-[calc(100%_-_24px)]">
             <HashIcon className="shrink-0 w-5 h-5" />
-            <p className="truncate">
-              <span>1s32d132asd1as32d3as21d3s2a13d21as321das31d3as13d1</span>
-            </p>
-            <CopyIcon className="shrink-0 w-4 h-4" />{" "}
+            {user ? (
+              <>
+                <p className="truncate">{id}</p>
+                <CopyIcon className="shrink-0 w-4 h-4" />
+              </>
+            ) : (
+              <Skeleton className="h-3 w-40" />
+            )}
           </SheetTitle>
-          <SheetDescription>Chi tiết phiếu bao bì</SheetDescription>
+          <SheetDescription>Chi tiết tài khoản</SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-2 p-4 flex-1 overflow-hidden">
           <div className="flex justify-between gap-1">
             <div className="flex flex-col gap-2">
-              <Label>Ngày lập phiếu</Label>
-              <p>
-                {format(
-                  new Date().toISOString(),
-                  "EEEE, dd/MM/yy HH:mm:ss 'GMT'XXX",
-                  {
-                    locale: vi,
-                  }
-                )}
-              </p>
+              <Label>Ngày vô hiệu hoá</Label>
+              {user ? (
+                <p>
+                  {user.deactived_at
+                    ? format(
+                        new Date(user.deactived_at).toISOString(),
+                        "EEEE, dd/MM/yy HH:mm:ss 'GMT'XXX",
+                        {
+                          locale: vi,
+                        }
+                      )
+                    : "--"}
+                </p>
+              ) : (
+                <Skeleton className="w-40 h-2" />
+              )}
             </div>
-            <div className="flex flex-col gap-2">
-              <Label>Loại phiếu</Label>
-              <OrderStatus status={"CANCELED"} />
+            <div className="flex flex-col gap-2 ">
+              <Label>Trạng thái</Label>
+              {user ? (
+                <p
+                  className={cn(
+                    "font-bold",
+                    user.status === "ACTIVE"
+                      ? "text-green-500"
+                      : "text-destructive"
+                  )}
+                >
+                  {user.status}
+                </p>
+              ) : (
+                <Skeleton className="w-10 h-2" />
+              )}
             </div>
           </div>
           <Separator orientation="horizontal" />
-          <div className="grid gap-1 w-full">
-            <Label>Người lập phiếu</Label>
-            <div className="flex gap-2 items-center">
-              <UserIcon className="size-4 shrink-0 text-muted-foreground" />
-              <p className="text-base lg:text-lg">Nhut</p>
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <SmartphoneIcon className="size-4 shrink-0 text-muted-foreground" />
-              <p className="lg:text-base text-sm ">123456789</p>
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <MapPinHouseIcon className="size-4 shrink-0 text-muted-foreground" />
-              <p className="lg:text-base text-sm"></p>
-            </div>
-          </div>
-          <Separator orientation="horizontal" />
-          {true ? (
-            <>
-              {" "}
-              <div>
-                <p className="text-sm">Sản Phẩm</p>
-                <div className="max-h-[calc(100vh_-_421px)] overflow-y-scroll">
-                  <table className="min-w-full">
-                    <tbody>
-                      <tr>
-                        <td className="p-2 align-middle">
-                          <div className="flex gap-2 ">
-                            <Skeleton className="w-16 h-16 rounded-lg shrink-0" />
-                            <div className="flex flex-col gap-2 grow">
-                              <Skeleton className="h-4 w-40 inline-block" />
-                              <Skeleton className="h-3 w-20 inline-block" />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <Skeleton className="h-3 w-10 inline-block" />
-                        </td>
-                        <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <Skeleton className="h-3 w-10 inline-block" />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-2 align-middle">
-                          <div className="flex gap-2 ">
-                            <Skeleton className="w-16 h-16 rounded-lg shrink-0" />
-                            <div className="flex flex-col gap-2 grow">
-                              <Skeleton className="h-4 w-40 inline-block" />
-                              <Skeleton className="h-3 w-20 inline-block" />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <Skeleton className="h-3 w-10 inline-block" />
-                        </td>
-                        <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <Skeleton className="h-3 w-10 inline-block" />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-2 align-middle">
-                          <div className="flex gap-2 ">
-                            <Skeleton className="w-16 h-16 rounded-lg shrink-0" />
-                            <div className="flex flex-col gap-2 grow">
-                              <Skeleton className="h-4 w-40 inline-block" />
-                              <Skeleton className="h-3 w-20 inline-block" />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <Skeleton className="h-3 w-10 inline-block" />
-                        </td>
-                        <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <Skeleton className="h-3 w-10 inline-block" />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+          <div className="grid gap-2 w-full">
+            <Label>Thông tin người dùng </Label>
+            {user ? (
+              <div className="flex gap-2">
+                <Avatar className="bg-white size-14">
+                  <AvatarImage
+                    src={user.avatar?.url || "/images/logo-square.png"}
+                    alt={user.username}
+                  />
+                  <AvatarFallback className="rounded-lg">
+                    {getShortName(user.username)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid">
+                  <p className="font-bold text-lg -leading-2">Do Thanh Nhut</p>
+                  <p className="text-sm">gaconght@gmail.com</p>
                 </div>
               </div>
-              <Separator orientation="horizontal" />
-              <div className="flex items-center justify-between gap-2">
-                <p>Tổng</p>
-                <Skeleton className="h-3 w-10 inline-block" />
+            ) : (
+              <div className="flex gap-2">
+                <Skeleton className="rounded-full h-14 w-14" />
+                <div className="grid">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-60" />
+                </div>
               </div>
-            </>
+            )}
+          </div>
+          <Separator orientation="horizontal" />
+          {!user ? (
+            <div>
+              <Label>Vai trò </Label>
+              <div className="max-h-[calc(100vh_-_326px)] overflow-y-scroll">
+                <table className="min-w-full">
+                  <tbody>
+                    <tr>
+                      <td className="p-2 align-middle">
+                        <div className="flex flex-col gap-2 grow">
+                          <Skeleton className="h-3 w-40 inline-block" />
+                          <Skeleton className="h-2 w-20 inline-block" />
+                        </div>
+                      </td>
+                      <td className="p-2 align-middle whitespace-nowrap text-end">
+                        <Skeleton className="h-3 w-10 inline-block" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 align-middle">
+                        <div className="flex flex-col gap-2 grow">
+                          <Skeleton className="h-4 w-40 inline-block" />
+                          <Skeleton className="h-3 w-20 inline-block" />
+                        </div>
+                      </td>
+                      <td className="p-2 align-middle whitespace-nowrap text-end">
+                        <Skeleton className="h-3 w-10 inline-block" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 align-middle">
+                        <div className="flex flex-col gap-2 grow">
+                          <Skeleton className="h-4 w-40 inline-block" />
+                          <Skeleton className="h-3 w-20 inline-block" />
+                        </div>
+                      </td>
+                      <td className="p-2 align-middle whitespace-nowrap text-end">
+                        <Skeleton className="h-3 w-10 inline-block" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 align-middle">
+                        <div className="flex flex-col gap-2 grow">
+                          <Skeleton className="h-4 w-40 inline-block" />
+                          <Skeleton className="h-3 w-20 inline-block" />
+                        </div>
+                      </td>
+                      <td className="p-2 align-middle whitespace-nowrap text-end">
+                        <Skeleton className="h-3 w-10 inline-block" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 align-middle">
+                        <div className="flex flex-col gap-2 grow">
+                          <Skeleton className="h-4 w-40 inline-block" />
+                          <Skeleton className="h-3 w-20 inline-block" />
+                        </div>
+                      </td>
+                      <td className="p-2 align-middle whitespace-nowrap text-end">
+                        <Skeleton className="h-3 w-10 inline-block" />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           ) : (
-            <>
-              <div>
-                <p className="text-sm">Sản Phẩm (2)</p>
-                <div className="max-h-[calc(100vh_-_421px)] overflow-auto">
-                  <table className="min-w-full">
-                    <tbody>
-                      <tr>
+            <div>
+              <Label>Vai trò ({user.role_count})</Label>
+              <div className="max-h-[calc(100vh_-_326px)] overflow-auto">
+                <table className="min-w-full">
+                  <tbody>
+                    {user.roles.map((r) => (
+                      <tr key={r.id}>
                         <td className="p-2 align-middle">
-                          <div className="flex gap-2">
-                            <div className="w-16 h-16 bg-accent rounded-lg overflow-hidden shrink-0">
-                              <Image
-                                src={`/products/product-1.jpg`}
-                                alt={"product.image.filename"}
-                                width={1280}
-                                height={1280}
-                                priority={false}
-                                className="object-contain aspect-square"
-                              />
-                            </div>
-                            <div className="text-start">
-                              <p className="text-base font-medium line-clamp-2">
-                                Tên sản phâm
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Kho hàng A
-                              </p>
-                            </div>
+                          <div className="text-start">
+                            <p className="text-base font-medium line-clamp-2">
+                              {r.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {r.description}
+                            </p>
                           </div>
                         </td>
                         <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <p>{new Intl.NumberFormat("de-DE").format(10000)}</p>
-                        </td>
-                        <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <p>{new Intl.NumberFormat("de-DE").format(100000)}</p>
+                          <p>sadasd</p>
                         </td>
                       </tr>
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <Separator orientation="horizontal" />
-              <div className="flex items-center justify-between gap-2">
-                <p>Tổng</p>
-                <p>{new Intl.NumberFormat("de-DE").format(1000000)}</p>
-              </div>
-            </>
+            </div>
           )}
         </div>
 
         <SheetFooter className="flex-row border-t">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-1/2">
-                Trạng thái
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="start">
-              <DropdownMenuLabel>Trạng thái</DropdownMenuLabel>
-              <DropdownMenuGroup>
-                {status.map((status) => (
-                  <DropdownMenuItem key={status} className="justify-between">
-                    <OrderStatus status={status} />
-                    <CheckIcon className="shrink-0 w-4 h-4" />
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button type="submit" className="w-1/2">
-            Cập nhật
-          </Button>
+          {user ? (
+            <Button type="button" className="w-full">
+              Cập nhật
+            </Button>
+          ) : (
+            <Skeleton className="w-full h-9" />
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>
@@ -467,6 +419,7 @@ const UserTable = () => {
   const pathName = usePathname();
   const { hasPermission } = useUser();
   const [viewId, setViewId] = React.useState<string | null>(null);
+
   const [isLoading, setLoading] = React.useState<boolean>(true);
 
   const [userData, setUserData] = React.useState<
@@ -608,7 +561,6 @@ const UserTable = () => {
       }
     };
 
-    // 🚀 Thực thi
     if (validateSearchParams()) {
       const newParams = buildValidSearchParams();
       const newUrl = `${pathName}?${newParams.toString()}`;
@@ -619,6 +571,10 @@ const UserTable = () => {
       fetchData();
     }
   }, [searchParams, router, pathName]);
+
+  const handleClose = () => {
+    setViewId("");
+  };
 
   return (
     <div className="w-full overflow-hidden">
@@ -739,7 +695,7 @@ const UserTable = () => {
           </div>
         )}
       </div>
-      {viewId && <ViewUserId id={viewId} />}
+      <ViewUserId id={viewId} onClose={handleClose} />
     </div>
   );
 };

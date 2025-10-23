@@ -181,6 +181,29 @@ export const currentUserAction = cache(async (): Promise<UserDetail | null> => {
   }
 });
 
+export const getUserDetailAction = cache(
+  async (id: string): Promise<UserDetail | null> => {
+    try {
+      const {
+        data: { data },
+      } = await userInstance.get<UserDetailAPIRes>(`/${id}/detail`, {
+        headers: await getHeaders(),
+      });
+      return data;
+    } catch (error: unknown) {
+      if (error instanceof FetchAPIError) {
+        const res = error.response as FetchAPIResponse<{ message: string }>;
+        console.log(`getUserDetailAction func error: ${res.data.message}`);
+      }
+      if (error instanceof FetchAPINetWorkError) {
+        console.log(`getUserDetailAction func error: ${error.message}`);
+      }
+      console.log(`getUserDetailAction func error: ${error}`);
+      return null;
+    }
+  }
+);
+
 export const logoutAction = async (): Promise<void> => {
   try {
     await userInstance.delete("/logout", {
