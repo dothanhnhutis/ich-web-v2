@@ -72,6 +72,53 @@ const people = [
   },
 ];
 
+const datas = [
+  {
+    name: "Người dùng",
+    description: "Quản lý thông tin người dùng trong hệ thống.	",
+    pers: [
+      {
+        label: "Create",
+        key: "create:user",
+      },
+      {
+        label: "Update",
+        key: "update:user",
+      },
+      {
+        label: "Read",
+        key: "read:user",
+      },
+      {
+        label: "Reset Password",
+        key: "reset:user:password",
+      },
+    ],
+  },
+  {
+    name: "Vai tro",
+    description: "Quản lý thông tin người dùng trong hệ thống.	",
+    pers: [
+      {
+        label: "Create",
+        key: "create:role",
+      },
+      {
+        label: "Update",
+        key: "update:role",
+      },
+      {
+        label: "Read",
+        key: "read:role",
+      },
+      {
+        label: "Delete",
+        key: "delete:role",
+      },
+    ],
+  },
+];
+
 const CreateRolePage = () => {
   return (
     <>
@@ -131,85 +178,172 @@ const CreateRolePage = () => {
                   </InputGroupAddon>
                 </InputGroup>
               </Field>
+              {/* 
               <Field>
                 <FieldLabel>Quyền</FieldLabel>
-                <FieldDescription>
-                  Chọn vai trò cho tài khoản người dùng
-                </FieldDescription>
+                <FieldDescription>Chọn quyền cho vai trò.</FieldDescription>
+                <table>
+                  <thead>
+                    <tr>
+                      <th className="text-start">Tai Khoan</th>
+                      <th className="text-center">Create</th>
+                      <th>Update</th>
+                      <th>Read</th>
+                      <th>Reset Password</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Quản lý thông tin người dùng trong hệ thống.</td>
+                      <td className="text-center">
+                        <Checkbox />
+                      </td>
+                      <td className="text-center">
+                        <Checkbox />
+                      </td>
+                      <td className="text-center">
+                        <Checkbox />
+                      </td>
+                      <td className="text-center">
+                        <Checkbox />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
 
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="item-1">
+                <table>
+                  <thead>
+                    <tr>
+                      <th className="text-start">Tai Khoan</th>
+                      <th>Create</th>
+                      <th>Update</th>
+                      <th>Read</th>
+                      <th>Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Quản lý thông tin người dùng trong hệ thống.</td>
+                      <td className="text-center">
+                        <Checkbox />
+                      </td>
+                      <td className="text-center">
+                        <Checkbox />
+                      </td>
+                      <td className="text-center">
+                        <Checkbox />
+                      </td>
+                      <td className="text-center">
+                        <Checkbox />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </Field> */}
+
+              <Field>
+                <FieldLabel>Quyền</FieldLabel>
+                <FieldDescription>Chọn quyền cho vai trò.</FieldDescription>
+
+                <Accordion type="multiple" className="w-full">
+                  {datas.map((d) => (
+                    <AccordionItem value={d.name} key={d.name}>
+                      <AccordionTrigger>{d.name}</AccordionTrigger>
+                      <AccordionContent className="flex flex-col gap-4 text-balance">
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td className="text-start" rowSpan={2}>
+                                {d.description}
+                              </td>
+                              {d.pers.map((l) => (
+                                <td
+                                  className="text-center px-2 pb-2"
+                                  key={l.key}
+                                >
+                                  {l.label}
+                                </td>
+                              ))}
+                            </tr>
+                            <tr>
+                              {d.pers.map((l) => (
+                                <td
+                                  className="text-center px-2 pb-2"
+                                  key={l.key}
+                                >
+                                  <Checkbox />
+                                </td>
+                              ))}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                  {/* <AccordionItem value="item-1">
                     <AccordionTrigger>Người dùng</AccordionTrigger>
                     <AccordionContent className="flex flex-col gap-4 text-balance">
-                      <p>Quản lý thông tin người dùng trong hệ thống.</p>
-
-                      <RadioGroup defaultValue="option-one">
-                        <FieldGroup className="gap-3">
-                          <Field orientation="horizontal">
-                            <RadioGroupItem value="option-2" id="option-2" />
-                            <FieldLabel
-                              htmlFor="option-2"
-                              className="font-normal"
-                              defaultChecked
-                            >
-                              No Permision
-                            </FieldLabel>
-                          </Field>
-                          <Field orientation="horizontal">
-                            <RadioGroupItem
-                              value="option-one"
-                              id="option-one"
-                            />
-                            <FieldLabel
-                              htmlFor="option-one"
-                              className="font-normal"
-                              defaultChecked
-                            >
-                              Read Only
-                            </FieldLabel>
-                          </Field>
-                          <Field orientation="horizontal">
-                            <RadioGroupItem
-                              value="option-two"
-                              id="option-two"
-                            />
-                            <FieldLabel
-                              htmlFor="option-two"
-                              className="font-normal"
-                            >
-                              Read & Update
-                            </FieldLabel>
-                          </Field>
-                          <Field orientation="horizontal">
-                            <RadioGroupItem
-                              value="option-three"
-                              id="option-three"
-                            />
-                            <FieldLabel
-                              htmlFor="option-three"
-                              className="font-normal"
-                            >
-                              Full Permission
-                            </FieldLabel>
-                          </Field>
-                        </FieldGroup>
-                      </RadioGroup>
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td className="text-start" rowSpan={2}>
+                              Quản lý thông tin người dùng trong hệ thống.
+                            </td>
+                            <td className="text-center px-2 pb-2">Create</td>
+                            <td className="text-center px-2 pb-2">Update</td>
+                            <td className="text-center px-2 pb-2">Read</td>
+                            <td className="text-center px-2 pb-2">
+                              Reset Password
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="text-center px-2 pb-2">
+                              <Checkbox />
+                            </td>
+                            <td className="text-center px-2 pb-2">
+                              <Checkbox />
+                            </td>
+                            <td className="text-center px-2 pb-2">
+                              <Checkbox />
+                            </td>
+                            <td className="text-center px-2 pb-2">
+                              <Checkbox />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="item-2">
-                    <AccordionTrigger>Shipping Details</AccordionTrigger>
+                    <AccordionTrigger>Vai tro</AccordionTrigger>
                     <AccordionContent className="flex flex-col gap-4 text-balance">
-                      <p>
-                        We offer worldwide shipping through trusted courier
-                        partners. Standard delivery takes 3-5 business days,
-                        while express shipping ensures delivery within 1-2
-                        business days.
-                      </p>
-                      <p>
-                        All orders are carefully packaged and fully insured.
-                        Track your shipment in real-time through our dedicated
-                        tracking portal.
-                      </p>
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td className="text-start" rowSpan={2}>
+                              Quản lý thông tin người dùng trong hệ thống.
+                            </td>
+                            <td className="text-center px-2 pb-2">Create</td>
+                            <td className="text-center px-2 pb-2">Update</td>
+                            <td className="text-center px-2 pb-2">Read</td>
+                            <td className="text-center px-2 pb-2">Delete</td>
+                          </tr>
+                          <tr>
+                            <td className="text-center px-2 pb-2">
+                              <Checkbox />
+                            </td>
+                            <td className="text-center px-2 pb-2">
+                              <Checkbox />
+                            </td>
+                            <td className="text-center px-2 pb-2">
+                              <Checkbox />
+                            </td>
+                            <td className="text-center px-2 pb-2">
+                              <Checkbox />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="item-3">
@@ -226,7 +360,7 @@ const CreateRolePage = () => {
                         receiving the returned item.
                       </p>
                     </AccordionContent>
-                  </AccordionItem>
+                  </AccordionItem> */}
                 </Accordion>
               </Field>
             </FieldGroup>
