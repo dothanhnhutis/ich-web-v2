@@ -18,3 +18,5 @@ export const permissionRoutes: Record<string, RegExp> = {
   //   "read:warehouse:*": /^\/admin\/warehouses(?:[0-9a-zA-Z\/\-])*?$/,
   //   "read:packaging:*": /^\/admin\/packagings(?:[0-9a-zA-Z\/\-])*?$/,
 };
+
+const k = ["", "analysis"];

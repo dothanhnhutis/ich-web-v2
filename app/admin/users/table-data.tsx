@@ -20,6 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
+import { toast } from "sonner";
 import PageComponent from "@/components/page";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -197,7 +198,7 @@ const ViewUserId = ({
         }
       }}
     >
-      <SheetContent className="w-full xs:max-w-lg sm:max-w-lg gap-0 h-screen flex flex-col">
+      <SheetContent className="w-full xs:max-w-md sm:max-w-md gap-0 h-screen flex flex-col">
         <SheetHeader className="border-b py-1 gap-0">
           <SheetTitle className="flex items-center gap-2 max-w-[calc(100%_-_24px)]">
             <HashIcon className="shrink-0 w-5 h-5" />
@@ -243,7 +244,7 @@ const ViewUserId = ({
                       : "text-destructive"
                   )}
                 >
-                  {user.status}
+                  {user.status === "ACTIVE" ? "Hoạt động" : "Vô hiệu hoá"}
                 </p>
               ) : (
                 <Skeleton className="w-10 h-2" />
@@ -265,7 +266,7 @@ const ViewUserId = ({
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid">
-                  <p className="font-bold text-lg -leading-2">Do Thanh Nhut</p>
+                  <p className="font-bold text-lg">Do Thanh Nhut</p>
                   <p className="text-sm">gaconght@gmail.com</p>
                 </div>
               </div>
@@ -364,7 +365,7 @@ const ViewUserId = ({
                           </div>
                         </td>
                         <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <p>sadasd</p>
+                          <p>{r.permissions.length}</p>
                         </td>
                       </tr>
                     ))}
@@ -377,9 +378,12 @@ const ViewUserId = ({
 
         <SheetFooter className="flex-row border-t">
           {user ? (
-            <Button type="button" className="w-full">
-              Cập nhật
-            </Button>
+            <Link
+              href={`/admin/users/${user.id}/edit`}
+              className={cn("w-full", buttonVariants({ variant: "outline" }))}
+            >
+              Chỉnh Sửa
+            </Link>
           ) : (
             <Skeleton className="w-full h-9" />
           )}
@@ -425,71 +429,6 @@ const UserTable = () => {
   const [userData, setUserData] = React.useState<
     QueryUsersAPIRes["data"] | null
   >(null);
-
-  // React.useEffect(() => {
-  //   async function fetchData() {
-  //     const { data } = await queryUserAction(searchParams.toString());
-  //     setUserData(data);
-  //     setLoading(false);
-  //   }
-
-  //   const checkValidKey = Array.from(searchParams.keys()).some(
-  //     (k) => !accessSearchParamKeys.includes(k)
-  //   );
-
-  //   const checkSingleValue = [
-  //     "email",
-  //     "username",
-  //     "status",
-  //     "page",
-  //     "limit",
-  //   ].some((key) => searchParams.getAll(key).length > 1);
-
-  //   const checkSortValue = searchParams
-  //     .getAll("sort")
-  //     .some((v) => !sortUserEnum.includes(v));
-
-  //   const checkDoubleSortKey = hasDuplicateKey(searchParams.getAll("sort"));
-
-  //   const checkHasEmailAndUserName =
-  //     searchParams.has("email") && searchParams.has("username");
-
-  //   if (
-  //     checkValidKey ||
-  //     checkSingleValue ||
-  //     checkSortValue ||
-  //     checkHasEmailAndUserName ||
-  //     checkDoubleSortKey
-  //   ) {
-  //     const newSearchParams = new URLSearchParams();
-
-  //     for (const [k, v] of Array.from(searchParams.entries())) {
-  //       if (accessSearchParamKeys.includes(k)) {
-  //         if (k === "sort") {
-  //           if (sortUserEnum.includes(v)) {
-  //             const values = newSearchParams.getAll(k);
-  //             console.log(values);
-  //             const [sortType] = v.split(".");
-  //             const hasSortType = values.find((value) =>
-  //               value.startsWith(sortType)
-  //             );
-  //             if (hasSortType) {
-  //               newSearchParams.delete(k, hasSortType);
-  //             }
-  //             newSearchParams.append(k, v);
-  //           }
-  //         } else {
-  //           newSearchParams.set(k, v);
-  //           if (newSearchParams.has(k === "email" ? "username" : "email"))
-  //             newSearchParams.delete(k === "email" ? "username" : "email");
-  //         }
-  //       }
-  //     }
-  //     router.push(`${pathName}?${newSearchParams.toString()}`);
-  //   } else {
-  //     fetchData();
-  //   }
-  // }, [searchParams, router, pathName]);
 
   React.useEffect(() => {
     const validateSearchParams = () => {
@@ -663,9 +602,15 @@ const UserTable = () => {
                               <DropdownMenuContent className="w-30" align="end">
                                 <DropdownMenuLabel>Hành động</DropdownMenuLabel>
                                 <DropdownMenuGroup>
-                                  <DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      navigator.clipboard.writeText("u.id");
+                                      toast.info("Copy Id thành công.");
+                                    }}
+                                  >
                                     Sao chép ID
                                   </DropdownMenuItem>
+
                                   <DropdownMenuItem
                                     onClick={() => {
                                       setViewId(u.id);
@@ -673,11 +618,15 @@ const UserTable = () => {
                                   >
                                     Xem trước
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem>Chỉnh sửa</DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/admin/users/${u.id}/edit`}>
+                                      Chỉnh sửa
+                                    </Link>
+                                  </DropdownMenuItem>
                                 </DropdownMenuGroup>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem variant="destructive">
-                                  Xoá
+                                <DropdownMenuItem>
+                                  Đặt lại mật khẩu
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
