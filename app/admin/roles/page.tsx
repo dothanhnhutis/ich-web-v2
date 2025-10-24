@@ -1,6 +1,4 @@
-import { PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Breadcrumb,
@@ -10,11 +8,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import RoleTable from "./table-data";
+import RoleResult from "./role-result";
 export const metadata: Metadata = {
   title: "Kho Hàng",
   robots: {
@@ -28,7 +24,7 @@ const RolesPage = async (props: {
   const searchParams = await props.searchParams;
 
   if (Object.keys(searchParams).length === 0)
-    redirect(`/admin/roles?limit=10&page=1`);
+    redirect(`/admin/roles?limit=1&page=1`);
 
   return (
     <>
@@ -56,22 +52,7 @@ const RolesPage = async (props: {
           </BreadcrumbList>
         </Breadcrumb>
       </header>
-      <div className="w-full overflow-hidden">
-        <div className="flex flex-col gap-4 p-4 mx-auto max-w-5xl">
-          <div className="flex items-center gap-2 justify-between">
-            <h3 className="text-2xl font-bold shrink-0">Quản vai trò </h3>
-            <Link
-              href="/admin/roles/create"
-              className={cn(buttonVariants({ variant: "link" }))}
-            >
-              <span className="hidden xs:inline">Tạo vai trò mới</span>
-              <PlusIcon className="w-4 h-4 shrink-0" />
-            </Link>
-          </div>
-
-          <RoleTable />
-        </div>
-      </div>
+      <RoleResult />
     </>
   );
 };

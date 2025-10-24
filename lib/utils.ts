@@ -24,3 +24,9 @@ export const awaitCus = (ms: number) => {
     }, ms);
   });
 };
+
+export const hasDuplicateKey = (arr: string[]): boolean => {
+  const keys = arr.map((item) => item.split(".")[0]); // lấy phần trước dấu "."
+  const unique = new Set(keys);
+  return unique.size !== keys.length; // nếu có trùng thì true
+};

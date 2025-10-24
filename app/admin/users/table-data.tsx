@@ -76,7 +76,13 @@ import {
   queryUserAction,
   type UserDetail,
 } from "@/data/user";
-import { buildSortField, cn, getShortName } from "@/lib/utils";
+import {
+  awaitCus,
+  buildSortField,
+  cn,
+  getShortName,
+  hasDuplicateKey,
+} from "@/lib/utils";
 import FilterUser from "./filter-user";
 
 const LoadingData = () => {
@@ -184,8 +190,6 @@ const ViewUserId = ({
     }
     if (id) loadUser(id);
   }, [id]);
-
-  console.log(user);
 
   return (
     <Sheet
@@ -410,12 +414,6 @@ const sortUserEnum = buildSortField([
   "created_at",
   "updated_at",
 ]);
-
-function hasDuplicateKey(arr: string[]) {
-  const keys = arr.map((item) => item.split(".")[0]); // lấy phần trước dấu "."
-  const unique = new Set(keys);
-  return unique.size !== keys.length; // nếu có trùng thì true
-}
 
 const UserTable = () => {
   const router = useRouter();

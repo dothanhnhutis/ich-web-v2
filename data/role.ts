@@ -1,5 +1,6 @@
 "use server";
 import { env } from "@/config";
+import { awaitCus } from "@/lib/utils";
 import {
   FetchAPI,
   FetchAPIError,
@@ -49,6 +50,7 @@ export async function queryRolesAction(
   searchParams?: Record<string, string> | string | [string, string][]
 ) {
   try {
+    await awaitCus(2000);
     const q = new URLSearchParams(searchParams || "").toString();
 
     const { data: dataRes } = await roleInstance.get<{
@@ -57,32 +59,81 @@ export async function queryRolesAction(
       data: QueryRoles;
     }>(q ? `?${q}` : "", {
       headers: await getHeaders(),
+      cache: "no-store",
     });
 
-    return dataRes;
+    return dataRes.data;
   } catch (error) {
     if (error instanceof FetchAPINetWorkError) {
-      console.log(`logout func error: ${error.message}`);
+      console.log(`queryRolesAction func error: ${error.message}`);
     }
 
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<{ message: string }>;
-      console.log(`logout func error: ${res.data.message}`);
+      console.log(`queryRolesAction func error: ${res.data.message}`);
+    } else {
+      console.log(`queryRolesAction func error: ${error}`);
     }
 
+    return {
+      roles: [],
+      metadata: {
+        totalItem: 0,
+        totalPage: 0,
+        hasNextPage: false,
+        limit: 0,
+        itemStart: 0,
+        itemEnd: 0,
+      },
+    };
+  }
+}
+
+export type CreateRoleData = {
+  name: string;
+  description: string;
+  permissions: string[];
+};
+
+export type CreateUserActionRes = {
+  statusCode: number;
+  statusText: string;
+  data: {
+    message: string;
+  };
+};
+
+export async function createRoleAction(data: CreateRoleData) {
+  try {
+    const { data: dataRes } = await roleInstance.post<CreateUserActionRes>(
+      "/",
+      data,
+      {
+        headers: await getHeaders(),
+      }
+    );
+    return dataRes;
+  } catch (error) {
+    if (error instanceof FetchAPIError) {
+      const res = error.response as FetchAPIResponse<CreateUserActionRes>;
+      return res.data;
+    }
+    if (error instanceof FetchAPINetWorkError) {
+      console.log(`createRoleAction func error: ${error.message}`);
+      return {
+        statusCode: error.status,
+        statusText: error.statusText,
+        data: {
+          message: error.message,
+        },
+      };
+    }
+    console.log(`createRoleAction func error: ${error}`);
     return {
       statusCode: 400,
       statusText: "BAD_REQUEST",
       data: {
-        roles: [],
-        metadata: {
-          totalItem: 0,
-          totalPage: 0,
-          hasNextPage: false,
-          limit: 0,
-          itemStart: 0,
-          itemEnd: 0,
-        },
+        message: "Tạo vai trò thất bại.",
       },
     };
   }
