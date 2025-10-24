@@ -76,18 +76,12 @@ import {
   queryUserAction,
   type UserDetail,
 } from "@/data/user";
-import {
-  awaitCus,
-  buildSortField,
-  cn,
-  getShortName,
-  hasDuplicateKey,
-} from "@/lib/utils";
+import { buildSortField, cn, getShortName, hasDuplicateKey } from "@/lib/utils";
 import FilterUser from "./filter-user";
 
 const LoadingData = () => {
   return (
-    <div className="outline-none relative flex flex-col gap-4 overflow-auto @container">
+    <div className="outline-none relative flex flex-col gap-4 overflow-auto ">
       <div className="overflow-hidden rounded-lg border">
         <div className="relative w-full overflow-x-auto">
           <Table>
@@ -126,7 +120,7 @@ const LoadingData = () => {
           </Table>
         </div>
       </div>
-      <div className="flex items-center text-sm">
+      <div className="flex items-center text-sm @container">
         <Skeleton className="shrink-0 hidden @2xl:block h-3 w-20" />
 
         <div className="flex gap-8 items-center justify-between w-full @2xl:ml-auto @2xl:w-auto @2xl:justify-normal">
@@ -179,14 +173,14 @@ const ViewUserId = ({
   onClose: () => void;
 }) => {
   const [open, setOpen] = React.useState<boolean>(false);
-  const [user, setUser] = React.useState<UserDetail | null>(null);
+  const [users, setUser] = React.useState<UserDetail | null>(null);
 
   React.useEffect(() => {
     setOpen(!!id);
 
     async function loadUser(id: string) {
-      const user = await getUserDetailAction(id);
-      setUser(user);
+      const users = await getUserDetailAction(id);
+      setUser(users);
     }
     if (id) loadUser(id);
   }, [id]);
@@ -206,7 +200,7 @@ const ViewUserId = ({
         <SheetHeader className="border-b py-1 gap-0">
           <SheetTitle className="flex items-center gap-2 max-w-[calc(100%_-_24px)]">
             <HashIcon className="shrink-0 w-5 h-5" />
-            {user ? (
+            {users ? (
               <>
                 <p className="truncate">{id}</p>
                 <CopyIcon className="shrink-0 w-4 h-4" />
@@ -221,11 +215,11 @@ const ViewUserId = ({
           <div className="flex justify-between gap-1">
             <div className="flex flex-col gap-2">
               <Label>Ngày vô hiệu hoá</Label>
-              {user ? (
+              {users ? (
                 <p>
-                  {user.deactived_at
+                  {users.deactived_at
                     ? format(
-                        new Date(user.deactived_at).toISOString(),
+                        new Date(users.deactived_at).toISOString(),
                         "EEEE, dd/MM/yy HH:mm:ss 'GMT'XXX",
                         {
                           locale: vi,
@@ -239,16 +233,16 @@ const ViewUserId = ({
             </div>
             <div className="flex flex-col gap-2 ">
               <Label>Trạng thái</Label>
-              {user ? (
+              {users ? (
                 <p
                   className={cn(
                     "font-bold",
-                    user.status === "ACTIVE"
+                    users.status === "ACTIVE"
                       ? "text-green-500"
                       : "text-destructive"
                   )}
                 >
-                  {user.status === "ACTIVE" ? "Hoạt động" : "Vô hiệu hoá"}
+                  {users.status === "ACTIVE" ? "Hoạt động" : "Vô hiệu hoá"}
                 </p>
               ) : (
                 <Skeleton className="w-10 h-2" />
@@ -258,15 +252,15 @@ const ViewUserId = ({
           <Separator orientation="horizontal" />
           <div className="grid gap-2 w-full">
             <Label>Thông tin người dùng </Label>
-            {user ? (
+            {users ? (
               <div className="flex gap-2">
                 <Avatar className="bg-white size-14">
                   <AvatarImage
-                    src={user.avatar?.url || "/images/logo-square.png"}
-                    alt={user.username}
+                    src={users.avatar?.url || "/images/logo-square.png"}
+                    alt={users.username}
                   />
                   <AvatarFallback className="rounded-lg">
-                    {getShortName(user.username)}
+                    {getShortName(users.username)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid">
@@ -285,7 +279,7 @@ const ViewUserId = ({
             )}
           </div>
           <Separator orientation="horizontal" />
-          {!user ? (
+          {!users ? (
             <div>
               <Label>Vai trò </Label>
               <div className="max-h-[calc(100vh_-_326px)] overflow-y-scroll">
@@ -352,11 +346,11 @@ const ViewUserId = ({
             </div>
           ) : (
             <div>
-              <Label>Vai trò ({user.role_count})</Label>
+              <Label>Vai trò ({users.role_count})</Label>
               <div className="max-h-[calc(100vh_-_326px)] overflow-auto">
                 <table className="min-w-full">
                   <tbody>
-                    {user.roles.map((r) => (
+                    {users.roles.map((r) => (
                       <tr key={r.id}>
                         <td className="p-2 align-middle">
                           <div className="text-start">
@@ -381,9 +375,9 @@ const ViewUserId = ({
         </div>
 
         <SheetFooter className="flex-row border-t">
-          {user ? (
+          {users ? (
             <Link
-              href={`/admin/users/${user.id}/edit`}
+              href={`/admin/users/${users.id}/edit`}
               className={cn("w-full", buttonVariants({ variant: "outline" }))}
             >
               Chỉnh Sửa
@@ -554,7 +548,7 @@ const UserTable = () => {
                   {!userData || userData.users.length === 0 ? (
                     <TableBody>
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center h-16">
+                        <TableCell colSpan={4} className="text-center h-12">
                           <p>Không có kết quả...</p>
                         </TableCell>
                       </TableRow>
@@ -602,7 +596,7 @@ const UserTable = () => {
                                 <DropdownMenuGroup>
                                   <DropdownMenuItem
                                     onClick={() => {
-                                      navigator.clipboard.writeText("u.id");
+                                      navigator.clipboard.writeText(u.id);
                                       toast.info("Copy Id thành công.");
                                     }}
                                   >

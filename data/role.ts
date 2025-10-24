@@ -1,6 +1,6 @@
 "use server";
+import { cache } from "react";
 import { env } from "@/config";
-import { awaitCus } from "@/lib/utils";
 import {
   FetchAPI,
   FetchAPIError,
@@ -20,6 +20,8 @@ export type Role = {
   created_at: Date;
   updated_at: Date;
   user_count: number;
+  candelete: boolean;
+  canupdate: boolean;
 };
 
 export type RoleDetail = Role & {
@@ -46,48 +48,47 @@ const roleInstance = FetchAPI.create({
   baseUrl: `${env.SERVER_URL}/api/v1/roles`,
 });
 
-export async function queryRolesAction(
-  searchParams?: Record<string, string> | string | [string, string][]
-) {
-  try {
-    await awaitCus(2000);
-    const q = new URLSearchParams(searchParams || "").toString();
+export const queryRolesAction = cache(
+  async (
+    searchParams?: Record<string, string> | string | [string, string][]
+  ) => {
+    try {
+      const q = new URLSearchParams(searchParams || "").toString();
 
-    const { data: dataRes } = await roleInstance.get<{
-      statusCode: number;
-      statusText: string;
-      data: QueryRoles;
-    }>(q ? `?${q}` : "", {
-      headers: await getHeaders(),
-      cache: "no-store",
-    });
+      const { data: dataRes } = await roleInstance.get<{
+        statusCode: number;
+        statusText: string;
+        data: QueryRoles;
+      }>(q ? `?${q}` : "", {
+        headers: await getHeaders(),
+      });
 
-    return dataRes.data;
-  } catch (error) {
-    if (error instanceof FetchAPINetWorkError) {
-      console.log(`queryRolesAction func error: ${error.message}`);
+      return dataRes.data;
+    } catch (error) {
+      if (error instanceof FetchAPINetWorkError) {
+        console.log(`queryRolesAction func error: ${error.message}`);
+      }
+      if (error instanceof FetchAPIError) {
+        const res = error.response as FetchAPIResponse<{ message: string }>;
+        console.log(`queryRolesAction func error: ${res.data.message}`);
+      } else {
+        console.log(`queryRolesAction func error: ${error}`);
+      }
+
+      return {
+        roles: [],
+        metadata: {
+          totalItem: 0,
+          totalPage: 0,
+          hasNextPage: false,
+          limit: 0,
+          itemStart: 0,
+          itemEnd: 0,
+        },
+      };
     }
-
-    if (error instanceof FetchAPIError) {
-      const res = error.response as FetchAPIResponse<{ message: string }>;
-      console.log(`queryRolesAction func error: ${res.data.message}`);
-    } else {
-      console.log(`queryRolesAction func error: ${error}`);
-    }
-
-    return {
-      roles: [],
-      metadata: {
-        totalItem: 0,
-        totalPage: 0,
-        hasNextPage: false,
-        limit: 0,
-        itemStart: 0,
-        itemEnd: 0,
-      },
-    };
   }
-}
+);
 
 export type CreateRoleData = {
   name: string;
@@ -103,7 +104,13 @@ export type CreateUserActionRes = {
   };
 };
 
-export async function createRoleAction(data: CreateRoleData) {
+export type getRoleDetailActionRes = {
+  statusCode: number;
+  statusText: string;
+  data: RoleDetail;
+};
+
+export const createRoleAction = async (data: CreateRoleData) => {
   try {
     const { data: dataRes } = await roleInstance.post<CreateUserActionRes>(
       "/",
@@ -137,4 +144,27 @@ export async function createRoleAction(data: CreateRoleData) {
       },
     };
   }
-}
+};
+
+export const getRoleDetailAction = cache(
+  async (id: string): Promise<RoleDetail | null> => {
+    try {
+      const {
+        data: { data },
+      } = await roleInstance.get<getRoleDetailActionRes>(`/${id}/detail`, {
+        headers: await getHeaders(),
+      });
+      return data;
+    } catch (error: unknown) {
+      if (error instanceof FetchAPIError) {
+        const res = error.response as FetchAPIResponse<{ message: string }>;
+        console.log(`getUserDetailAction func error: ${res.data.message}`);
+      }
+      if (error instanceof FetchAPINetWorkError) {
+        console.log(`getUserDetailAction func error: ${error.message}`);
+      }
+      console.log(`getUserDetailAction func error: ${error}`);
+      return null;
+    }
+  }
+);

@@ -23,7 +23,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 const itemPerPages = ["10", "20", "30", "40", "50", "All"];
 
-const PageComponent = ({ metadata }: { metadata: Metadata }) => {
+const PageComponent = ({
+  metadata = {
+    hasNextPage: false,
+    itemEnd: 0,
+    itemStart: 0,
+    limit: 0,
+    totalItem: 0,
+    totalPage: 0,
+  },
+}: {
+  metadata?: Metadata;
+}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -120,14 +131,16 @@ const PageComponent = ({ metadata }: { metadata: Metadata }) => {
         </div>
 
         <p className="@2xl:hidden">
-          {`Trang ${Math.ceil(metadata.itemEnd / metadata.limit)} / ${
-            metadata.totalPage
-          }`}
+          {`Trang ${
+            metadata.itemEnd > 0
+              ? Math.ceil(metadata.itemEnd / metadata.limit)
+              : 0
+          } / ${metadata.totalPage}`}
         </p>
 
         <div className="flex items-center gap-2 @2xl:hidden">
           <Button
-            disabled={metadata.itemStart === 1}
+            disabled={metadata.itemStart <= 1}
             variant={"outline"}
             size={"icon"}
             onClick={() => {
@@ -141,7 +154,7 @@ const PageComponent = ({ metadata }: { metadata: Metadata }) => {
             <ChevronsLeftIcon className="w-4 h-4" />
           </Button>
           <Button
-            disabled={metadata.itemStart === 1}
+            disabled={metadata.itemStart <= 1}
             variant={"outline"}
             size={"icon"}
             onClick={() => {
@@ -160,6 +173,7 @@ const PageComponent = ({ metadata }: { metadata: Metadata }) => {
             variant={"outline"}
             size={"icon"}
             disabled={
+              metadata.totalPage === 0 ||
               metadata.totalPage.toString() === searchParams.get("page")
             }
             onClick={() => {
@@ -176,6 +190,7 @@ const PageComponent = ({ metadata }: { metadata: Metadata }) => {
           </Button>
           <Button
             disabled={
+              metadata.totalPage === 0 ||
               metadata.totalPage.toString() === searchParams.get("page")
             }
             variant={"outline"}
@@ -195,7 +210,7 @@ const PageComponent = ({ metadata }: { metadata: Metadata }) => {
           <PaginationContent>
             <PaginationItem>
               <Button
-                disabled={metadata.itemStart === 1}
+                disabled={metadata.itemStart <= 1}
                 variant={"outline"}
                 size={"icon"}
                 onClick={() => {

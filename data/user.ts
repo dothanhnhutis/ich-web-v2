@@ -116,46 +116,48 @@ export const createUserAction = async (
   }
 };
 
-export const queryUserAction = async (
-  searchParams?: Record<string, string> | string | [string, string][]
-): Promise<QueryUsersAPIRes> => {
-  const q = new URLSearchParams(searchParams || "").toString();
+export const queryUserAction = cache(
+  async (
+    searchParams?: Record<string, string> | string | [string, string][]
+  ): Promise<QueryUsersAPIRes> => {
+    const q = new URLSearchParams(searchParams || "").toString();
 
-  try {
-    const { data: dataRes } = await userInstance.get<QueryUsersAPIRes>(
-      q ? `?${q}` : "",
-      {
-        headers: await getHeaders(),
+    try {
+      const { data: dataRes } = await userInstance.get<QueryUsersAPIRes>(
+        q ? `?${q}` : "",
+        {
+          headers: await getHeaders(),
+        }
+      );
+      return dataRes;
+    } catch (error: unknown) {
+      if (error instanceof FetchAPIError) {
+        const res = error.response as FetchAPIResponse<{ message: string }>;
+        console.log(`queryUserAction func error: `, res.data.message);
       }
-    );
-    return dataRes;
-  } catch (error: unknown) {
-    if (error instanceof FetchAPIError) {
-      const res = error.response as FetchAPIResponse<{ message: string }>;
-      console.log(`queryUserAction func error: `, res.data.message);
-    }
-    if (error instanceof FetchAPINetWorkError) {
-      console.log(`queryUserAction func error: ${error.message}`);
-    } else {
-      console.log(`queryUserAction func error: ${error}`);
-    }
-    return {
-      statusText: "BAD_REQUEST",
-      statusCode: 400,
-      data: {
-        metadata: {
-          hasNextPage: false,
-          itemStart: 0,
-          itemEnd: 0,
-          limit: 0,
-          totalItem: 0,
-          totalPage: 0,
+      if (error instanceof FetchAPINetWorkError) {
+        console.log(`queryUserAction func error: ${error.message}`);
+      } else {
+        console.log(`queryUserAction func error: ${error}`);
+      }
+      return {
+        statusText: "BAD_REQUEST",
+        statusCode: 400,
+        data: {
+          metadata: {
+            hasNextPage: false,
+            itemStart: 0,
+            itemEnd: 0,
+            limit: 0,
+            totalItem: 0,
+            totalPage: 0,
+          },
+          users: [],
         },
-        users: [],
-      },
-    };
+      };
+    }
   }
-};
+);
 
 export const currentUserAction = cache(async (): Promise<UserDetail | null> => {
   try {

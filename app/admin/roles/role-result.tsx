@@ -1,13 +1,29 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import PageComponent from "@/components/page";
 import { buttonVariants } from "@/components/ui/button";
-import { queryRolesAction } from "@/data/role";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useUser } from "@/components/user-context";
+import { type QueryRoles, queryRolesAction } from "@/data/role";
 import { buildSortField, cn, hasDuplicateKey } from "@/lib/utils";
+import RoleFilter from "./role-filter";
+import RoleView from "./role-view";
 import RoleTable from "./table-data";
 
 const accessSearchParamKeys: string[] = [
@@ -29,22 +45,101 @@ const sortRoleEnum = buildSortField([
   "updated_at",
 ]);
 
+const RoleLoading = () => {
+  return (
+    <div className="outline-none relative flex flex-col gap-4 overflow-auto">
+      <div className="overflow-hidden rounded-lg border">
+        <div className="relative w-full overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-start w-[200px]">
+                  Tên vai trò
+                </TableHead>
+                <TableHead>Mô tả</TableHead>
+                <TableHead className="text-center w-[130px]">
+                  Tài khoản
+                </TableHead>
+                <TableHead className="text-right w-[130px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((idx) => (
+                <TableRow key={idx}>
+                  <TableCell className="font-medium">
+                    <Skeleton className="w-12 h-3 rounded-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="w-80 h-3 rounded-full" />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Skeleton className="w-12 h-3 inline-block" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="w-9 h-3 inline-block" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+      <div className="flex items-center text-sm @container">
+        <Skeleton className="shrink-0 hidden @2xl:block h-3 w-20" />
+
+        <div className="flex gap-8 items-center justify-between w-full @2xl:ml-auto @2xl:w-auto @2xl:justify-normal">
+          <div className="@2xl:flex gap-2 items-center hidden">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-9 w-[70px]" />
+          </div>
+
+          <Skeleton className="h-3 w-20 @2xl:hidden" />
+
+          <div className="flex items-center gap-2 @2xl:hidden">
+            <Skeleton className="h-9 w-9" />
+            <Skeleton className="h-9 w-9" />
+            <Skeleton className="h-9 w-9" />
+            <Skeleton className="h-9 w-9" />
+          </div>
+          <Pagination className="w-auto mx-0 hidden @2xl:flex">
+            <PaginationContent>
+              <PaginationItem>
+                <Skeleton className="h-9 w-9" />
+              </PaginationItem>
+              <PaginationItem>
+                <Skeleton className="h-9 w-9" />
+              </PaginationItem>
+              <PaginationItem>
+                <Skeleton className="h-9 w-9" />
+              </PaginationItem>
+              <PaginationItem>
+                <Skeleton className="h-9 w-9" />
+              </PaginationItem>
+              <PaginationItem>
+                <Skeleton className="h-9 w-9" />
+              </PaginationItem>
+              <PaginationItem>
+                <Skeleton className="h-9 w-9" />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RoleResult = () => {
+  const { hasPermission } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathName = usePathname();
 
-  const [enabled, setEnabled] = React.useState<boolean>(false);
-
-  // dam bao thu tu searchParams key
-  const { data } = useQuery({
-    enabled,
-    queryKey: ["roles", searchParams.toString()],
-    queryFn: async () => await queryRolesAction(),
-  });
+  const [data, setData] = React.useState<QueryRoles | null>(null);
+  const [isPending, startTransition] = React.useTransition();
+  const [viewId, setViewId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setEnabled(false);
     const validateSearchParams = () => {
       // Kiểm tra khóa không hợp lệ
       const invalidKey = Array.from(searchParams.keys()).some(
@@ -103,6 +198,13 @@ const RoleResult = () => {
       return newParams;
     };
 
+    const fetchData = () => {
+      startTransition(async () => {
+        const data = await queryRolesAction(searchParams.toString());
+        setData(data);
+      });
+    };
+
     if (validateSearchParams()) {
       const newParams = buildValidSearchParams();
       const newUrl = `${pathName}?${newParams.toString()}`;
@@ -110,33 +212,54 @@ const RoleResult = () => {
         router.push(newUrl);
       }
     } else {
-      setEnabled(true);
+      fetchData();
     }
   }, [searchParams, router, pathName]);
 
+  const handleClose = () => {
+    setViewId(null);
+  };
   return (
     <div className="w-full overflow-hidden">
       <div className="flex flex-col gap-4 p-4 mx-auto max-w-5xl">
         <div className="flex items-center gap-2 justify-between">
-          <h3 className="text-2xl font-bold shrink-0">Quản vai trò </h3>
-          <Link
-            href="/admin/roles/create"
-            className={cn(buttonVariants({ variant: "link" }))}
-          >
-            <span className="hidden xs:inline">Tạo vai trò mới</span>
-            <PlusIcon className="w-4 h-4 shrink-0" />
-          </Link>
+          <h3 className="text-2xl font-bold shrink-0">Quản lý vai trò </h3>
+
+          {hasPermission("create:role") ? (
+            <Link
+              href="/admin/roles/create"
+              className={cn(
+                buttonVariants({ variant: "default" }),
+                "text-white"
+              )}
+            >
+              <span className="hidden xs:inline ">Tạo vai trò mới</span>
+              <PlusIcon className="w-4 h-4 shrink-0" />
+            </Link>
+          ) : null}
         </div>
 
-        {/* <div className="outline-none relative flex flex-col gap-4 overflow-auto">
-          <div className="overflow-hidden rounded-lg border">
-            <div className="relative w-full overflow-x-auto">
-              <RoleTable roles={} />
+        <RoleFilter />
+
+        {isPending || !data ? (
+          <RoleLoading />
+        ) : (
+          <div className="outline-none relative flex flex-col gap-4 overflow-auto">
+            <div className="overflow-hidden rounded-lg border">
+              <div className="relative w-full overflow-x-auto">
+                <RoleTable
+                  roles={data.roles}
+                  onViewRole={(id) => {
+                    setViewId(id);
+                  }}
+                />
+              </div>
             </div>
+            <PageComponent metadata={data.metadata} />
           </div>
-          <PageComponent metadata={metadata} />
-        </div> */}
+        )}
       </div>
+      <RoleView id={viewId} onClose={handleClose} />
     </div>
   );
 };

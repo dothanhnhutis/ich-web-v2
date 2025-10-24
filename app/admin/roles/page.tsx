@@ -11,6 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import RoleResult from "./role-result";
+
 export const metadata: Metadata = {
   title: "Kho Hàng",
   robots: {
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
     follow: false,
   },
 };
+
 const RolesPage = async (props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
