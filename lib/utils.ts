@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { env } from "@/config";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,3 +31,19 @@ export const hasDuplicateKey = (arr: string[]): boolean => {
   const unique = new Set(keys);
   return unique.size !== keys.length; // nếu có trùng thì true
 };
+
+export function convertImage(image: Image): ImageURL {
+  const url = `${env.SERVER_URL}/api/v1${image.destination
+    .replace("uploads", "files")
+    .replace(/\\/g, "/")}/${image.file_name}`;
+
+  return {
+    id: image.id,
+    height: image.height,
+    width: image.width,
+    size: image.size,
+    fileName: image.file_name,
+    url,
+    created_at: image.created_at,
+  };
+}

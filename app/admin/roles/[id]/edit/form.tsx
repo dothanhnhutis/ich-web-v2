@@ -17,12 +17,14 @@ import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
+  InputGroupInput,
   InputGroupText,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import type { Role } from "@/data/role";
 import { cn } from "@/lib/utils";
+import UserTable from "./user-table";
 
 const DESCRIPTION_LENGTH = 225;
 
@@ -58,16 +60,23 @@ const UpdateRoleForm = ({ role }: { role: Role }) => {
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor="name">Tên vai trò</FieldLabel>
-            <Input
-              disabled={isPending}
-              id="name"
-              placeholder="Name"
-              required
-              value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
-            />
+            <InputGroup>
+              <InputGroupInput
+                disabled={isPending}
+                placeholder="Name"
+                id="name"
+                required
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    name:
+                      e.target.value.length <= 100 ? e.target.value : prev.name,
+                  }))
+                }
+              />
+              <InputGroupAddon align="inline-end">{`${formData.name.length} / 100`}</InputGroupAddon>
+            </InputGroup>
           </Field>
           <Field>
             <FieldLabel htmlFor="description">Mô tả về vai trò</FieldLabel>
@@ -100,8 +109,10 @@ const UpdateRoleForm = ({ role }: { role: Role }) => {
             </InputGroup>
           </Field>
           <Field>
-            <FieldLabel>Quyền</FieldLabel>
-            <FieldDescription>Chọn quyền cho vai trò.</FieldDescription>
+            <FieldLabel>Quyền truy cập</FieldLabel>
+            <FieldDescription>
+              Vai trò phải có một hoặc nhiều quyền truy cập.
+            </FieldDescription>
             <PermissionComponent
               disabled={isPending}
               permissions={formData.permissions}
@@ -110,14 +121,34 @@ const UpdateRoleForm = ({ role }: { role: Role }) => {
               }
             />
           </Field>
-          <Field orientation="horizontal" className="justify-end">
+
+          <Field>
+            <FieldLabel>Tài khoản</FieldLabel>
+            <FieldDescription>
+              Chọn tài khoản muốn cấp quyền này
+            </FieldDescription>
+            <UserTable roleId={role.id} />
+          </Field>
+
+          <Field
+            orientation="horizontal"
+            className="justify-end flex-col sm:flex-row"
+          >
             <Link
               href={"/admin/roles"}
-              className={cn(buttonVariants({ variant: "outline" }))}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "w-full sm:w-auto"
+              )}
             >
               Huỷ
             </Link>
-            <Button disabled={isPending} type="submit">
+
+            <Button
+              disabled={isPending}
+              type="submit"
+              className="w-full sm:w-auto"
+            >
               {isPending && <Spinner />}
               Cập nhật
             </Button>

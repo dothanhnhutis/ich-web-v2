@@ -29,7 +29,9 @@ export type RoleDetail = Role & {
 };
 
 export type QueryRoles = {
-  roles: Role[];
+  roles: (Role & {
+    users: Omit<UserWithoutPassword, "role_count">[];
+  })[];
   metadata: Metadata;
 };
 
@@ -116,6 +118,15 @@ export type GetRoleByIdActionRes = {
   data: Role;
 };
 
+export type GetUsersByRoleIdActionRes = {
+  statusCode: number;
+  statusText: string;
+  data: {
+    users: Omit<UserWithoutPassword, "role_count">[];
+    metadata: Metadata;
+  };
+};
+
 export const createRoleAction = async (data: CreateRoleData) => {
   try {
     const { data: dataRes } = await roleInstance.post<CreateUserActionRes>(
@@ -195,3 +206,44 @@ export const getRoleByIdAction = cache(async (id: string) => {
     return null;
   }
 });
+
+export const getUserByRoleIdAction = cache(
+  async (
+    roleId: string,
+    searchParams?: Record<string, string> | string | [string, string][]
+  ) => {
+    const q = new URLSearchParams(searchParams || "").toString();
+
+    try {
+      const {
+        data: { data },
+      } = await roleInstance.get<GetUsersByRoleIdActionRes>(
+        `/${roleId}/users${q ? `?${q}` : ""}`,
+        {
+          headers: await getHeaders(),
+        }
+      );
+      return data;
+    } catch (error: unknown) {
+      if (error instanceof FetchAPIError) {
+        const res = error.response as FetchAPIResponse<{ message: string }>;
+        console.log(`getUserByRoleIdAction func error: ${res.data.message}`);
+      }
+      if (error instanceof FetchAPINetWorkError) {
+        console.log(`getUserByRoleIdAction func error: ${error.message}`);
+      }
+      console.log(`getUserByRoleIdAction func error: ${error}`);
+      return {
+        users: [],
+        metadata: {
+          totalItem: 0,
+          totalPage: 0,
+          hasNextPage: false,
+          limit: 0,
+          itemStart: 0,
+          itemEnd: 0,
+        },
+      };
+    }
+  }
+);

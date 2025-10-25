@@ -185,7 +185,11 @@ const PermissionComponent = ({
   }
 
   return (
-    <Accordion type="multiple" className="w-full">
+    <Accordion
+      type="multiple"
+      className="w-full"
+      defaultValue={permissionData.map((p) => p.name)}
+    >
       {permissionData.map((p) => (
         <AccordionItem value={p.name} key={p.name}>
           <AccordionTrigger>{p.name}</AccordionTrigger>

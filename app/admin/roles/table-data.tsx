@@ -2,6 +2,7 @@
 import { EllipsisVerticalIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,13 +22,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
-import type { Role } from "@/data/role";
+import type { QueryRoles, Role } from "@/data/role";
+import { getShortName } from "@/lib/utils";
 
 const RoleTable = ({
   roles,
   onViewRole,
 }: {
-  roles?: Role[];
+  roles?: QueryRoles["roles"];
   onViewRole?: (id: string) => void;
 }) => {
   const { hasPermission } = useUser();
@@ -51,7 +53,26 @@ const RoleTable = ({
               <TableCell className="max-w-[700px]">
                 <p className="truncate">{r.description}</p>
               </TableCell>
-              <TableCell className="text-center">{r.user_count}</TableCell>
+              <TableCell className="text-center">
+                <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 ">
+                  {r.users.map((u) => (
+                    <Avatar key={u.id} className="bg-white">
+                      <AvatarImage
+                        src={u.avatar?.url || "/images/logo-square.png"}
+                        alt={u.avatar?.fileName || u.username}
+                      />
+                      <AvatarFallback>
+                        {getShortName(u.username)}
+                      </AvatarFallback>
+                    </Avatar>
+                  ))}
+                  {r.user_count > 3 && (
+                    <Avatar>
+                      <AvatarFallback>+{r.user_count - 3}</AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

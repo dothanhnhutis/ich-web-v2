@@ -4,7 +4,8 @@ export const permissionRoutes: Record<string, RegExp> = {
   "create:user": /^\/admin\/users\/create$/,
   "update:user": /^\/admin\/users\/(?:[0-9a-zA-Z/-])*\/edit$/,
 
-  "read:role": /^\/admin\/roles$/,
+  "read:role":
+    /^\/admin\/roles(?:\?[A-Za-z0-9]*=[A-Za-z0-9. ]*(?:&[A-Za-z0-9]*=[A-Za-z0-9. ]*)*)?$/,
   //   "update:user": /^\/admin\/users(?:[0-9a-zA-Z\/\-])*?$/,
   "create:role": /^\/admin\/roles\/create$/,
   "update:role": /^\/admin\/roles\/(?:[0-9a-zA-Z/-])*\/edit$/,
