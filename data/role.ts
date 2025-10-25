@@ -104,10 +104,16 @@ export type CreateUserActionRes = {
   };
 };
 
-export type getRoleDetailActionRes = {
+export type GetRoleDetailActionRes = {
   statusCode: number;
   statusText: string;
   data: RoleDetail;
+};
+
+export type GetRoleByIdActionRes = {
+  statusCode: number;
+  statusText: string;
+  data: Role;
 };
 
 export const createRoleAction = async (data: CreateRoleData) => {
@@ -151,7 +157,7 @@ export const getRoleDetailAction = cache(
     try {
       const {
         data: { data },
-      } = await roleInstance.get<getRoleDetailActionRes>(`/${id}/detail`, {
+      } = await roleInstance.get<GetRoleDetailActionRes>(`/${id}/detail`, {
         headers: await getHeaders(),
       });
       return data;
@@ -168,3 +174,24 @@ export const getRoleDetailAction = cache(
     }
   }
 );
+
+export const getRoleByIdAction = cache(async (id: string) => {
+  try {
+    const {
+      data: { data },
+    } = await roleInstance.get<GetRoleByIdActionRes>(`/${id}`, {
+      headers: await getHeaders(),
+    });
+    return data;
+  } catch (error: unknown) {
+    if (error instanceof FetchAPIError) {
+      const res = error.response as FetchAPIResponse<{ message: string }>;
+      console.log(`getRoleByIdAction func error: ${res.data.message}`);
+    }
+    if (error instanceof FetchAPINetWorkError) {
+      console.log(`getRoleByIdAction func error: ${error.message}`);
+    }
+    console.log(`getRoleByIdAction func error: ${error}`);
+    return null;
+  }
+});

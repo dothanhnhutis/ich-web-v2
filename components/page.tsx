@@ -80,6 +80,7 @@ const PageComponent = ({
                           const newSearchParams = new URLSearchParams(
                             searchParams.toString()
                           );
+                          newSearchParams.set("page", "1");
                           if (currentValue === "All") {
                             newSearchParams.delete("limit");
                           } else {
@@ -109,6 +110,7 @@ const PageComponent = ({
                           const newSearchParams = new URLSearchParams(
                             searchParams.toString()
                           );
+                          newSearchParams.set("page", "1");
                           if (currentValue === "All") {
                             newSearchParams.delete("limit");
                           } else {

@@ -6,6 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "./ui/accordion";
+import { Badge } from "./ui/badge";
 import { Checkbox } from "./ui/checkbox";
 
 const permissionData = [
@@ -136,6 +137,7 @@ type Props = {
   permissions?: string[];
   onPermissionsChange?: (permissions: string[]) => void;
   disabled?: boolean;
+  viewMode?: boolean;
 };
 
 const PermissionComponent = ({
@@ -143,6 +145,7 @@ const PermissionComponent = ({
   permissions,
   onPermissionsChange,
   disabled,
+  viewMode,
 }: Props) => {
   const [pers, setPers] = React.useState<string[]>(
     permissions ?? defaultPers ?? []
@@ -151,6 +154,35 @@ const PermissionComponent = ({
   const hasPer = (key: string) => {
     return !!pers.find((k) => key === k);
   };
+
+  if (viewMode) {
+    const filterPer = permissionData
+      .map((p) => ({
+        ...p,
+        pers: p.pers.filter((p1) => pers.includes(p1.key)),
+      }))
+      .filter((p) => p.pers.length > 0);
+    return (
+      <div className="flex flex-col gap-2">
+        {filterPer.map((p) => (
+          <div
+            className="flex flex-col gap-1 py-1 border-t first:border-none"
+            key={p.name}
+          >
+            <p className="text-base font-medium line-clamp-2">{p.name}</p>
+            <p className="text-sm text-muted-foreground">{p.description}</p>
+            <div className="flex gap-1 flex-wrap">
+              {p.pers.map((p) => (
+                <Badge key={p.key} variant="outline">
+                  {p.label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <Accordion type="multiple" className="w-full">

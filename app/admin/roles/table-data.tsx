@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useUser } from "@/components/user-context";
 import type { Role } from "@/data/role";
 
 const RoleTable = ({
@@ -29,6 +30,7 @@ const RoleTable = ({
   roles?: Role[];
   onViewRole?: (id: string) => void;
 }) => {
+  const { hasPermission } = useUser();
   return (
     <Table>
       <TableHeader>
@@ -43,8 +45,12 @@ const RoleTable = ({
         {roles && roles.length > 0 ? (
           roles.map((r) => (
             <TableRow key={r.id}>
-              <TableCell className="font-medium">{r.name}</TableCell>
-              <TableCell>{r.description}</TableCell>
+              <TableCell className="font-medium min-w-[200px]">
+                {r.name}
+              </TableCell>
+              <TableCell className="max-w-[700px]">
+                <p className="truncate">{r.description}</p>
+              </TableCell>
               <TableCell className="text-center">{r.user_count}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
@@ -82,7 +88,7 @@ const RoleTable = ({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       variant="destructive"
-                      disabled={!r.candelete}
+                      disabled={!r.candelete || !hasPermission("update:role")}
                     >
                       Xoá
                     </DropdownMenuItem>

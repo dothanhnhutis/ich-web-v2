@@ -26,7 +26,7 @@ const RolesPage = async (props: {
   const searchParams = await props.searchParams;
 
   if (Object.keys(searchParams).length === 0)
-    redirect(`/admin/roles?limit=1&page=1`);
+    redirect(`/admin/roles?limit=10&page=1`);
 
   return (
     <>
