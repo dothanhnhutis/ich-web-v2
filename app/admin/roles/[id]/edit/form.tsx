@@ -53,7 +53,7 @@ const UpdateRoleForm = ({ role }: { role: Role }) => {
   return (
     <form onSubmit={handleSubmit}>
       <FieldSet>
-        <FieldLegend>Tạo vai trò mới</FieldLegend>
+        <FieldLegend>Cập nhật vai trò</FieldLegend>
         <FieldDescription>
           Nhập tên và lựa chọn các quyền cho vai trò
         </FieldDescription>

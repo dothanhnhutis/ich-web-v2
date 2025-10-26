@@ -1,4 +1,5 @@
 "use client";
+import type { CheckedState } from "@radix-ui/react-checkbox";
 import React from "react";
 import {
   Accordion,
@@ -188,50 +189,75 @@ const PermissionComponent = ({
     <Accordion
       type="multiple"
       className="w-full"
-      defaultValue={permissionData.map((p) => p.name)}
+      // defaultValue={permissionData.map((p) => p.name)}
     >
-      {permissionData.map((p) => (
-        <AccordionItem value={p.name} key={p.name}>
-          <AccordionTrigger>{p.name}</AccordionTrigger>
-          <AccordionContent className="flex flex-col gap-4 text-balance">
-            <table>
-              <tbody>
-                <tr>
-                  <td className="text-start" rowSpan={2}>
-                    {p.description}
-                  </td>
-                  {p.pers.map((l) => (
-                    <td className="text-center px-2 pb-2" key={l.key}>
-                      {l.label}
+      {permissionData.map((p) => {
+        const mainCheck: CheckedState = p.pers.every(({ key }) =>
+          pers.includes(key)
+        )
+          ? true
+          : p.pers.every(({ key }) => !pers.includes(key))
+          ? false
+          : "indeterminate";
+
+        const handleMainCheck = (checked: CheckedState) => {
+          const keys = p.pers.map(({ key }) => key);
+          const newPers =
+            checked === "indeterminate" || !checked
+              ? Array.from(new Set(pers.filter((k) => !keys.includes(k))))
+              : Array.from(new Set([...pers, ...keys]));
+          setPers(newPers);
+          if (onPermissionsChange) {
+            onPermissionsChange(newPers);
+          }
+        };
+
+        return (
+          <AccordionItem value={p.name} key={p.name}>
+            <div className="flex items-center gap-2 w-full has-[h3[data-orientation=vertical]]:[&>h3]:w-full">
+              <Checkbox checked={mainCheck} onCheckedChange={handleMainCheck} />
+              <AccordionTrigger>{p.name}</AccordionTrigger>
+            </div>
+            <AccordionContent className="flex flex-col gap-4 text-balance">
+              <table>
+                <tbody>
+                  <tr>
+                    <td className="text-start" rowSpan={2}>
+                      {p.description}
                     </td>
-                  ))}
-                </tr>
-                <tr>
-                  {p.pers.map((l) => (
-                    <td className="text-center px-2 pb-2" key={l.key}>
-                      <Checkbox
-                        disabled={disabled}
-                        checked={hasPer(l.key)}
-                        onCheckedChange={(checked) => {
-                          const newPers = checked
-                            ? Array.from(new Set([...pers, l.key]))
-                            : Array.from(
-                                new Set(pers.filter((k) => k !== l.key))
-                              );
-                          setPers(newPers);
-                          if (onPermissionsChange) {
-                            onPermissionsChange(newPers);
-                          }
-                        }}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </AccordionContent>
-        </AccordionItem>
-      ))}
+                    {p.pers.map((l) => (
+                      <td className="text-center px-2 pb-2" key={l.key}>
+                        {l.label}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    {p.pers.map((l) => (
+                      <td className="text-center px-2 pb-2" key={l.key}>
+                        <Checkbox
+                          disabled={disabled}
+                          checked={hasPer(l.key)}
+                          onCheckedChange={(checked) => {
+                            const newPers = checked
+                              ? Array.from(new Set([...pers, l.key]))
+                              : Array.from(
+                                  new Set(pers.filter((k) => k !== l.key))
+                                );
+                            setPers(newPers);
+                            if (onPermissionsChange) {
+                              onPermissionsChange(newPers);
+                            }
+                          }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
     </Accordion>
   );
 };

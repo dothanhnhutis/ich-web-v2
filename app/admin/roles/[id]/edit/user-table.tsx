@@ -94,7 +94,7 @@ const UserTable = ({ roleId }: Props) => {
           </Table>
         </div>
       </div>
-      {/* <PageComponent metadata={checkList.metadata} /> */}
+      <PageComponent metadata={checkList.metadata} />
     </div>
   );
 };

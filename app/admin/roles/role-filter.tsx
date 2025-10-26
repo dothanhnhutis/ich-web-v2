@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  BrickWallShieldIcon,
+  CaptionsIcon,
   CheckIcon,
   ChevronDownIcon,
   MailIcon,
@@ -8,7 +10,7 @@ import {
   UserSearchIcon,
   XIcon,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import SortComponent from "@/components/sort";
 import { Button } from "@/components/ui/button";
@@ -72,16 +74,17 @@ const sortData: Record<string, { title: string; description: string }> = {
 const RoleFilter = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [searchEmail, setSearchEmail] = React.useState<string>("");
-  const [searchUsername, setSearchUsername] = React.useState<string>("");
+  const pathName = usePathname();
+  const [searchName, setSearchName] = React.useState<string>("");
+  const [searchDescription, setSearchDescription] = React.useState<string>("");
   const [open, setOpen] = React.useState<boolean>(false);
   const [status, setStatus] = React.useState<string>("");
 
   React.useEffect(() => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
     const paramSetters = {
-      email: setSearchEmail,
-      username: setSearchUsername,
+      name: setSearchName,
+      description: setSearchDescription,
       status: setStatus,
     };
     // cập nhật dữ liệu
@@ -97,30 +100,30 @@ const RoleFilter = () => {
         <InputGroup>
           <InputGroupInput
             type="text"
-            placeholder="Tìm kím bằng email"
-            value={searchEmail}
+            placeholder="Tìm kím bằng tên vai trò"
+            value={searchName}
             onChange={(e) => {
-              setSearchEmail(e.target.value);
+              setSearchName(e.target.value);
             }}
           />
           <InputGroupAddon>
-            <MailIcon />
+            <BrickWallShieldIcon />
           </InputGroupAddon>
           <InputGroupAddon
             align="inline-end"
-            className={cn("p-0", searchEmail.length === 0 ? "hidden" : "block")}
+            className={cn("p-0", searchName.length === 0 ? "hidden" : "block")}
           >
             <button
               type="button"
               className=" p-2"
               onClick={() => {
                 const newSearchParams = new URLSearchParams(searchParams);
-                setSearchEmail("");
-                if (newSearchParams.has("email")) {
-                  newSearchParams.delete("email");
+                setSearchName("");
+                if (newSearchParams.has("name")) {
+                  newSearchParams.delete("name");
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
-                  router.push(`/admin/users?${newSearchParams.toString()}`);
+                  router.push(`${pathName}?${newSearchParams.toString()}`);
                 }
               }}
             >
@@ -133,18 +136,18 @@ const RoleFilter = () => {
               size={"icon-sm"}
               onClick={() => {
                 const newSearchParams = new URLSearchParams(searchParams);
-                if (searchEmail !== "") {
-                  if (newSearchParams.has("username")) {
-                    newSearchParams.delete("username");
-                    setSearchUsername("");
+                if (searchName !== "") {
+                  if (newSearchParams.has("description")) {
+                    newSearchParams.delete("description");
+                    setSearchDescription("");
                   }
-                  newSearchParams.set("email", searchEmail);
+                  newSearchParams.set("name", searchName);
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
                 } else {
-                  newSearchParams.delete("email");
+                  newSearchParams.delete("name");
                 }
-                router.push(`/admin/users?${newSearchParams.toString()}`);
+                router.push(`${pathName}?${newSearchParams.toString()}`);
               }}
             >
               <SearchIcon />
@@ -155,20 +158,20 @@ const RoleFilter = () => {
         <InputGroup>
           <InputGroupInput
             type="text"
-            placeholder="Tìm kím bằng tên"
-            value={searchUsername}
+            placeholder="Tìm kím bằng mô tả"
+            value={searchDescription}
             onChange={(e) => {
-              setSearchUsername(e.target.value);
+              setSearchDescription(e.target.value);
             }}
           />
           <InputGroupAddon>
-            <UserSearchIcon />
+            <CaptionsIcon />
           </InputGroupAddon>
           <InputGroupAddon
             align="inline-end"
             className={cn(
               "p-0",
-              searchUsername.length === 0 ? "hidden" : "block"
+              searchDescription.length === 0 ? "hidden" : "block"
             )}
           >
             <button
@@ -176,12 +179,12 @@ const RoleFilter = () => {
               className=" p-2"
               onClick={() => {
                 const newSearchParams = new URLSearchParams(searchParams);
-                setSearchUsername("");
-                if (newSearchParams.has("username")) {
-                  newSearchParams.delete("username");
+                setSearchDescription("");
+                if (newSearchParams.has("description")) {
+                  newSearchParams.delete("description");
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
-                  router.push(`/admin/users?${newSearchParams.toString()}`);
+                  router.push(`${pathName}?${newSearchParams.toString()}`);
                 }
               }}
             >
@@ -194,18 +197,18 @@ const RoleFilter = () => {
               size={"icon-sm"}
               onClick={() => {
                 const newSearchParams = new URLSearchParams(searchParams);
-                if (searchUsername !== "") {
-                  if (newSearchParams.has("email")) {
-                    newSearchParams.delete("email");
-                    setSearchEmail("");
+                if (searchDescription !== "") {
+                  if (newSearchParams.has("name")) {
+                    newSearchParams.delete("name");
+                    setSearchName("");
                   }
-                  newSearchParams.set("username", searchUsername);
+                  newSearchParams.set("description", searchDescription);
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
                 } else {
-                  newSearchParams.delete("username");
+                  newSearchParams.delete("description");
                 }
-                router.push(`/admin/users?${newSearchParams.toString()}`);
+                router.push(`${pathName}?${newSearchParams.toString()}`);
               }}
             >
               <SearchIcon />
@@ -264,7 +267,7 @@ const RoleFilter = () => {
                           newSearchParams.set("page", "1");
                           newSearchParams.set("limit", "10");
                           router.push(
-                            `/admin/users?${newSearchParams.toString()}`
+                            `${pathName}?${newSearchParams.toString()}`
                           );
                         }}
                       >

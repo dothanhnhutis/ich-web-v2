@@ -39,8 +39,9 @@ const RoleTable = ({
         <TableRow>
           <TableHead>Tên vai trò</TableHead>
           <TableHead>Mô tả</TableHead>
-          <TableHead className="text-center w-[130px]">Người dùng</TableHead>
-          <TableHead className="text-right w-[130px]"></TableHead>
+          <TableHead>Tài khoản</TableHead>
+          <TableHead>Trạng thái</TableHead>
+          <TableHead></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -72,6 +73,9 @@ const RoleTable = ({
                     </Avatar>
                   )}
                 </div>
+              </TableCell>
+              <TableCell>
+                {r.status === "ACTIVE" ? "Hoạt động" : "Vô hiệu hoá"}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>

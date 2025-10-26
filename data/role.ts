@@ -96,6 +96,7 @@ export type CreateRoleData = {
   name: string;
   description: string;
   permissions: string[];
+  userIds: string[];
 };
 
 export type CreateUserActionRes = {
