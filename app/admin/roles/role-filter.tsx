@@ -31,6 +31,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { sortRoleData } from "@/constants";
 import { cn } from "@/lib/utils";
 
 const statusData = [
@@ -43,33 +44,6 @@ const statusData = [
     value: "INACTIVE",
   },
 ];
-
-const sortData: Record<string, { title: string; description: string }> = {
-  name: {
-    title: "Tên vai trò",
-    description: "Sắp xếp theo tên",
-  },
-  description: {
-    title: "Mô tả",
-    description: "Sắp xếp theo mô tả",
-  },
-  status: {
-    title: "Trạng thái",
-    description: "Sắp xếp theo trạng thái",
-  },
-  deactived_at: {
-    title: "Ngày vô hiệu hoá",
-    description: "Sắp xếp theo ngày vô hiệu hoá",
-  },
-  created_at: {
-    title: "Ngày tạo",
-    description: "Sắp xếp theo ngày tạo",
-  },
-  updated_at: {
-    title: "Ngày cập nhật",
-    description: "Sắp xếp theo ngày cập nhật",
-  },
-};
 
 const RoleFilter = () => {
   const router = useRouter();
@@ -286,7 +260,7 @@ const RoleFilter = () => {
             </PopoverContent>
           </Popover>
 
-          <SortComponent data={sortData} />
+          <SortComponent data={sortRoleData} />
         </div>
       </div>
     </div>

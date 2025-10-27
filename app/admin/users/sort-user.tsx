@@ -13,33 +13,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { sortUserData } from "@/constants";
 
-const sortData: Record<string, { title: string; description: string }> = {
-  email: {
-    title: "Email",
-    description: "Sắp xếp theo email",
-  },
-  username: {
-    title: "Họ và Tên",
-    description: "Sắp xếp theo tên người dùng",
-  },
-  status: {
-    title: "Trạng thái",
-    description: "Sắp xếp theo trạng thái",
-  },
-  deactived_at: {
-    title: "Ngày vô hiệu hoá",
-    description: "Sắp xếp theo ngày vô hiệu hoá",
-  },
-  created_at: {
-    title: "Ngày tạo",
-    description: "Sắp xếp theo ngày tạo",
-  },
-  updated_at: {
-    title: "Ngày cập nhật",
-    description: "Sắp xếp theo ngày cập nhật",
-  },
-};
 const SortUser = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -154,12 +129,12 @@ const SortUser = () => {
       <DropdownMenuContent className="w-80" side="bottom" align="end">
         <DropdownMenuLabel>Sắp xếp</DropdownMenuLabel>
 
-        {Object.keys(sortData).map((key) => (
+        {Object.keys(sortUserData).map((key) => (
           <React.Fragment key={key}>
             <DropdownMenuSeparator />
             <div className="flex flex-col gap-2 p-1">
               <div className="flex gap-2 justify-between items-center">
-                <Label>{sortData[key].title}</Label>
+                <Label>{sortUserData[key].title}</Label>
                 <Switch
                   checked={hasSort(key)}
                   onCheckedChange={(isOn) => {
@@ -174,7 +149,7 @@ const SortUser = () => {
                 />
               </div>
               <div className="flex gap-2 items-center justify-between">
-                <p className="text-sm">{sortData[key].description}</p>
+                <p className="text-sm">{sortUserData[key].description}</p>
                 <ToggleGroup
                   variant="outline"
                   type="single"

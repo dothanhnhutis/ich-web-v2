@@ -16,7 +16,7 @@ import React from "react";
 import { toast } from "sonner";
 import PageComponent from "@/components/page";
 import PermissionComponent from "@/components/permission";
-import SortComponent from "@/components/sort";
+import SortComponent, { SortComponentV2 } from "@/components/sort";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,6 +72,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { sortUserData } from "@/constants";
 import { type CreateRoleData, createRoleAction } from "@/data/role";
 import { queryUserAction, type User } from "@/data/user";
 import { cn, getShortName } from "@/lib/utils";
@@ -102,8 +103,11 @@ const CreateRoleForm = () => {
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
   const [isPending, startTransition] = React.useTransition();
   const [searchType, setSearchType] = React.useState("email");
+  const [searchData, setSearchData] = React.useState<string>("");
+  const [userSearchParams, setUserSearchParams] =
+    React.useState("page=1&limit=10");
 
-  const [userData, setUserData] = React.useState<{
+  const [{ users, metadata }, setUserData] = React.useState<{
     metadata: Metadata;
     users: User[];
   }>({
@@ -120,11 +124,11 @@ const CreateRoleForm = () => {
 
   React.useEffect(() => {
     async function fetchUser() {
-      const { data } = await queryUserAction();
+      const { data } = await queryUserAction(userSearchParams);
       setUserData(data);
     }
     fetchUser();
-  }, []);
+  }, [userSearchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -380,9 +384,26 @@ const CreateRoleForm = () => {
                   searchTypes.find((s) => s.value === searchType)
                     ?.placeholder ?? ""
                 }
+                value={searchData}
+                onChange={(e) => {
+                  setSearchData(e.target.value);
+                }}
               />
               <InputGroupAddon className="pl-1.5">
-                <Select value={searchType} onValueChange={setSearchType}>
+                <Select
+                  value={searchType}
+                  onValueChange={(value) => {
+                    const newSearchParams = new URLSearchParams(
+                      userSearchParams
+                    );
+                    newSearchParams.delete(
+                      value === "email" ? "username" : "email"
+                    );
+                    setUserSearchParams(newSearchParams.toString());
+                    setSearchType(value);
+                    setSearchData("");
+                  }}
+                >
                   <SelectTrigger className="font-mono rounded-tr-none rounded-br-none  border-l-0 border-y-0 shadow-none">
                     {searchTypes.find((s) => s.value === searchType)?.label ??
                       ""}
@@ -400,23 +421,55 @@ const CreateRoleForm = () => {
               </InputGroupAddon>
               <InputGroupAddon
                 align="inline-end"
-                className={cn("p-0", false ? "hidden" : "block")}
+                className={cn(
+                  "p-0",
+                  searchData.length === 0 ? "hidden" : "block"
+                )}
               >
-                <button type="button" className=" p-2">
+                <button
+                  type="button"
+                  className="p-2"
+                  onClick={() => {
+                    setSearchData("");
+                    const newSearchParams = new URLSearchParams(
+                      userSearchParams
+                    );
+                    newSearchParams.delete(searchType);
+                    setUserSearchParams(newSearchParams.toString());
+                  }}
+                >
                   <XIcon className="w-4 h-4" />
                 </button>
               </InputGroupAddon>
               <InputGroupAddon align="inline-end" className="pr-2">
-                <Button variant={"ghost"} size={"icon-sm"}>
+                <Button
+                  variant={"ghost"}
+                  size={"icon-sm"}
+                  onClick={() => {
+                    if (searchData !== "") {
+                      const newSearchParams = new URLSearchParams(
+                        userSearchParams
+                      );
+                      newSearchParams.set(searchType, searchData);
+                      setUserSearchParams(newSearchParams.toString());
+                    }
+                  }}
+                >
                   <SearchIcon />
                 </Button>
               </InputGroupAddon>
             </InputGroup>
 
-            <SortComponent
+            {/* <SortComponent
               data={{
                 email: { description: "Sắp xếp thep email", title: "email" },
               }}
+            /> */}
+
+            <SortComponentV2
+              data={sortUserData}
+              sort={userSearchParams}
+              onSortChange={setUserSearchParams}
             />
           </div>
           <div className="overflow-hidden rounded-lg border">
@@ -425,17 +478,51 @@ const CreateRoleForm = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-center">
-                      <Checkbox />
+                      <Checkbox
+                        checked={
+                          users.every((u) => formData.userIds.includes(u.id))
+                            ? true
+                            : users.every(
+                                (u) => !formData.userIds.includes(u.id)
+                              )
+                            ? false
+                            : "indeterminate"
+                        }
+                        onCheckedChange={(checked) => {
+                          const ids = users.map(({ id }) => id);
+                          const userIds =
+                            checked === "indeterminate" || !checked
+                              ? Array.from(
+                                  new Set(
+                                    formData.userIds.filter(
+                                      (k) => !ids.includes(k)
+                                    )
+                                  )
+                                )
+                              : Array.from(
+                                  new Set([...formData.userIds, ...ids])
+                                );
+                          setFormData((prev) => ({ ...prev, userIds }));
+                        }}
+                      />
                     </TableHead>
                     <TableHead>Tài khoản</TableHead>
                     <TableHead className="text-center">Vai trò</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {userData.users.map((u) => (
+                  {users.map((u) => (
                     <TableRow key={u.id}>
                       <TableCell className="text-center">
-                        <Checkbox checked={formData.userIds.includes(u.id)} />
+                        <Checkbox
+                          checked={formData.userIds.includes(u.id)}
+                          onCheckedChange={(checked) => {
+                            const userIds = checked
+                              ? [...formData.userIds, u.id]
+                              : formData.userIds.filter((id) => id !== u.id);
+                            setFormData((prev) => ({ ...prev, userIds }));
+                          }}
+                        />
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2 items-center">
@@ -450,9 +537,9 @@ const CreateRoleForm = () => {
                           </Avatar>
                           <div className="flex flex-col">
                             <p className="font-semibold text-lg">
-                              Do Thanh Nhut
+                              {u.username}
                             </p>
-                            <p className="text-sm">gaconght@gmail.com</p>
+                            <p className="text-sm"> {u.email}</p>
                           </div>
                         </div>
                       </TableCell>
@@ -462,30 +549,92 @@ const CreateRoleForm = () => {
                     </TableRow>
                   ))}
 
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center h-12">
-                      Không có kết quả.
-                    </TableCell>
-                  </TableRow>
+                  {users.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center h-12">
+                        Không có kết quả.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
           </div>
           <div className="flex items-center text-sm @container">
             <div className="flex gap-8 items-center justify-between w-full @2xl:ml-auto @2xl:w-auto @2xl:justify-normal">
-              <p className="@2xl:hidden">{`Trang ${1} / ${1}`}</p>
+              <p className="@2xl:hidden">{`Trang ${
+                metadata.itemEnd > 0
+                  ? Math.ceil(metadata.itemEnd / metadata.limit)
+                  : 0
+              } / ${metadata.totalPage}`}</p>
 
               <div className="flex items-center gap-2 @2xl:hidden">
-                <Button variant={"outline"} size={"icon"}>
+                <Button
+                  variant={"outline"}
+                  size={"icon"}
+                  disabled={metadata.itemStart <= 1}
+                  onClick={() => {
+                    const newSearchParams = new URLSearchParams(
+                      userSearchParams.toString()
+                    );
+                    newSearchParams.set("page", "1");
+                    setUserSearchParams(newSearchParams.toString());
+                  }}
+                >
                   <ChevronsLeftIcon className="w-4 h-4" />
                 </Button>
-                <Button variant={"outline"} size={"icon"}>
+                <Button
+                  variant={"outline"}
+                  size={"icon"}
+                  disabled={metadata.itemStart <= 1}
+                  onClick={() => {
+                    const currentPage =
+                      Math.ceil(metadata.itemEnd / metadata.limit) - 1;
+                    const newSearchParams = new URLSearchParams(
+                      userSearchParams.toString()
+                    );
+                    newSearchParams.set("page", currentPage.toString());
+                    setUserSearchParams(newSearchParams.toString());
+                  }}
+                >
                   <ChevronLeftIcon className="w-4 h-4" />
                 </Button>
-                <Button variant={"outline"} size={"icon"}>
+                <Button
+                  variant={"outline"}
+                  size={"icon"}
+                  disabled={
+                    metadata.totalPage === 0 ||
+                    metadata.totalPage.toString() ===
+                      new URLSearchParams(userSearchParams).get("page")
+                  }
+                  onClick={() => {
+                    const currentPage =
+                      Math.ceil(metadata.itemEnd / metadata.limit) + 1;
+                    const newSearchParams = new URLSearchParams(
+                      userSearchParams.toString()
+                    );
+                    newSearchParams.set("page", currentPage.toString());
+                    setUserSearchParams(newSearchParams.toString());
+                  }}
+                >
                   <ChevronRightIcon className="w-4 h-4" />
                 </Button>
-                <Button variant={"outline"} size={"icon"}>
+                <Button
+                  variant={"outline"}
+                  size={"icon"}
+                  disabled={
+                    metadata.totalPage === 0 ||
+                    metadata.totalPage.toString() ===
+                      new URLSearchParams(userSearchParams).get("page")
+                  }
+                  onClick={() => {
+                    const newSearchParams = new URLSearchParams(
+                      userSearchParams.toString()
+                    );
+                    newSearchParams.set("page", metadata.totalPage.toString());
+                    setUserSearchParams(newSearchParams.toString());
+                  }}
+                >
                   <ChevronsRightIcon className="w-4 h-4" />
                 </Button>
               </div>
