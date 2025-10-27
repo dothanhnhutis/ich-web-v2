@@ -79,7 +79,7 @@ const UpdateRoleForm = ({ role }: { role: Role }) => {
             </InputGroup>
           </Field>
           <Field>
-            <FieldLabel htmlFor="description">Mô tả về vai trò</FieldLabel>
+            <FieldLabel htmlFor="description">Mô tả</FieldLabel>
             <InputGroup>
               <InputGroupTextarea
                 disabled={isPending}

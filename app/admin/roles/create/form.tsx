@@ -1,11 +1,22 @@
 "use client";
-import { PlusIcon, Trash2Icon, XIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+  MailIcon,
+  PlusIcon,
+  SearchIcon,
+  Trash2Icon,
+  XIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
 import PageComponent from "@/components/page";
 import PermissionComponent from "@/components/permission";
+import SortComponent from "@/components/sort";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Empty,
@@ -44,6 +56,12 @@ import {
   InputGroupText,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
@@ -60,16 +78,31 @@ import { cn, getShortName } from "@/lib/utils";
 
 const DESCRIPTION_LENGTH = 225;
 
+const searchTypes = [
+  {
+    value: "email",
+    label: "Email",
+    placeholder: "Nhập Email",
+  },
+  {
+    value: "username",
+    label: "Tên khách hàng",
+    placeholder: "Nhập tên khách hàng",
+  },
+];
+
 const CreateRoleForm = () => {
   const router = useRouter();
   const [formData, setFormData] = React.useState<CreateRoleData>({
     name: "",
     description: "",
     permissions: [],
-    userIds: [],
+    userIds: ["0199f19b-18a1-74d4-bab1-37fcff986b59"],
   });
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
   const [isPending, startTransition] = React.useTransition();
+  const [searchType, setSearchType] = React.useState("email");
+
   const [userData, setUserData] = React.useState<{
     metadata: Metadata;
     users: User[];
@@ -127,7 +160,7 @@ const CreateRoleForm = () => {
               <InputGroup>
                 <InputGroupInput
                   disabled={isPending}
-                  placeholder="Name"
+                  placeholder="Nhập tên vai trò"
                   id="name"
                   required
                   value={formData.name}
@@ -145,12 +178,12 @@ const CreateRoleForm = () => {
               </InputGroup>
             </Field>
             <Field>
-              <FieldLabel htmlFor="description">Mô tả về vai trò</FieldLabel>
+              <FieldLabel htmlFor="description">Mô tả</FieldLabel>
               <InputGroup>
                 <InputGroupTextarea
                   disabled={isPending}
                   id="description"
-                  placeholder="Enter your description"
+                  placeholder="Nhập mô tả cho vai trò"
                   value={formData.description}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -339,6 +372,53 @@ const CreateRoleForm = () => {
               Chọn tài khoản muốn thêm vai trò nay
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="flex justify-between items-center gap-2">
+            <InputGroup>
+              <InputGroupInput
+                type="text"
+                placeholder={
+                  searchTypes.find((s) => s.value === searchType)
+                    ?.placeholder ?? ""
+                }
+              />
+              <InputGroupAddon className="pl-1.5">
+                <Select value={searchType} onValueChange={setSearchType}>
+                  <SelectTrigger className="font-mono rounded-tr-none rounded-br-none  border-l-0 border-y-0 shadow-none">
+                    {searchTypes.find((s) => s.value === searchType)?.label ??
+                      ""}
+                  </SelectTrigger>
+                  <SelectContent className="min-w-24">
+                    {searchTypes.map((currency) => (
+                      <SelectItem key={currency.value} value={currency.value}>
+                        <span className="text-muted-foreground">
+                          {currency.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </InputGroupAddon>
+              <InputGroupAddon
+                align="inline-end"
+                className={cn("p-0", false ? "hidden" : "block")}
+              >
+                <button type="button" className=" p-2">
+                  <XIcon className="w-4 h-4" />
+                </button>
+              </InputGroupAddon>
+              <InputGroupAddon align="inline-end" className="pr-2">
+                <Button variant={"ghost"} size={"icon-sm"}>
+                  <SearchIcon />
+                </Button>
+              </InputGroupAddon>
+            </InputGroup>
+
+            <SortComponent
+              data={{
+                email: { description: "Sắp xếp thep email", title: "email" },
+              }}
+            />
+          </div>
           <div className="overflow-hidden rounded-lg border">
             <div className="relative w-full overflow-x-auto">
               <Table>
@@ -355,11 +435,11 @@ const CreateRoleForm = () => {
                   {userData.users.map((u) => (
                     <TableRow key={u.id}>
                       <TableCell className="text-center">
-                        <Checkbox />
+                        <Checkbox checked={formData.userIds.includes(u.id)} />
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2 items-center">
-                          <Avatar className="bg-white">
+                          <Avatar className="bg-white size-12">
                             <AvatarImage
                               src={u.avatar?.url || "/images/logo-square.png"}
                               alt={u.avatar?.fileName || u.username}
@@ -368,8 +448,10 @@ const CreateRoleForm = () => {
                               {getShortName(u.username)}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex flex-col gap-1">
-                            <p className="font-bold text-lg">Do Thanh Nhut</p>
+                          <div className="flex flex-col">
+                            <p className="font-semibold text-lg">
+                              Do Thanh Nhut
+                            </p>
                             <p className="text-sm">gaconght@gmail.com</p>
                           </div>
                         </div>
@@ -389,7 +471,26 @@ const CreateRoleForm = () => {
               </Table>
             </div>
           </div>
-          <PageComponent metadata={userData.metadata} />
+          <div className="flex items-center text-sm @container">
+            <div className="flex gap-8 items-center justify-between w-full @2xl:ml-auto @2xl:w-auto @2xl:justify-normal">
+              <p className="@2xl:hidden">{`Trang ${1} / ${1}`}</p>
+
+              <div className="flex items-center gap-2 @2xl:hidden">
+                <Button variant={"outline"} size={"icon"}>
+                  <ChevronsLeftIcon className="w-4 h-4" />
+                </Button>
+                <Button variant={"outline"} size={"icon"}>
+                  <ChevronLeftIcon className="w-4 h-4" />
+                </Button>
+                <Button variant={"outline"} size={"icon"}>
+                  <ChevronRightIcon className="w-4 h-4" />
+                </Button>
+                <Button variant={"outline"} size={"icon"}>
+                  <ChevronsRightIcon className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
 
           <AlertDialogFooter>
             <AlertDialogCancel>Huỷ</AlertDialogCancel>
