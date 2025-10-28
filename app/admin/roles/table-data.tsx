@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
 import type { QueryRoles, Role } from "@/data/role";
-import { getShortName } from "@/lib/utils";
+import { convertImage, getShortName } from "@/lib/utils";
 
 const RoleTable = ({
   roles,
@@ -59,8 +59,12 @@ const RoleTable = ({
                   {r.users.map((u) => (
                     <Avatar key={u.id} className="bg-white">
                       <AvatarImage
-                        src={u.avatar?.url || "/images/logo-square.png"}
-                        alt={u.avatar?.fileName || u.username}
+                        src={
+                          u.avatar
+                            ? convertImage(u.avatar).url
+                            : "/images/logo-square.png"
+                        }
+                        alt={u.avatar?.file_name || u.username}
                       />
                       <AvatarFallback>
                         {getShortName(u.username)}

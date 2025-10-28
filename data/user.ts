@@ -17,7 +17,7 @@ export type User = {
   email: string;
   username: string;
   status: string;
-  avatar: ImageURL | null;
+  avatar: Image | null;
   deactived_at: Date;
   role_count: number;
   created_at: Date;
@@ -70,12 +70,8 @@ export type CreateUserAPIRes = {
 };
 
 export type QueryUsersAPIRes = {
-  statusCode: number;
-  statusText: string;
-  data: {
-    metadata: Metadata;
-    users: User[];
-  };
+  metadata: Metadata;
+  users: UserWithoutPassword[];
 };
 
 export const createUserAction = async (
@@ -123,13 +119,16 @@ export const queryUserAction = cache(
     const q = new URLSearchParams(searchParams || "").toString();
 
     try {
-      const { data: dataRes } = await userInstance.get<QueryUsersAPIRes>(
-        q ? `?${q}` : "",
-        {
-          headers: await getHeaders(),
-        }
-      );
-      return dataRes;
+      const {
+        data: { data },
+      } = await userInstance.get<{
+        statusText: string;
+        statusCode: number;
+        data: QueryUsersAPIRes;
+      }>(q ? `?${q}` : "", {
+        headers: await getHeaders(),
+      });
+      return data;
     } catch (error: unknown) {
       if (error instanceof FetchAPIError) {
         const res = error.response as FetchAPIResponse<{ message: string }>;
@@ -141,19 +140,15 @@ export const queryUserAction = cache(
         console.log(`queryUserAction func error: ${error}`);
       }
       return {
-        statusText: "BAD_REQUEST",
-        statusCode: 400,
-        data: {
-          metadata: {
-            hasNextPage: false,
-            itemStart: 0,
-            itemEnd: 0,
-            limit: 0,
-            totalItem: 0,
-            totalPage: 0,
-          },
-          users: [],
+        metadata: {
+          hasNextPage: false,
+          itemStart: 0,
+          itemEnd: 0,
+          limit: 0,
+          totalItem: 0,
+          totalPage: 0,
         },
+        users: [],
       };
     }
   }
