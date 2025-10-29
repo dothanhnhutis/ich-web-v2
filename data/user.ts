@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { env } from "@/config";
 import {
-  type DefaultAPIRes,
   FetchAPI,
   FetchAPIError,
   FetchAPINetWorkError,
@@ -19,17 +18,18 @@ export type User = {
   status: string;
   avatar: Image | null;
   deactived_at: Date;
-  role_count: number;
   created_at: Date;
   updated_at: Date;
 };
 
 export type UserWithoutPassword = User & {
   has_password: boolean;
+  // role_count: number;
 };
 
 export type UserPassword = User & {
   password_hash: string;
+  role_count: number;
 };
 
 export type QueryUsers = { users: UserWithoutPassword[]; metadata: Metadata };

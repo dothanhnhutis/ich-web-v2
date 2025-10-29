@@ -156,7 +156,7 @@ const RoleView = ({
 
         <SheetFooter className="flex-row border-t">
           {role ? (
-            role.canupdate ? (
+            role.can_update ? (
               <Link
                 href={`/admin/roles/${role.id}/edit`}
                 className={cn("w-full", buttonVariants({ variant: "outline" }))}

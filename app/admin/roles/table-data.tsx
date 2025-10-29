@@ -22,14 +22,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
-import type { QueryRoles, Role } from "@/data/role";
+import type { QueryRolesAction } from "@/data/role";
 import { convertImage, getShortName } from "@/lib/utils";
 
 const RoleTable = ({
   roles,
   onViewRole,
 }: {
-  roles?: QueryRoles["roles"];
+  roles?: QueryRolesAction["roles"];
   onViewRole?: (id: string) => void;
 }) => {
   const { hasPermission } = useUser();
@@ -108,7 +108,7 @@ const RoleTable = ({
                       >
                         Xem trước
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild disabled={!r.canupdate}>
+                      <DropdownMenuItem asChild disabled={!r.can_update}>
                         <Link href={`/admin/roles/${r.id}/edit`}>
                           Chỉnh sửa
                         </Link>
@@ -117,7 +117,7 @@ const RoleTable = ({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       variant="destructive"
-                      disabled={!r.candelete || !hasPermission("update:role")}
+                      disabled={!r.can_delete || !hasPermission("update:role")}
                     >
                       Xoá
                     </DropdownMenuItem>

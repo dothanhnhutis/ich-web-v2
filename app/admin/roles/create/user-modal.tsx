@@ -1,5 +1,4 @@
 "use client";
-import { SelectItemText } from "@radix-ui/react-select";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

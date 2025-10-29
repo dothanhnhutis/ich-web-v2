@@ -7,38 +7,8 @@ import {
   FetchAPINetWorkError,
   type FetchAPIResponse,
 } from "./api";
-import type { User, UserWithoutPassword } from "./user";
+import type { UserWithoutPassword } from "./user";
 import { getHeaders } from "./utils";
-
-export type Role = {
-  id: string;
-  name: string;
-  permissions: string[];
-  description: string;
-  status: string;
-  deactived_at: Date;
-  created_at: Date;
-  updated_at: Date;
-  user_count: number;
-  candelete: boolean;
-  canupdate: boolean;
-};
-
-export type RoleDetail = Role & {
-  users: UserWithoutPassword[];
-};
-
-export type QueryRoles = {
-  roles: (Role & {
-    users: Omit<UserWithoutPassword, "role_count">[];
-  })[];
-  metadata: Metadata;
-};
-
-export type QueryUsersByRoleId = {
-  users: User[];
-  metadata: Metadata;
-};
 
 const roleInstance = FetchAPI.create({
   credentials: "include",
@@ -50,20 +20,44 @@ const roleInstance = FetchAPI.create({
   baseUrl: `${env.SERVER_URL}/api/v1/roles`,
 });
 
+export type Role = {
+  id: string;
+  name: string;
+  permissions: string[];
+  description: string;
+  status: string;
+  deactived_at: Date;
+  created_at: Date;
+  updated_at: Date;
+  user_count: number;
+  can_delete: boolean;
+  can_update: boolean;
+};
+
+type QueryRolesAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: {
+    roles: (Role & { users: UserWithoutPassword[] })[];
+    metadata: Metadata;
+  };
+};
+
+export type QueryRolesAction = QueryRolesAPIRes["data"];
+
 export const queryRolesAction = cache(
   async (
     searchParams?: Record<string, string> | string | [string, string][]
-  ) => {
+  ): Promise<QueryRolesAction> => {
     try {
       const q = new URLSearchParams(searchParams || "").toString();
 
-      const { data: dataRes } = await roleInstance.get<{
-        statusCode: number;
-        statusText: string;
-        data: QueryRoles;
-      }>(q ? `?${q}` : "", {
-        headers: await getHeaders(),
-      });
+      const { data: dataRes } = await roleInstance.get<QueryRolesAPIRes>(
+        q ? `?${q}` : "",
+        {
+          headers: await getHeaders(),
+        }
+      );
 
       return dataRes.data;
     } catch (error) {
@@ -92,14 +86,14 @@ export const queryRolesAction = cache(
   }
 );
 
-export type CreateRoleData = {
+export type CreateRoleActionData = {
   name: string;
   description: string;
   permissions: string[];
   userIds: string[];
 };
 
-export type CreateUserActionRes = {
+type CreateUserAPIRes = {
   statusCode: number;
   statusText: string;
   data: {
@@ -107,118 +101,125 @@ export type CreateUserActionRes = {
   };
 };
 
-export type GetRoleDetailActionRes = {
-  statusCode: number;
-  statusText: string;
-  data: RoleDetail;
+export type CreateRoleAction = {
+  success: boolean;
+  message: string;
 };
-
-export type GetRoleByIdActionRes = {
-  statusCode: number;
-  statusText: string;
-  data: Role;
-};
-
-export type GetUsersByRoleIdActionRes = {
-  statusCode: number;
-  statusText: string;
-  data: {
-    users: Omit<UserWithoutPassword, "role_count">[];
-    metadata: Metadata;
-  };
-};
-
-export const createRoleAction = async (data: CreateRoleData) => {
+export const createRoleAction = async (
+  data: CreateRoleActionData
+): Promise<CreateRoleAction> => {
   try {
-    const { data: dataRes } = await roleInstance.post<CreateUserActionRes>(
-      "/",
-      data,
-      {
-        headers: await getHeaders(),
-      }
-    );
-    return dataRes;
+    const res = await roleInstance.post<CreateUserAPIRes>("/", data, {
+      headers: await getHeaders(),
+    });
+    return {
+      success: true,
+      message: res.data.data.message,
+    };
   } catch (error) {
     if (error instanceof FetchAPIError) {
-      const res = error.response as FetchAPIResponse<CreateUserActionRes>;
-      return res.data;
+      const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
+      return {
+        success: false,
+        message: res.data.data.message,
+      };
     }
     if (error instanceof FetchAPINetWorkError) {
       console.log(`createRoleAction func error: ${error.message}`);
       return {
-        statusCode: error.status,
-        statusText: error.statusText,
-        data: {
-          message: error.message,
-        },
+        success: false,
+        message: error.message,
       };
     }
     console.log(`createRoleAction func error: ${error}`);
     return {
-      statusCode: 400,
-      statusText: "BAD_REQUEST",
-      data: {
-        message: "Tạo vai trò thất bại.",
-      },
+      success: false,
+      message: "Tạo vai trò thất bại.",
     };
   }
 };
 
+export type RoleDetail = Role & {
+  users: UserWithoutPassword[];
+};
+export type GetRoleDetailAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: RoleDetail;
+};
 export const getRoleDetailAction = cache(
-  async (id: string): Promise<RoleDetail | null> => {
+  async (roleId: string): Promise<RoleDetail | null> => {
     try {
       const {
         data: { data },
-      } = await roleInstance.get<GetRoleDetailActionRes>(`/${id}/detail`, {
+      } = await roleInstance.get<GetRoleDetailAPIRes>(`/${roleId}/detail`, {
         headers: await getHeaders(),
       });
       return data;
     } catch (error: unknown) {
       if (error instanceof FetchAPIError) {
         const res = error.response as FetchAPIResponse<{ message: string }>;
-        console.log(`getUserDetailAction func error: ${res.data.message}`);
+        console.log(`getRoleDetailAction func error: ${res.data.message}`);
       }
       if (error instanceof FetchAPINetWorkError) {
-        console.log(`getUserDetailAction func error: ${error.message}`);
+        console.log(`getRoleDetailAction func error: ${error.message}`);
       }
-      console.log(`getUserDetailAction func error: ${error}`);
+      console.log(`getRoleDetailAction func error: ${error}`);
       return null;
     }
   }
 );
 
-export const getRoleByIdAction = cache(async (id: string) => {
-  try {
-    const {
-      data: { data },
-    } = await roleInstance.get<GetRoleByIdActionRes>(`/${id}`, {
-      headers: await getHeaders(),
-    });
-    return data;
-  } catch (error: unknown) {
-    if (error instanceof FetchAPIError) {
-      const res = error.response as FetchAPIResponse<{ message: string }>;
-      console.log(`getRoleByIdAction func error: ${res.data.message}`);
+type GetRoleByIdActionRes = {
+  statusCode: number;
+  statusText: string;
+  data: Role;
+};
+export const getRoleByIdAction = cache(
+  async (roleId: string): Promise<Role | null> => {
+    try {
+      const {
+        data: { data },
+      } = await roleInstance.get<GetRoleByIdActionRes>(`/${roleId}`, {
+        headers: await getHeaders(),
+      });
+      return data;
+    } catch (error: unknown) {
+      if (error instanceof FetchAPIError) {
+        const res = error.response as FetchAPIResponse<{ message: string }>;
+        console.log(`getRoleByIdAction func error: ${res.data.message}`);
+      }
+      if (error instanceof FetchAPINetWorkError) {
+        console.log(`getRoleByIdAction func error: ${error.message}`);
+      }
+      console.log(`getRoleByIdAction func error: ${error}`);
+      return null;
     }
-    if (error instanceof FetchAPINetWorkError) {
-      console.log(`getRoleByIdAction func error: ${error.message}`);
-    }
-    console.log(`getRoleByIdAction func error: ${error}`);
-    return null;
   }
-});
+);
 
-export const getUserByRoleIdAction = cache(
+type GetUsersByRoleIdAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: {
+    metadata: Metadata;
+    users: UserWithoutPassword[];
+  };
+};
+
+type GetUsersByRoleIdAction = GetUsersByRoleIdAPIRes["data"];
+
+export const getUsersByRoleIdAction = cache(
   async (
     roleId: string,
     searchParams?: Record<string, string> | string | [string, string][]
-  ) => {
+  ): Promise<GetUsersByRoleIdAction> => {
     const q = new URLSearchParams(searchParams || "").toString();
 
     try {
       const {
         data: { data },
-      } = await roleInstance.get<GetUsersByRoleIdActionRes>(
+      } = await roleInstance.get<GetUsersByRoleIdAPIRes>(
         `/${roleId}/users${q ? `?${q}` : ""}`,
         {
           headers: await getHeaders(),
@@ -228,12 +229,12 @@ export const getUserByRoleIdAction = cache(
     } catch (error: unknown) {
       if (error instanceof FetchAPIError) {
         const res = error.response as FetchAPIResponse<{ message: string }>;
-        console.log(`getUserByRoleIdAction func error: ${res.data.message}`);
+        console.log(`getUsersByRoleIdAction func error: ${res.data.message}`);
       }
       if (error instanceof FetchAPINetWorkError) {
-        console.log(`getUserByRoleIdAction func error: ${error.message}`);
+        console.log(`getUsersByRoleIdAction func error: ${error.message}`);
       }
-      console.log(`getUserByRoleIdAction func error: ${error}`);
+      console.log(`getUsersByRoleIdAction func error: ${error}`);
       return {
         users: [],
         metadata: {
@@ -248,3 +249,42 @@ export const getUserByRoleIdAction = cache(
     }
   }
 );
+
+type UpdateRolebyIdActionData = CreateRoleActionData & {
+  status: string;
+};
+
+export const updateRolebyIdAction = async (
+  id: string,
+  data: UpdateRolebyIdActionData
+) => {
+  try {
+    const res = await roleInstance.patch<CreateUserAPIRes>(`/${id}`, data, {
+      headers: await getHeaders(),
+    });
+    return {
+      success: true,
+      message: res.data.data.message,
+    };
+  } catch (error) {
+    if (error instanceof FetchAPIError) {
+      const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
+      return {
+        success: false,
+        message: res.data.data.message,
+      };
+    }
+    if (error instanceof FetchAPINetWorkError) {
+      console.log(`updateRolebyIdAction func error: ${error.message}`);
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+    console.log(`updateRolebyIdAction func error: ${error}`);
+    return {
+      success: false,
+      message: "Cập nhật vai trò thất bại.",
+    };
+  }
+};

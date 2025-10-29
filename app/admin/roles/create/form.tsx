@@ -69,9 +69,9 @@ const CreateRoleForm = () => {
         userIds: formData.users.map(({ id }) => id),
       };
       const res = await createRoleAction(newFormData);
-      if (res.statusCode === 200) {
+      if (res.success) {
         router.push("/admin/roles");
-        toast.success(res.data.message);
+        toast.success(res.message);
       } else {
         setFormData({
           name: "",
@@ -79,7 +79,7 @@ const CreateRoleForm = () => {
           permissions: [],
           users: [],
         });
-        toast.error(res.data.message);
+        toast.error(res.message);
       }
     });
   };
