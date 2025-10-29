@@ -1,5 +1,4 @@
 "use server";
-import { revalidatePath } from "next/cache";
 import { cache } from "react";
 import { env } from "@/config";
 import {
@@ -39,7 +38,7 @@ type QueryRolesAPIRes = {
   statusCode: number;
   statusText: string;
   data: {
-    roles: (Role & { users: UserWithoutPassword[] })[];
+    roles: (Role & { users: Omit<UserWithoutPassword, "">[] })[];
     metadata: Metadata;
   };
 };
@@ -53,15 +52,12 @@ export const queryRolesAction = cache(
     try {
       const q = new URLSearchParams(searchParams || "").toString();
 
-      const { data: dataRes } = await roleInstance.get<QueryRolesAPIRes>(
-        q ? `?${q}` : "",
-        {
-          headers: await getHeaders(),
-          cache: "no-store",
-        }
-      );
+      const res = await roleInstance.get<QueryRolesAPIRes>(q ? `?${q}` : "", {
+        headers: await getHeaders(),
+        cache: "no-store",
+      });
 
-      return dataRes.data;
+      return res.data.data;
     } catch (error) {
       if (error instanceof FetchAPINetWorkError) {
         console.log(`queryRolesAction func error: ${error.message}`);
@@ -142,7 +138,7 @@ export const createRoleAction = async (
 };
 
 export type RoleDetail = Role & {
-  users: UserWithoutPassword[];
+  users: Omit<UserWithoutPassword, "role_count">[];
 };
 export type GetRoleDetailAPIRes = {
   statusCode: number;

@@ -18,18 +18,17 @@ export type User = {
   status: string;
   avatar: Image | null;
   deactived_at: Date;
+  role_count: number;
   created_at: Date;
   updated_at: Date;
 };
 
 export type UserWithoutPassword = User & {
   has_password: boolean;
-  // role_count: number;
 };
 
 export type UserPassword = User & {
   password_hash: string;
-  role_count: number;
 };
 
 export type QueryUsers = { users: UserWithoutPassword[]; metadata: Metadata };
@@ -67,11 +66,6 @@ export type CreateUserAPIRes = {
   data: {
     message: string;
   };
-};
-
-export type QueryUsersAPIRes = {
-  metadata: Metadata;
-  users: UserWithoutPassword[];
 };
 
 export const createUserAction = async (
@@ -112,23 +106,24 @@ export const createUserAction = async (
   }
 };
 
+export type QueryUsersAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: { metadata: Metadata; users: UserWithoutPassword[] };
+};
+export type QueryUsersAction = QueryUsersAPIRes["data"];
+
 export const queryUserAction = cache(
   async (
     searchParams?: Record<string, string> | string | [string, string][]
-  ): Promise<QueryUsersAPIRes> => {
+  ): Promise<QueryUsersAction> => {
     const q = new URLSearchParams(searchParams || "").toString();
 
     try {
-      const {
-        data: { data },
-      } = await userInstance.get<{
-        statusText: string;
-        statusCode: number;
-        data: QueryUsersAPIRes;
-      }>(q ? `?${q}` : "", {
+      const res = await userInstance.get<QueryUsersAPIRes>(q ? `?${q}` : "", {
         headers: await getHeaders(),
       });
-      return data;
+      return res.data.data;
     } catch (error: unknown) {
       if (error instanceof FetchAPIError) {
         const res = error.response as FetchAPIResponse<{ message: string }>;

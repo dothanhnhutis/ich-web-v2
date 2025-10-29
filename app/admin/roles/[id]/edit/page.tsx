@@ -10,7 +10,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getRoleDetailAction } from "@/data/role";
-import UpdateRoleForm from "./form";
+import RoleForm from "../../role-form";
 
 const UpdateRolePage = async (props: { params: Promise<{ id: string }> }) => {
   const params = await props.params;
@@ -45,7 +45,7 @@ const UpdateRolePage = async (props: { params: Promise<{ id: string }> }) => {
         </Breadcrumb>
       </header>
       <div className="p-4 w-full max-w-3xl mx-auto">
-        <UpdateRoleForm role={role} />
+        <RoleForm role={role} />
       </div>
     </>
   );

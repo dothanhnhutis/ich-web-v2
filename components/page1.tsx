@@ -14,32 +14,36 @@ import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Command, CommandGroup, CommandItem, CommandList } from "./ui/command";
 import {
-  Pagination,
   PaginationContent,
+  Pagination as PaginationDefault,
   PaginationEllipsis,
   PaginationItem,
 } from "./ui/pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 const itemPerPages = ["10", "20", "30", "40", "50", "All"];
-//delete
-const PageComponent = ({
-  metadata = {
-    hasNextPage: false,
-    itemEnd: 0,
-    itemStart: 0,
-    limit: 0,
-    totalItem: 0,
-    totalPage: 0,
-  },
-}: {
-  metadata?: Metadata;
-}) => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
+
+type PaginationProps = {
+  metadata: Metadata;
+  defaultSearchParamsString?: string;
+  searchParamsString?: string;
+  onPageChange?: (value: string) => void;
+};
+const Pagination = ({
+  metadata,
+  searchParamsString,
+  defaultSearchParamsString,
+  onPageChange,
+}: PaginationProps) => {
   const [open, setOpen] = React.useState(false);
+  const [searchParams, setSearchParams] = React.useState<URLSearchParams>(
+    new URLSearchParams(searchParamsString ?? defaultSearchParamsString ?? "")
+  );
   const [itemPerPage, setItemPerPage] = React.useState<string>("10");
+
+  React.useEffect(() => {
+    setSearchParams(new URLSearchParams(searchParamsString));
+  }, [searchParamsString]);
 
   React.useEffect(() => {
     setItemPerPage(`${metadata.limit}`);
@@ -86,9 +90,10 @@ const PageComponent = ({
                           } else {
                             newSearchParams.set("limit", currentValue);
                           }
-                          router.push(
-                            `${pathname}?${newSearchParams.toString()}`
-                          );
+                          setSearchParams(newSearchParams);
+                          if (onPageChange) {
+                            onPageChange(newSearchParams.toString());
+                          }
                         }}
                       >
                         {item}
@@ -116,9 +121,10 @@ const PageComponent = ({
                           } else {
                             newSearchParams.set("limit", currentValue);
                           }
-                          router.push(
-                            `${pathname}?${newSearchParams.toString()}`
-                          );
+                          setSearchParams(newSearchParams);
+                          if (onPageChange) {
+                            onPageChange(newSearchParams.toString());
+                          }
                         }}
                       >
                         {itemPerPage}
@@ -150,7 +156,10 @@ const PageComponent = ({
                 searchParams.toString()
               );
               newSearchParams.set("page", "1");
-              router.push(`${pathname}?${newSearchParams.toString()}`);
+              setSearchParams(newSearchParams);
+              if (onPageChange) {
+                onPageChange(newSearchParams.toString());
+              }
             }}
           >
             <ChevronsLeftIcon className="w-4 h-4" />
@@ -166,7 +175,10 @@ const PageComponent = ({
                 searchParams.toString()
               );
               newSearchParams.set("page", currentPage.toString());
-              router.push(`${pathname}?${newSearchParams.toString()}`);
+              setSearchParams(newSearchParams);
+              if (onPageChange) {
+                onPageChange(newSearchParams.toString());
+              }
             }}
           >
             <ChevronLeftIcon className="w-4 h-4" />
@@ -185,7 +197,10 @@ const PageComponent = ({
                 searchParams.toString()
               );
               newSearchParams.set("page", currentPage.toString());
-              router.push(`${pathname}?${newSearchParams.toString()}`);
+              setSearchParams(newSearchParams);
+              if (onPageChange) {
+                onPageChange(newSearchParams.toString());
+              }
             }}
           >
             <ChevronRightIcon className="w-4 h-4" />
@@ -202,13 +217,16 @@ const PageComponent = ({
                 searchParams.toString()
               );
               newSearchParams.set("page", metadata.totalPage.toString());
-              router.push(`${pathname}?${newSearchParams.toString()}`);
+              setSearchParams(newSearchParams);
+              if (onPageChange) {
+                onPageChange(newSearchParams.toString());
+              }
             }}
           >
             <ChevronsRightIcon className="w-4 h-4" />
           </Button>
         </div>
-        <Pagination className="w-auto mx-0 hidden @2xl:flex">
+        <PaginationDefault className="w-auto mx-0 hidden @2xl:flex">
           <PaginationContent>
             <PaginationItem>
               <Button
@@ -222,7 +240,10 @@ const PageComponent = ({
                     searchParams.toString()
                   );
                   newSearchParams.set("page", currentPage.toString());
-                  router.push(`${pathname}?${newSearchParams.toString()}`);
+                  setSearchParams(newSearchParams);
+                  if (onPageChange) {
+                    onPageChange(newSearchParams.toString());
+                  }
                 }}
               >
                 <ChevronLeftIcon className="w-4 h-4" />
@@ -262,7 +283,10 @@ const PageComponent = ({
                         searchParams.toString()
                       );
                       newSearchParams.set("page", p.toString());
-                      router.push(`${pathname}?${newSearchParams.toString()}`);
+                      setSearchParams(newSearchParams);
+                      if (onPageChange) {
+                        onPageChange(newSearchParams.toString());
+                      }
                     }}
                   >
                     {p}
@@ -283,17 +307,20 @@ const PageComponent = ({
                     searchParams.toString()
                   );
                   newSearchParams.set("page", currentPage.toString());
-                  router.push(`${pathname}?${newSearchParams.toString()}`);
+                  setSearchParams(newSearchParams);
+                  if (onPageChange) {
+                    onPageChange(newSearchParams.toString());
+                  }
                 }}
               >
                 <ChevronRightIcon className="w-4 h-4" />
               </Button>
             </PaginationItem>
           </PaginationContent>
-        </Pagination>
+        </PaginationDefault>
       </div>
     </div>
   );
 };
 
-export default PageComponent;
+export default Pagination;

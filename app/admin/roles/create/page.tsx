@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import CreateRoleForm from "./form";
+import RoleForm from "../role-form";
 
 const CreateRolePage = () => {
   return (
@@ -38,7 +38,7 @@ const CreateRolePage = () => {
         </Breadcrumb>
       </header>
       <div className="p-4 w-full max-w-3xl mx-auto">
-        <CreateRoleForm />
+        <RoleForm />
       </div>
     </>
   );
