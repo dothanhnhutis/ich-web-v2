@@ -1,16 +1,32 @@
 "use client";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
+import { toast } from "sonner";
 import PageComponent from "@/components/page";
-import { buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -20,11 +36,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
-import { type QueryRoles, queryRolesAction } from "@/data/role";
+import { deleteRoleByIdAction, queryRolesAction } from "@/data/role";
 import { buildSortField, cn, hasDuplicateKey } from "@/lib/utils";
 import RoleFilter from "./role-filter";
+import RoleTable from "./role-table";
 import RoleView from "./role-view";
-import RoleTable from "./table-data";
 
 const accessSearchParamKeys: string[] = [
   "name",
@@ -134,10 +150,35 @@ const RoleResult = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathName = usePathname();
+  const queryClient = useQueryClient();
 
-  const [data, setData] = React.useState<QueryRoles | null>(null);
-  const [isPending, startTransition] = React.useTransition();
   const [viewId, setViewId] = React.useState<string | null>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["roles", searchParams.toString()],
+    queryFn: () => queryRolesAction(searchParams.toString()),
+    staleTime: 10_000, // 10s trước khi refetch tự động
+    placeholderData: keepPreviousData, // giữ dữ liệu cũ khi searchParams thay đổi
+  });
+
+  const [open, setOpen] = React.useState<boolean>(false);
+  const [deleteRoleId, setDeleteRoleId] = React.useState<string | null>(null);
+  const [isPending1, startTransition1] = React.useTransition();
+  const handleDeleteRole = () => {
+    startTransition1(async () => {
+      if (deleteRoleId) {
+        const res = await deleteRoleByIdAction(deleteRoleId);
+        if (res.success) {
+          toast.success(res.message);
+          await queryClient.invalidateQueries({ queryKey: ["roles"] });
+        } else {
+          toast.error(res.message);
+        }
+        setOpen(false);
+        setDeleteRoleId(null);
+      }
+    });
+  };
 
   React.useEffect(() => {
     const validateSearchParams = () => {
@@ -198,21 +239,12 @@ const RoleResult = () => {
       return newParams;
     };
 
-    const fetchData = () => {
-      startTransition(async () => {
-        const data = await queryRolesAction(searchParams.toString());
-        setData(data);
-      });
-    };
-
     if (validateSearchParams()) {
       const newParams = buildValidSearchParams();
       const newUrl = `${pathName}?${newParams.toString()}`;
       if (newUrl !== `${pathName}?${searchParams.toString()}`) {
         router.push(newUrl);
       }
-    } else {
-      fetchData();
     }
   }, [searchParams, router, pathName]);
 
@@ -241,7 +273,7 @@ const RoleResult = () => {
 
         <RoleFilter />
 
-        {isPending || !data ? (
+        {isLoading || !data ? (
           <RoleLoading />
         ) : (
           <div className="outline-none relative flex flex-col gap-4 overflow-auto">
@@ -252,14 +284,42 @@ const RoleResult = () => {
                   onViewRole={(id) => {
                     setViewId(id);
                   }}
+                  onDeleteRole={(userId: string) => {
+                    setDeleteRoleId(userId);
+                    setOpen(true);
+                  }}
                 />
               </div>
             </div>
-            <PageComponent metadata={data.metadata} />
+            {data.roles.length > 0 && (
+              <PageComponent metadata={data.metadata} />
+            )}
           </div>
         )}
       </div>
       <RoleView id={viewId} onClose={handleClose} />
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bạn có chắc chắn không?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn
+              vai trò khỏi máy chủ.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Huỷ</AlertDialogCancel>
+            <Button
+              disabled={isPending1}
+              variant={"destructive"}
+              onClick={handleDeleteRole}
+            >
+              {isPending1 && <Spinner />}
+              Xoá
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

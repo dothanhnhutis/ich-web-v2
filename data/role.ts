@@ -1,4 +1,5 @@
 "use server";
+import { revalidatePath } from "next/cache";
 import { cache } from "react";
 import { env } from "@/config";
 import {
@@ -56,6 +57,7 @@ export const queryRolesAction = cache(
         q ? `?${q}` : "",
         {
           headers: await getHeaders(),
+          cache: "no-store",
         }
       );
 
@@ -254,7 +256,7 @@ type UpdateRolebyIdActionData = CreateRoleActionData & {
   status: string;
 };
 
-export const updateRolebyIdAction = async (
+export const updateRoleByIdAction = async (
   id: string,
   data: UpdateRolebyIdActionData
 ) => {
@@ -275,16 +277,48 @@ export const updateRolebyIdAction = async (
       };
     }
     if (error instanceof FetchAPINetWorkError) {
-      console.log(`updateRolebyIdAction func error: ${error.message}`);
+      console.log(`updateRoleByIdAction func error: ${error.message}`);
       return {
         success: false,
         message: error.message,
       };
     }
-    console.log(`updateRolebyIdAction func error: ${error}`);
+    console.log(`updateRoleByIdAction func error: ${error}`);
     return {
       success: false,
       message: "Cập nhật vai trò thất bại.",
+    };
+  }
+};
+
+export const deleteRoleByIdAction = async (id: string) => {
+  try {
+    const res = await roleInstance.delete<CreateUserAPIRes>(`/${id}`, {
+      headers: await getHeaders(),
+    });
+    return {
+      success: true,
+      message: res.data.data.message,
+    };
+  } catch (error) {
+    if (error instanceof FetchAPIError) {
+      const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
+      return {
+        success: false,
+        message: res.data.data.message,
+      };
+    }
+    if (error instanceof FetchAPINetWorkError) {
+      console.log(`deleteRoleByIdAction func error: ${error.message}`);
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+    console.log(`deleteRoleByIdAction func error: ${error}`);
+    return {
+      success: false,
+      message: "Xoá vai trò thất bại.",
     };
   }
 };

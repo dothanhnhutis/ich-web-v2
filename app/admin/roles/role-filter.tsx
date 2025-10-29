@@ -5,9 +5,7 @@ import {
   CaptionsIcon,
   CheckIcon,
   ChevronDownIcon,
-  MailIcon,
   SearchIcon,
-  UserSearchIcon,
   XIcon,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -68,13 +66,13 @@ const RoleFilter = () => {
   }, [searchParams]);
 
   return (
-    <div className="relative grid gap-4 border rounded-md p-3">
+    <div className="relative grid gap-4 border rounded-lg p-3">
       <Label>Bộ lọc</Label>
       <div className="flex gap-4 items-center flex-col sm:flex-row">
         <InputGroup>
           <InputGroupInput
             type="text"
-            placeholder="Tìm kím bằng tên vai trò"
+            placeholder="Tìm kiếm bằng tên vai trò"
             value={searchName}
             onChange={(e) => {
               setSearchName(e.target.value);
@@ -132,7 +130,7 @@ const RoleFilter = () => {
         <InputGroup>
           <InputGroupInput
             type="text"
-            placeholder="Tìm kím bằng mô tả"
+            placeholder="Tìm kiếm bằng mô tả"
             value={searchDescription}
             onChange={(e) => {
               setSearchDescription(e.target.value);

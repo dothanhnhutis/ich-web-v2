@@ -33,7 +33,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { type RoleDetail, updateRolebyIdAction } from "@/data/role";
+import { type RoleDetail, updateRoleByIdAction } from "@/data/role";
 import type { UserWithoutPassword } from "@/data/user";
 import { cn, convertImage, getShortName } from "@/lib/utils";
 import UserModal from "../../create/user-modal";
@@ -64,7 +64,7 @@ const UpdateRoleForm = ({ role }: { role: RoleDetail }) => {
     e.preventDefault();
     startTransition(async () => {
       const userIds = formData.users.map(({ id }) => id);
-      const res = await updateRolebyIdAction(role.id, { ...formData, userIds });
+      const res = await updateRoleByIdAction(role.id, { ...formData, userIds });
 
       if (res.success) {
         router.push("/admin/roles");

@@ -2,6 +2,7 @@
 import { EllipsisVerticalIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,11 +29,14 @@ import { convertImage, getShortName } from "@/lib/utils";
 const RoleTable = ({
   roles,
   onViewRole,
+  onDeleteRole,
 }: {
   roles?: QueryRolesAction["roles"];
   onViewRole?: (id: string) => void;
+  onDeleteRole?: (userId: string) => void;
 }) => {
   const { hasPermission } = useUser();
+
   return (
     <Table>
       <TableHeader>
@@ -48,10 +52,10 @@ const RoleTable = ({
         {roles && roles.length > 0 ? (
           roles.map((r) => (
             <TableRow key={r.id}>
-              <TableCell className="font-medium min-w-[200px]">
+              <TableCell className="font-medium min-w-[100px] max-w-[200px]">
                 {r.name}
               </TableCell>
-              <TableCell className="max-w-[700px]">
+              <TableCell className="min-w-[250px] max-w-[500px]">
                 <p className="truncate">{r.description}</p>
               </TableCell>
               <TableCell className="text-center">
@@ -108,19 +112,26 @@ const RoleTable = ({
                       >
                         Xem trước
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild disabled={!r.can_update}>
-                        <Link href={`/admin/roles/${r.id}/edit`}>
-                          Chỉnh sửa
-                        </Link>
-                      </DropdownMenuItem>{" "}
+                      {hasPermission("update:role") && (
+                        <DropdownMenuItem asChild disabled={!r.can_update}>
+                          <Link href={`/admin/roles/${r.id}/edit`}>
+                            Chỉnh sửa
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      disabled={!r.can_delete || !hasPermission("update:role")}
-                    >
-                      Xoá
-                    </DropdownMenuItem>
+                    {hasPermission("delete:role") && (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        disabled={!r.can_delete}
+                        onClick={() => {
+                          if (onDeleteRole) onDeleteRole(r.id);
+                        }}
+                      >
+                        Xoá
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -129,7 +140,7 @@ const RoleTable = ({
         ) : (
           <TableRow>
             <TableCell
-              colSpan={4}
+              colSpan={5}
               className="text-center h-12
             "
             >
