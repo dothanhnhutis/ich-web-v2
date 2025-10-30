@@ -1,11 +1,11 @@
 "use client";
+import { useMutation } from "@tanstack/react-query";
 import { EyeClosedIcon, EyeIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
-
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -22,7 +22,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
-import { type Login, loginAction } from "@/data/auth";
+import { type LoginActionData, loginAction } from "@/data/auth";
 import { cn } from "@/lib/utils";
 
 export function LoginForm({
@@ -32,8 +32,7 @@ export function LoginForm({
   const router = useRouter();
   const [error, setError] = React.useState<string | null>(null);
   const [isPassword, setIsPassword] = React.useState<boolean>(true);
-  const [isPending, startTransition] = React.useTransition();
-  const [formData, setFormData] = React.useState<Login>({
+  const [formData, setFormData] = React.useState<LoginActionData>({
     email: "",
     password: "",
   });
@@ -45,18 +44,25 @@ export function LoginForm({
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      const res = await loginAction(formData);
+      if (!res.success) throw new Error(res.message);
+      return res.message;
+    },
+    onSuccess: (message: string) => {
+      router.refresh();
+      toast.success(message);
+    },
+    onError: (message: string) => {
+      toast.error(message);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormData({ email: "", password: "" });
-    startTransition(async () => {
-      const { data, statusText } = await loginAction(formData);
-      if (statusText === "OK") {
-        router.refresh();
-        toast.success(data.message);
-      } else {
-        setError(data.message);
-      }
-    });
+    mutate();
   };
 
   return (

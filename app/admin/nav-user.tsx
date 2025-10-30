@@ -6,9 +6,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react";
-import Image from "next/image";
 import { useTheme } from "next-themes";
-import ToggleThemeIcon from "@/components/svg/toggle-theme";
 import ThemeIcon from "@/components/svg/toggle-theme";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -28,7 +26,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/components/user-context";
-import { getShortName } from "@/lib/utils";
+import { convertImage, getShortName } from "@/lib/utils";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -48,14 +46,16 @@ export function NavUser() {
 
   const userDetail = (
     <>
-      <Avatar className="h-8 w-8 rounded-lg">
+      <Avatar className="bg-white">
         <AvatarImage
-          src={user.avatar?.url || "/images/logo-square.png"}
-          alt={user.username}
+          src={
+            user.avatar
+              ? convertImage(user.avatar).url
+              : "/images/logo-square.png"
+          }
+          alt={user.avatar?.file_name || user.username}
         />
-        <AvatarFallback className="rounded-lg">
-          {getShortName(user.username)}
-        </AvatarFallback>
+        <AvatarFallback>{getShortName(user.username)}</AvatarFallback>
       </Avatar>
       <div className="grid flex-1 text-left text-sm leading-tight">
         <span className="truncate font-medium">{user.username}</span>

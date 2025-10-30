@@ -120,17 +120,20 @@ const RoleTable = ({
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
+
                     {hasPermission("delete:role") && (
-                      <DropdownMenuItem
-                        variant="destructive"
-                        disabled={!r.can_delete}
-                        onClick={() => {
-                          if (onDeleteRole) onDeleteRole(r.id);
-                        }}
-                      >
-                        Xoá
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          disabled={!r.can_delete}
+                          onClick={() => {
+                            if (onDeleteRole) onDeleteRole(r.id);
+                          }}
+                        >
+                          Xoá
+                        </DropdownMenuItem>{" "}
+                      </>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>

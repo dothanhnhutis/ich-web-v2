@@ -113,7 +113,7 @@ export type QueryUsersAPIRes = {
 };
 export type QueryUsersAction = QueryUsersAPIRes["data"];
 
-export const queryUserAction = cache(
+export const queryUsersAction = cache(
   async (
     searchParams?: Record<string, string> | string | [string, string][]
   ): Promise<QueryUsersAction> => {

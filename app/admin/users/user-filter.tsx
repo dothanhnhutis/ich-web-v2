@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
+import SortComponent from "@/components/sort";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -28,8 +29,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { sortUserData } from "@/constants";
 import { cn } from "@/lib/utils";
-import SortUser from "./sort-user";
 
 const statusData = [
   {
@@ -256,7 +257,7 @@ const FilterUser = () => {
             </PopoverContent>
           </Popover>
 
-          <SortUser />
+          <SortComponent data={sortUserData} />
         </div>
       </div>
     </div>

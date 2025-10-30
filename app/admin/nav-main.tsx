@@ -56,7 +56,7 @@ const navItems: NavItem[] = [
     permission: "admin",
   },
   {
-    title: "Người dùng & Quyền",
+    title: "Người dùng & vai  trò",
     icon: ShieldUserIcon,
     activeRegex: /^\/admin\/(?:users|roles)(?:[0-9a-zA-Z/-])*?$/,
     items: [

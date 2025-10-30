@@ -23,16 +23,16 @@ const CreateRolePage = () => {
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
               <BreadcrumbPage className="text-muted-foreground">
-                Người Dùng & Vai Trò
+                Người dùng & vai trò
               </BreadcrumbPage>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem className="hidden xs:block">
-              <BreadcrumbLink href="/admin/roles">Vai Trò</BreadcrumbLink>
+              <BreadcrumbLink href="/admin/roles">Vai trò</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden xs:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>Tạo Vai Trò</BreadcrumbPage>
+              <BreadcrumbPage>Tạo vai trò</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

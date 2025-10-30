@@ -1,22 +1,12 @@
 "use client";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
-  PlusIcon,
-  SearchIcon,
-  Trash2Icon,
-  XIcon,
-} from "lucide-react";
+import { PlusIcon, SearchIcon, Trash2Icon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
 import Pagination from "@/components/page1";
 import PermissionComponent from "@/components/permission";
-import { SortComponentV2 } from "@/components/sort";
 import SortModal from "@/components/sort-modal";
 import {
   AlertDialog,
@@ -77,7 +67,7 @@ import {
   type RoleDetail,
   updateRoleByIdAction,
 } from "@/data/role";
-import { queryUserAction, type UserWithoutPassword } from "@/data/user";
+import { queryUsersAction, type UserWithoutPassword } from "@/data/user";
 import { cn, convertImage, getShortName } from "@/lib/utils";
 
 const searchTypes = [
@@ -113,7 +103,7 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
 
   const { data, isPending } = useQuery({
     queryKey: ["users", userSearchParams],
-    queryFn: () => queryUserAction(userSearchParams),
+    queryFn: () => queryUsersAction(userSearchParams),
     staleTime: 10_000,
     placeholderData: keepPreviousData,
   });
@@ -209,13 +199,6 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
               </Button>
             </InputGroupAddon>
           </InputGroup>
-
-          {/* <SortComponentV2
-            data={sortUserData}
-            sort={userSearchParams}
-            onSortChange={setUserSearchParams}
-          /> */}
-
           <SortModal
             data={sortUserData}
             searchParamsString={userSearchParams}
@@ -333,91 +316,6 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
           </div>
         </div>
         {data && (
-          // <div className="flex items-center text-sm @container">
-          //   <div className="flex gap-8 items-center justify-between w-full @2xl:ml-auto @2xl:w-auto @2xl:justify-normal">
-          //     <p className="@2xl:hidden">{`Trang ${
-          //       data.metadata.itemEnd > 0
-          //         ? Math.ceil(data.metadata.itemEnd / data.metadata.limit)
-          //         : 0
-          //     } / ${data.metadata.totalPage}`}</p>
-
-          //     <div className="flex items-center gap-2 @2xl:hidden">
-          //       <Button
-          //         variant={"outline"}
-          //         size={"icon"}
-          //         disabled={data.metadata.itemStart <= 1}
-          //         onClick={() => {
-          //           const newSearchParams = new URLSearchParams(
-          //             userSearchParams.toString()
-          //           );
-          //           newSearchParams.set("page", "1");
-          //           setUserSearchParams(newSearchParams.toString());
-          //         }}
-          //       >
-          //         <ChevronsLeftIcon className="w-4 h-4" />
-          //       </Button>
-          //       <Button
-          //         variant={"outline"}
-          //         size={"icon"}
-          //         disabled={data.metadata.itemStart <= 1}
-          //         onClick={() => {
-          //           const currentPage =
-          //             Math.ceil(data.metadata.itemEnd / data.metadata.limit) -
-          //             1;
-          //           const newSearchParams = new URLSearchParams(
-          //             userSearchParams.toString()
-          //           );
-          //           newSearchParams.set("page", currentPage.toString());
-          //           setUserSearchParams(newSearchParams.toString());
-          //         }}
-          //       >
-          //         <ChevronLeftIcon className="w-4 h-4" />
-          //       </Button>
-          //       <Button
-          //         variant={"outline"}
-          //         size={"icon"}
-          //         disabled={
-          //           data.metadata.totalPage === 0 ||
-          //           data.metadata.totalPage.toString() ===
-          //             new URLSearchParams(userSearchParams).get("page")
-          //         }
-          //         onClick={() => {
-          //           const currentPage =
-          //             Math.ceil(data.metadata.itemEnd / data.metadata.limit) +
-          //             1;
-          //           const newSearchParams = new URLSearchParams(
-          //             userSearchParams.toString()
-          //           );
-          //           newSearchParams.set("page", currentPage.toString());
-          //           setUserSearchParams(newSearchParams.toString());
-          //         }}
-          //       >
-          //         <ChevronRightIcon className="w-4 h-4" />
-          //       </Button>
-          //       <Button
-          //         variant={"outline"}
-          //         size={"icon"}
-          //         disabled={
-          //           data.metadata.totalPage === 0 ||
-          //           data.metadata.totalPage.toString() ===
-          //             new URLSearchParams(userSearchParams).get("page")
-          //         }
-          //         onClick={() => {
-          //           const newSearchParams = new URLSearchParams(
-          //             userSearchParams.toString()
-          //           );
-          //           newSearchParams.set(
-          //             "page",
-          //             data.metadata.totalPage.toString()
-          //           );
-          //           setUserSearchParams(newSearchParams.toString());
-          //         }}
-          //       >
-          //         <ChevronsRightIcon className="w-4 h-4" />
-          //       </Button>
-          //     </div>
-          //   </div>
-          // </div>
           <Pagination
             metadata={data.metadata}
             searchParamsString={userSearchParams}

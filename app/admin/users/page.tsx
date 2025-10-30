@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import UserTable from "./table-data";
+import UserResult from "./user-result";
+import UserTable from "./user-table";
 
 export const metadata: Metadata = {
   title: "Quản Lý Người Dùng",
@@ -39,23 +40,23 @@ const UsersPage = async (props: {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/admin">Chức Năng Chính</BreadcrumbLink>
+              <BreadcrumbLink href="/admin">Chức năng chính</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem className="hidden md:block">
               <BreadcrumbPage className="text-muted-foreground">
-                Người Dùng & Vai Trò
+                Người dùng & vai trò
               </BreadcrumbPage>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>Người Dùng</BreadcrumbPage>
+              <BreadcrumbPage>Người dùng</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </header>
 
-      <UserTable />
+      <UserResult />
     </>
   );
 };

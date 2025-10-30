@@ -1,4 +1,7 @@
+import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import { currentUserAction } from "./data/user";
+import { permissionRoutes } from "./routes";
 
 export async function middleware(request: NextRequest) {
   const { nextUrl, url } = request;
@@ -13,15 +16,37 @@ export async function middleware(request: NextRequest) {
   });
 
   const sid = request.cookies.get("sid");
-  if (!sid && nextUrl.pathname.startsWith("/admin")) {
+
+  if (!sid) {
+    if (nextUrl.pathname.startsWith("/admin")) {
+      const redirectUrl = new URL("/login", url);
+      const response = NextResponse.redirect(redirectUrl);
+      response.headers.set("x-redirected-from", nextUrl.pathname);
+      return response;
+    }
+  }
+
+  const user = await currentUserAction();
+
+  if (!user) {
     const redirectUrl = new URL("/login", url);
     const response = NextResponse.redirect(redirectUrl);
     response.headers.set("x-redirected-from", nextUrl.pathname);
+    response.cookies.set("sid", "", { maxAge: 0 });
     return response;
   }
 
-  if (sid && nextUrl.pathname.startsWith("/login")) {
-    const redirectUrl = new URL("/admin", url);
+  const permissions: string[] = Array.from(
+    new Set(user.roles.flatMap((r) => r.permissions))
+  );
+
+  const hasPer = permissions
+    .map((p) => permissionRoutes[p] || null)
+    .filter((p) => p != null)
+    .some((regex) => regex.test(nextUrl.pathname));
+
+  if (!hasPer) {
+    const redirectUrl = new URL("/notfound", url);
     const response = NextResponse.redirect(redirectUrl);
     response.headers.set("x-redirected-from", nextUrl.pathname);
     return response;

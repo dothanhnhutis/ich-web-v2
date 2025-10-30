@@ -38,7 +38,7 @@ type QueryRolesAPIRes = {
   statusCode: number;
   statusText: string;
   data: {
-    roles: (Role & { users: Omit<UserWithoutPassword, "">[] })[];
+    roles: (Role & { users: Omit<UserWithoutPassword, "role_count">[] })[];
     metadata: Metadata;
   };
 };

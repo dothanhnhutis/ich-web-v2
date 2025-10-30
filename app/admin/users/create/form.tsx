@@ -70,7 +70,7 @@ const CreateUserForm = () => {
 
   React.useEffect(() => {
     async function fetchData() {
-      const { data } = await queryRolesAction([["sort", "created_at.desc"]]);
+      const data = await queryRolesAction([["sort", "created_at.desc"]]);
       setRoles(data.roles);
     }
     fetchData();

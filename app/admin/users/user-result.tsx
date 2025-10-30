@@ -1,33 +1,17 @@
 "use client";
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
-import { toast } from "sonner";
 import PageComponent from "@/components/page";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -37,61 +21,43 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
-import { deleteRoleByIdAction, queryRolesAction } from "@/data/role";
+import { queryUsersAction } from "@/data/user";
 import { buildSortField, cn, hasDuplicateKey } from "@/lib/utils";
-import RoleFilter from "./role-filter";
-import RoleTable from "./role-table";
-import RoleView from "./role-view";
+import UserFilter from "./user-filter";
+import UserTable from "./user-table";
+import UserView from "./user-view";
 
-const accessSearchParamKeys: string[] = [
-  "name",
-  "permissions",
-  "description",
-  "status",
-  "sort",
-  "page",
-  "limit",
-];
-
-const sortRoleEnum = buildSortField([
-  "name",
-  "permissions",
-  "description",
-  "deactived_at",
-  "status",
-  "created_at",
-  "updated_at",
-]);
-
-const RoleLoading = () => {
+const LoadingData = () => {
   return (
-    <div className="outline-none relative flex flex-col gap-4 overflow-auto">
+    <div className="outline-none relative flex flex-col gap-4 overflow-auto ">
       <div className="overflow-hidden rounded-lg border">
         <div className="relative w-full overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-start w-[200px]">
-                  Tên vai trò
-                </TableHead>
-                <TableHead>Mô tả</TableHead>
-                <TableHead className="text-center w-[130px]">
-                  Tài khoản
-                </TableHead>
+                <TableHead>Người dùng</TableHead>
+                <TableHead>Vai trò</TableHead>
+                <TableHead>Trạng thái</TableHead>
                 <TableHead className="text-right w-[130px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {Array.from({ length: 10 }, (_, i) => i + 1).map((idx) => (
                 <TableRow key={idx}>
-                  <TableCell className="font-medium">
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="w-8 h-8 rounded-full" />
+                      <div className="space-y-2">
+                        <Skeleton className="w-30 h-3 rounded-full" />
+                        <Skeleton className="w-20 h-2 rounded-full" />
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <Skeleton className="w-12 h-3 rounded-full" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="w-80 h-3 rounded-full" />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Skeleton className="w-12 h-3 inline-block" />
+                    <Skeleton className="w-12 h-3 rounded-full" />
                   </TableCell>
                   <TableCell className="text-right">
                     <Skeleton className="w-9 h-3 inline-block" />
@@ -147,48 +113,39 @@ const RoleLoading = () => {
   );
 };
 
-const RoleResult = () => {
+const accessSearchParamKeys: string[] = [
+  "username",
+  "email",
+  "status",
+  "sort",
+  "page",
+  "limit",
+];
+
+const sortRoleEnum = buildSortField([
+  "username",
+  "email",
+  "status",
+  "deactived_at",
+  "created_at",
+  "updated_at",
+]);
+
+const UserResult = () => {
   const { hasPermission } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathName = usePathname();
-  const queryClient = useQueryClient();
-
   const [viewId, setViewId] = React.useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["roles", searchParams.toString()],
-    queryFn: () => queryRolesAction(searchParams.toString()),
+    queryKey: ["users", searchParams.toString()],
+    queryFn: () => queryUsersAction(searchParams.toString()),
     // staleTime: 10_000, // 10s trước khi refetch tự động
     placeholderData: keepPreviousData, // giữ dữ liệu cũ khi searchParams thay đổi
   });
 
-  const [open, setOpen] = React.useState<boolean>(false);
-  const [deleteRoleId, setDeleteRoleId] = React.useState<string | null>(null);
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (roleId: string) => {
-      const res = await deleteRoleByIdAction(roleId);
-      if (!res.success) throw new Error(res.message);
-      return res.message;
-    },
-    onSuccess: (message: string) => {
-      toast.success(message);
-    },
-    onError: (message: string) => {
-      toast.error(message);
-    },
-    onSettled: () => {
-      setOpen(false);
-      setDeleteRoleId(null);
-    },
-  });
-
-  const handleDeleteRole = () => {
-    if (deleteRoleId) {
-      mutate(deleteRoleId);
-    }
-  };
+  console.log(data);
 
   React.useEffect(() => {
     const validateSearchParams = () => {
@@ -258,81 +215,53 @@ const RoleResult = () => {
     }
   }, [searchParams, router, pathName]);
 
-  const handleClose = () => {
-    setViewId(null);
-  };
-
   return (
     <div className="w-full overflow-hidden">
       <div className="flex flex-col gap-4 p-4 mx-auto max-w-5xl">
         <div className="flex items-center gap-2 justify-between">
-          <h3 className="text-2xl font-bold shrink-0">Quản lý vai trò </h3>
+          <h3 className="text-2xl font-bold shrink-0">Quản lý người dùng</h3>
 
-          {hasPermission("create:role") ? (
+          {hasPermission("create:user") ? (
             <Link
-              href="/admin/roles/create"
+              href="/admin/users/create"
               className={cn(
                 buttonVariants({ variant: "default" }),
                 "text-white"
               )}
             >
-              <span className="hidden xs:inline ">Tạo vai trò mới</span>
+              <span className="hidden xs:inline ">Tạo người dùng mới</span>
               <PlusIcon className="w-4 h-4 shrink-0" />
             </Link>
           ) : null}
         </div>
-
-        <RoleFilter />
-
+        <UserFilter />
         {isLoading || !data ? (
-          <RoleLoading />
+          <LoadingData />
         ) : (
-          <div className="outline-none relative flex flex-col gap-4 overflow-auto">
+          <div className="outline-none relative flex flex-col gap-4 overflow-auto ">
             <div className="overflow-hidden rounded-lg border">
               <div className="relative w-full overflow-x-auto">
-                <RoleTable
-                  roles={data.roles}
-                  onViewRole={(id) => {
-                    setViewId(id);
+                <UserTable
+                  users={data.users}
+                  onViewUser={(userId) => {
+                    setViewId(userId);
                   }}
-                  onDeleteRole={(userId: string) => {
-                    setDeleteRoleId(userId);
-                    setOpen(true);
-                  }}
+                  //   onResetUserPassword={(userId: string) => {
+                  //     setDeleteRoleId(userId);
+                  //     setOpen(true);
+                  //   }}
                 />
               </div>
             </div>
-            {data.roles.length > 0 && (
+            {data.users.length > 0 && (
               <PageComponent metadata={data.metadata} />
             )}
           </div>
         )}
       </div>
-      <RoleView id={viewId} onClose={handleClose} />
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Bạn có chắc chắn không?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn
-              vai trò khỏi máy chủ.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Không, giữ nó lại</AlertDialogCancel>
-            <Button
-              disabled={isPending}
-              variant={"destructive"}
-              onClick={handleDeleteRole}
-            >
-              {isPending && <Spinner />}
-              Có, xoá đi
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <UserView id={viewId} onClose={() => setViewId(null)} />
     </div>
   );
 };
 
-export default RoleResult;
+export default UserResult;

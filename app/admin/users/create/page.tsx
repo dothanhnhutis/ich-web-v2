@@ -31,9 +31,9 @@ const CreateNewUserPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/admin/users">
+              <BreadcrumbPage className="text-muted-foreground">
                 Người dùng & vai trò
-              </BreadcrumbLink>
+              </BreadcrumbPage>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem className="hidden xs:block">
@@ -41,7 +41,7 @@ const CreateNewUserPage = () => {
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden xs:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>Tạo người dùng Mới</BreadcrumbPage>
+              <BreadcrumbPage>Tạo người dùng</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

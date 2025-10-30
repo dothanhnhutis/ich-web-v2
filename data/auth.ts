@@ -18,7 +18,7 @@ const authInstance = FetchAPI.create({
   baseUrl: `${env.SERVER_URL}/api/v1/auth`,
 });
 
-export type Login = {
+export type LoginActionData = {
   email: string;
   password: string;
 };
@@ -31,40 +31,40 @@ export type LoginAPIRes = {
   };
 };
 
-export async function loginAction(data: Login): Promise<LoginAPIRes> {
+export type LoginAction = {
+  success: boolean;
+  message: string;
+};
+
+export async function loginAction(data: LoginActionData): Promise<LoginAction> {
   try {
-    const { data: dataRes, headers } = await authInstance.post<LoginAPIRes>(
-      "/signin",
-      data,
-      {
-        headers: await getHeaders(),
-      }
-    );
-    const rawCookie = headers.get("set-cookie") ?? "";
+    const res = await authInstance.post<LoginAPIRes>("/signin", data, {
+      headers: await getHeaders(),
+    });
+    const rawCookie = res.headers.get("set-cookie") ?? "";
     await loadCookie(rawCookie);
-    return dataRes;
+    return {
+      success: true,
+      message: res.data.data.message,
+    };
   } catch (error) {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<LoginAPIRes>;
-      return res.data;
+      return {
+        success: false,
+        message: res.data.data.message,
+      };
     }
 
     if (error instanceof FetchAPINetWorkError) {
       return {
-        statusCode: error.status,
-        statusText: error.statusText,
-        data: {
-          message: error.message,
-        },
+        success: false,
+        message: error.message,
       };
     }
-
     return {
-      statusCode: 400,
-      statusText: "BAD_REQUEST",
-      data: {
-        message: "Email và mật khẩu không hợp lệ.",
-      },
+      success: false,
+      message: "Email và mật khẩu không hợp lệ.",
     };
   }
 }
