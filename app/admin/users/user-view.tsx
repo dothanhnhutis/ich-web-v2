@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { CopyIcon, HashIcon } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import type React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -21,35 +21,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getUserDetailAction } from "@/data/user";
 import { cn, convertImage, getShortName } from "@/lib/utils";
 
-type UserViewProps = {
+type UserViewProps = React.ComponentProps<typeof Sheet> & {
   id: string | null;
-  onClose: () => void;
 };
 
-const UserView = ({ id, onClose }: UserViewProps) => {
-  const [open, setOpen] = React.useState<boolean>(false);
-
-  const { data: user, isPending } = useQuery({
+const UserView = ({ id, children, ...props }: UserViewProps) => {
+  const { data: user, isLoading } = useQuery({
     enabled: !!id,
     queryKey: ["user", id],
     queryFn: () => getUserDetailAction(id ?? ""),
   });
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={(isOpen) => {
-        setOpen(isOpen);
-        if (!isOpen) {
-          onClose();
-        }
-      }}
-    >
+    <Sheet {...props}>
       <SheetContent className="w-full xs:max-w-md sm:max-w-md gap-0 h-screen flex flex-col">
         <SheetHeader className="border-b py-1 gap-0">
           <SheetTitle className="flex items-center gap-2 max-w-[calc(100%_-_24px)]">
             <HashIcon className="shrink-0 w-5 h-5" />
-            {user ? (
+            {!isLoading ? (
               <>
                 <p className="truncate">{id}</p>
                 <CopyIcon className="shrink-0 w-4 h-4" />
@@ -64,9 +53,9 @@ const UserView = ({ id, onClose }: UserViewProps) => {
           <div className="flex justify-between gap-1">
             <div className="flex flex-col gap-2">
               <Label>Ngày vô hiệu hoá</Label>
-              {user ? (
+              {!isLoading ? (
                 <p>
-                  {user.deactived_at
+                  {user?.deactived_at
                     ? format(
                         new Date(user.deactived_at).toISOString(),
                         "EEEE, dd/MM/yy HH:mm:ss 'GMT'XXX",
@@ -82,16 +71,22 @@ const UserView = ({ id, onClose }: UserViewProps) => {
             </div>
             <div className="flex flex-col gap-2 ">
               <Label>Trạng thái</Label>
-              {user ? (
+              {!isLoading ? (
                 <p
                   className={cn(
                     "font-bold",
-                    user.status === "ACTIVE"
-                      ? "text-green-500"
-                      : "text-destructive"
+                    user
+                      ? user?.status === "ACTIVE"
+                        ? "text-green-500"
+                        : "text-destructive"
+                      : ""
                   )}
                 >
-                  {user.status === "ACTIVE" ? "Hoạt động" : "Vô hiệu hoá"}
+                  {user
+                    ? user.status === "ACTIVE"
+                      ? "Hoạt động"
+                      : "Vô hiệu hoá"
+                    : "--"}
                 </p>
               ) : (
                 <Skeleton className="w-10 h-2" />
@@ -101,18 +96,20 @@ const UserView = ({ id, onClose }: UserViewProps) => {
           <Separator orientation="horizontal" />
           <div className="grid gap-2 w-full">
             <Label>Thông tin người dùng </Label>
-            {user ? (
+            {!isLoading ? (
               <div className="flex gap-2">
                 <Avatar className="size-9 group-hover:hidden bg-white">
                   <AvatarImage
                     src={
-                      user.avatar
+                      user?.avatar
                         ? convertImage(user.avatar).url
                         : "/images/logo-square.png"
                     }
-                    alt={user.avatar?.file_name || user.username}
+                    alt={user?.avatar?.file_name || user?.username}
                   />
-                  <AvatarFallback>{getShortName(user.username)}</AvatarFallback>
+                  <AvatarFallback>
+                    {user?.username ? getShortName(user.username) : "ICH"}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid">
                   <p className="font-bold text-lg">Do Thanh Nhut</p>
@@ -226,12 +223,12 @@ const UserView = ({ id, onClose }: UserViewProps) => {
         </div>
 
         <SheetFooter className="flex-row border-t">
-          {user ? (
+          {!isLoading ? (
             <Link
-              href={`/admin/users/${user.id}/edit`}
+              href={user?.id ? `/admin/users/${user.id}/edit` : "#"}
               className={cn("w-full", buttonVariants({ variant: "outline" }))}
             >
-              Chỉnh Sửa
+              Chỉnh sửa
             </Link>
           ) : (
             <Skeleton className="w-full h-9" />

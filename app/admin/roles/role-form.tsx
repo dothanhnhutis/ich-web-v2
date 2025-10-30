@@ -50,6 +50,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
@@ -99,18 +100,14 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
   const [searchType, setSearchType] = React.useState<string>("email");
   const [searchData, setSearchData] = React.useState<string>("");
   const [userSearchParams, setUserSearchParams] =
-    React.useState<string>("page=1&limit=10");
+    React.useState<string>("page=1&limit=5");
 
-  const { data, isPending } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["users", userSearchParams],
     queryFn: () => queryUsersAction(userSearchParams),
     staleTime: 10_000,
     placeholderData: keepPreviousData,
   });
-
-  React.useEffect(() => {
-    if (users) setSelectedUsers(users);
-  }, [users]);
 
   return (
     <AlertDialog {...props}>
@@ -121,206 +118,269 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
             Chọn tài khoản muốn thêm vai trò nay
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <div className="flex justify-between items-center gap-2">
-          <InputGroup>
-            <InputGroupInput
-              type="text"
-              placeholder={
-                searchTypes.find((s) => s.value === searchType)?.placeholder ??
-                ""
-              }
-              value={searchData}
-              onChange={(e) => {
-                setSearchData(e.target.value);
-              }}
-            />
-            <InputGroupAddon className="pl-1.5">
-              <Select
-                value={searchType}
-                onValueChange={(value) => {
-                  const newSearchParams = new URLSearchParams(userSearchParams);
-                  newSearchParams.delete(
-                    value === "email" ? "username" : "email"
-                  );
-                  setUserSearchParams(newSearchParams.toString());
-                  setSearchType(value);
-                  setSearchData("");
-                }}
-              >
-                <SelectTrigger className="font-mono rounded-tr-none rounded-br-none  border-l-0 border-y-0 shadow-none">
-                  {searchTypes.find((s) => s.value === searchType)?.label ?? ""}
-                </SelectTrigger>
-                <SelectContent className="min-w-24">
-                  {searchTypes.map((currency) => (
-                    <SelectItem key={currency.value} value={currency.value}>
-                      <span className="text-muted-foreground">
-                        {currency.label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </InputGroupAddon>
-            <InputGroupAddon
-              align="inline-end"
-              className={cn(
-                "p-0",
-                searchData.length === 0 ? "hidden" : "block"
-              )}
-            >
-              <button
-                type="button"
-                className="p-2"
-                onClick={() => {
-                  setSearchData("");
-                  const newSearchParams = new URLSearchParams(userSearchParams);
-                  newSearchParams.delete(searchType);
-                  setUserSearchParams(newSearchParams.toString());
-                }}
-              >
-                <XIcon className="w-4 h-4" />
-              </button>
-            </InputGroupAddon>
-            <InputGroupAddon align="inline-end" className="pr-2">
-              <Button
-                variant={"ghost"}
-                size={"icon-sm"}
-                onClick={() => {
-                  if (searchData !== "") {
-                    const newSearchParams = new URLSearchParams(
-                      userSearchParams
-                    );
-                    newSearchParams.set(searchType, searchData);
-                    setUserSearchParams(newSearchParams.toString());
+
+        {isLoading ? (
+          <>
+            <div className="flex justify-between items-center gap-2">
+              <Skeleton className="w-full h-9" />
+              <Skeleton className="w-[42px] h-9 shrink-0" />
+            </div>
+            <div className="overflow-hidden rounded-lg border">
+              <div className="relative w-full overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-center">
+                        <Checkbox />
+                      </TableHead>
+                      <TableHead>Tài khoản</TableHead>
+                      <TableHead className="text-center">Vai trò</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: 5 }, (_, idx) => idx + 1).map(
+                      (id) => (
+                        <TableRow key={id}>
+                          <TableCell className="text-center">
+                            <Checkbox />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2 items-center">
+                              <Skeleton className="size-12 rounded-full" />
+                              <div className="flex flex-col gap-1">
+                                <Skeleton className="w-20 h-3" />
+                                <Skeleton className="w-40 h-3" />
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center align-middle">
+                            <Skeleton className="w-10 h-3 inline-block" />
+                          </TableCell>
+                        </TableRow>
+                      )
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            <Pagination />
+          </>
+        ) : (
+          <>
+            <div className="flex justify-between items-center gap-2">
+              <InputGroup>
+                <InputGroupInput
+                  type="text"
+                  placeholder={
+                    searchTypes.find((s) => s.value === searchType)
+                      ?.placeholder ?? ""
                   }
-                }}
-              >
-                <SearchIcon />
-              </Button>
-            </InputGroupAddon>
-          </InputGroup>
-          <SortModal
-            data={sortUserData}
-            searchParamsString={userSearchParams}
-            onSortChange={setUserSearchParams}
-          />
-        </div>
-        <div className="overflow-hidden rounded-lg border">
-          <div className="relative w-full overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-center">
-                    <Checkbox
-                      checked={
-                        data
-                          ? data.users.every((u) =>
-                              selectedUsers.map(({ id }) => id).includes(u.id)
-                            )
-                            ? true
-                            : data.users.every(
-                                (u) =>
-                                  !selectedUsers
+                  value={searchData}
+                  onChange={(e) => {
+                    setSearchData(e.target.value);
+                  }}
+                />
+                <InputGroupAddon className="pl-1.5">
+                  <Select
+                    value={searchType}
+                    onValueChange={(value) => {
+                      const newSearchParams = new URLSearchParams(
+                        userSearchParams
+                      );
+                      newSearchParams.delete(
+                        value === "email" ? "username" : "email"
+                      );
+                      setUserSearchParams(newSearchParams.toString());
+                      setSearchType(value);
+                      setSearchData("");
+                    }}
+                  >
+                    <SelectTrigger className="font-mono rounded-tr-none rounded-br-none  border-l-0 border-y-0 shadow-none">
+                      {searchTypes.find((s) => s.value === searchType)?.label ??
+                        ""}
+                    </SelectTrigger>
+                    <SelectContent className="min-w-24">
+                      {searchTypes.map((currency) => (
+                        <SelectItem key={currency.value} value={currency.value}>
+                          <span className="text-muted-foreground">
+                            {currency.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </InputGroupAddon>
+                <InputGroupAddon
+                  align="inline-end"
+                  className={cn(
+                    "p-0",
+                    searchData.length === 0 ? "hidden" : "block"
+                  )}
+                >
+                  <button
+                    type="button"
+                    className="p-2"
+                    onClick={() => {
+                      setSearchData("");
+                      const newSearchParams = new URLSearchParams(
+                        userSearchParams
+                      );
+                      newSearchParams.delete(searchType);
+                      setUserSearchParams(newSearchParams.toString());
+                    }}
+                  >
+                    <XIcon className="w-4 h-4" />
+                  </button>
+                </InputGroupAddon>
+                <InputGroupAddon align="inline-end" className="pr-2">
+                  <Button
+                    variant={"ghost"}
+                    size={"icon-sm"}
+                    onClick={() => {
+                      if (searchData !== "") {
+                        const newSearchParams = new URLSearchParams(
+                          userSearchParams
+                        );
+                        newSearchParams.set(searchType, searchData);
+                        setUserSearchParams(newSearchParams.toString());
+                      }
+                    }}
+                  >
+                    <SearchIcon />
+                  </Button>
+                </InputGroupAddon>
+              </InputGroup>
+              <SortModal
+                data={sortUserData}
+                searchParamsString={userSearchParams}
+                onSortChange={setUserSearchParams}
+              />
+            </div>
+            <div className="overflow-hidden rounded-lg border">
+              <div className="relative w-full overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-center">
+                        <Checkbox
+                          checked={
+                            data
+                              ? data.users.every((u) =>
+                                  selectedUsers
                                     .map(({ id }) => id)
                                     .includes(u.id)
-                              )
-                            ? false
-                            : "indeterminate"
-                          : false
-                      }
-                      onCheckedChange={(checked) => {
-                        let newUsers: Omit<
-                          UserWithoutPassword,
-                          "role_count"
-                        >[] = [];
-                        if (!data) return;
-                        if (checked === "indeterminate" || !checked) {
-                          newUsers = selectedUsers.filter(
-                            ({ id }) =>
-                              !data.users.map(({ id }) => id).includes(id)
-                          );
-                        } else {
-                          newUsers = [
-                            ...selectedUsers,
-                            ...data.users.filter(
-                              ({ id }) =>
-                                !selectedUsers.map(({ id }) => id).includes(id)
-                            ),
-                          ];
-                        }
-                        setSelectedUsers(newUsers);
-                      }}
-                    />
-                  </TableHead>
-                  <TableHead>Tài khoản</TableHead>
-                  <TableHead className="text-center">Vai trò</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {!data || data.users.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center h-12">
-                      Không có kết quả.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  data.users.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="text-center">
-                        <Checkbox
-                          checked={selectedUsers
-                            .map(({ id }) => id)
-                            .includes(u.id)}
+                                )
+                                ? true
+                                : data.users.every(
+                                    (u) =>
+                                      !selectedUsers
+                                        .map(({ id }) => id)
+                                        .includes(u.id)
+                                  )
+                                ? false
+                                : "indeterminate"
+                              : false
+                          }
                           onCheckedChange={(checked) => {
-                            const newUserIds: Omit<
+                            let newUsers: Omit<
                               UserWithoutPassword,
                               "role_count"
-                            >[] = checked
-                              ? [...selectedUsers, u]
-                              : selectedUsers.filter(({ id }) => id !== u.id);
-                            setSelectedUsers(newUserIds);
+                            >[] = [];
+                            if (!data) return;
+                            if (checked === "indeterminate" || !checked) {
+                              newUsers = selectedUsers.filter(
+                                ({ id }) =>
+                                  !data.users.map(({ id }) => id).includes(id)
+                              );
+                            } else {
+                              newUsers = [
+                                ...selectedUsers,
+                                ...data.users.filter(
+                                  ({ id }) =>
+                                    !selectedUsers
+                                      .map(({ id }) => id)
+                                      .includes(id)
+                                ),
+                              ];
+                            }
+                            setSelectedUsers(newUsers);
                           }}
                         />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2 items-center">
-                          <Avatar className="bg-white size-12">
-                            <AvatarImage
-                              src={
-                                u.avatar
-                                  ? convertImage(u.avatar).url
-                                  : "/images/logo-square.png"
-                              }
-                              alt={u.avatar?.file_name || u.username}
-                            />
-                            <AvatarFallback>
-                              {getShortName(u.username)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <p className="font-semibold text-lg">
-                              {u.username}
-                            </p>
-                            <p className="text-sm"> {u.email}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {u.role_count}
-                      </TableCell>
+                      </TableHead>
+                      <TableHead>Tài khoản</TableHead>
+                      <TableHead className="text-center">Vai trò</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-        {data && (
-          <Pagination
-            metadata={data.metadata}
-            searchParamsString={userSearchParams}
-            onPageChange={(v) => setUserSearchParams(v)}
-          />
+                  </TableHeader>
+                  <TableBody>
+                    {!data || data.users.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center h-12">
+                          Không có kết quả.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      data.users.map((u) => (
+                        <TableRow key={u.id}>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={selectedUsers
+                                .map(({ id }) => id)
+                                .includes(u.id)}
+                              onCheckedChange={(checked) => {
+                                const newUserIds: Omit<
+                                  UserWithoutPassword,
+                                  "role_count"
+                                >[] = checked
+                                  ? [...selectedUsers, u]
+                                  : selectedUsers.filter(
+                                      ({ id }) => id !== u.id
+                                    );
+                                setSelectedUsers(newUserIds);
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2 items-center">
+                              <Avatar className="bg-white size-12">
+                                <AvatarImage
+                                  src={
+                                    u.avatar
+                                      ? convertImage(u.avatar).url
+                                      : "/images/logo-square.png"
+                                  }
+                                  alt={u.avatar?.file_name || u.username}
+                                />
+                                <AvatarFallback>
+                                  {getShortName(u.username)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <p className="font-semibold text-lg">
+                                  {u.username}
+                                </p>
+                                <p className="text-sm"> {u.email}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {u.role_count}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+            {data && (
+              <Pagination
+                metadata={data.metadata}
+                searchParamsString={userSearchParams}
+                onPageChange={(v) => setUserSearchParams(v)}
+              />
+            )}{" "}
+          </>
         )}
 
         <AlertDialogFooter>
@@ -332,6 +392,7 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
             Huỷ
           </AlertDialogCancel>
           <AlertDialogAction
+            disabled={isLoading}
             onClick={() => {
               if (handleSave) {
                 handleSave(selectedUsers);
@@ -418,7 +479,7 @@ const RoleForm = ({ role }: RoleFormProps) => {
   };
 
   return (
-    <div>
+    <>
       <form onSubmit={handleSubmit}>
         <FieldSet>
           <FieldLegend>Cập nhật vai trò</FieldLegend>
@@ -428,12 +489,17 @@ const RoleForm = ({ role }: RoleFormProps) => {
           <FieldGroup>
             <div
               className={cn(
-                "grid items-center gap-4 flex-1",
+                "grid items-center gap-4",
                 role ? "sm:grid-cols-[7fr_3fr]" : ""
               )}
             >
               <Field>
-                <FieldLabel htmlFor="name">Tên vai trò</FieldLabel>
+                <FieldLabel
+                  htmlFor="name"
+                  className="block after:ml-0.5 after:text-red-500 after:content-['*']"
+                >
+                  Tên vai trò
+                </FieldLabel>
                 <InputGroup>
                   <InputGroupInput
                     disabled={isPending}
@@ -696,7 +762,7 @@ const RoleForm = ({ role }: RoleFormProps) => {
           setFormData((prev) => ({ ...prev, users }));
         }}
       />
-    </div>
+    </>
   );
 };
 

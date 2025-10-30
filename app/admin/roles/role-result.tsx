@@ -152,7 +152,7 @@ const RoleResult = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathName = usePathname();
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   const [viewId, setViewId] = React.useState<string | null>(null);
 
@@ -258,10 +258,6 @@ const RoleResult = () => {
     }
   }, [searchParams, router, pathName]);
 
-  const handleClose = () => {
-    setViewId(null);
-  };
-
   return (
     <div className="w-full overflow-hidden">
       <div className="flex flex-col gap-4 p-4 mx-auto max-w-5xl">
@@ -308,7 +304,15 @@ const RoleResult = () => {
           </div>
         )}
       </div>
-      <RoleView id={viewId} onClose={handleClose} />
+      <RoleView
+        id={viewId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setViewId(null);
+          }
+        }}
+        open={!!viewId}
+      />
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

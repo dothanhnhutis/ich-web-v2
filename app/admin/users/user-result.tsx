@@ -145,8 +145,6 @@ const UserResult = () => {
     placeholderData: keepPreviousData, // giữ dữ liệu cũ khi searchParams thay đổi
   });
 
-  console.log(data);
-
   React.useEffect(() => {
     const validateSearchParams = () => {
       // Kiểm tra khóa không hợp lệ
@@ -259,7 +257,15 @@ const UserResult = () => {
           </div>
         )}
       </div>
-      <UserView id={viewId} onClose={() => setViewId(null)} />
+      <UserView
+        id={viewId}
+        open={!!viewId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setViewId(null);
+          }
+        }}
+      />
     </div>
   );
 };

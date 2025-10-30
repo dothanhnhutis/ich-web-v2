@@ -37,17 +37,17 @@ const UpdateUserPage = async (props: { params: Promise<{ id: string }> }) => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/admin">Chức Năng Chính</BreadcrumbLink>
+              <BreadcrumbPage className="text-muted-foreground">
+                Người dùng & vai trò
+              </BreadcrumbPage>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
-            <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/admin/warehouses">
-                Người dùng & Quyền
-              </BreadcrumbLink>
+            <BreadcrumbItem className="hidden xs:block">
+              <BreadcrumbLink href="/admin/users">Người dùng</BreadcrumbLink>
             </BreadcrumbItem>
-            <BreadcrumbSeparator className="hidden md:block" />
+            <BreadcrumbSeparator className="hidden xs:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>Tạo Người Dùng Mới</BreadcrumbPage>
+              <BreadcrumbPage>Cập nhật người dùng</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

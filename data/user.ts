@@ -33,16 +33,6 @@ export type UserPassword = User & {
 
 export type QueryUsers = { users: UserWithoutPassword[]; metadata: Metadata };
 
-export type UserDetail = UserWithoutPassword & {
-  roles: Role[];
-};
-
-export type UserDetailAPIRes = {
-  statusCode: number;
-  statusText: string;
-  data: UserDetail;
-};
-
 const userInstance = FetchAPI.create({
   credentials: "include",
   headers: {
@@ -60,7 +50,7 @@ export type CreateUserData = {
   password?: string;
 };
 
-export type CreateUserAPIRes = {
+type CreateUserAPIRes = {
   statusCode: number;
   statusText: string;
   data: {
@@ -68,40 +58,41 @@ export type CreateUserAPIRes = {
   };
 };
 
+export type CreateUserAction = {
+  success: boolean;
+  message: string;
+};
+
 export const createUserAction = async (
   data: CreateUserData
-): Promise<CreateUserAPIRes> => {
+): Promise<CreateUserAction> => {
   try {
-    const { data: dataRes } = await userInstance.post<CreateUserAPIRes>(
-      "/",
-      data,
-      {
-        headers: await getHeaders(),
-      }
-    );
-    return dataRes;
+    const res = await userInstance.post<CreateUserAPIRes>("/", data, {
+      headers: await getHeaders(),
+    });
+    return {
+      success: true,
+      message: res.data.data.message,
+    };
   } catch (error: unknown) {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
-      return res.data;
+      return {
+        success: false,
+        message: res.data.data.message,
+      };
     }
     if (error instanceof FetchAPINetWorkError) {
       console.log(`createUserAction func error: ${error.message}`);
       return {
-        statusCode: error.status,
-        statusText: error.statusText,
-        data: {
-          message: error.message,
-        },
+        success: false,
+        message: error.message,
       };
     }
     console.log(`createUserAction func error: ${error}`);
     return {
-      statusCode: 400,
-      statusText: "BAD_REQUEST",
-      data: {
-        message: "Tạo người dùng thất bại.",
-      },
+      success: false,
+      message: "Tạo người dùng thất bại.",
     };
   }
 };
@@ -148,6 +139,16 @@ export const queryUsersAction = cache(
     }
   }
 );
+
+export type UserDetail = UserWithoutPassword & {
+  roles: Role[];
+};
+
+type UserDetailAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: UserDetail;
+};
 
 export const currentUserAction = cache(async (): Promise<UserDetail | null> => {
   try {

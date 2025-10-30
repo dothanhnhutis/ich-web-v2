@@ -46,7 +46,7 @@ const UserTable = ({
           <TableHead>Người dùng</TableHead>
           <TableHead>Vai trò</TableHead>
           <TableHead>Trạng thái</TableHead>
-          <TableHead className="text-right w-[130px]"></TableHead>
+          <TableHead className="text-right"></TableHead>
         </TableRow>
       </TableHeader>
 
@@ -115,7 +115,7 @@ const UserTable = ({
                       </DropdownMenuItem>
                       {hasPermission("update:user") && (
                         <DropdownMenuItem asChild>
-                          <Link href={`/admin/roles/${u.id}/edit`}>
+                          <Link href={`/admin/users/${u.id}/edit`}>
                             Chỉnh sửa
                           </Link>
                         </DropdownMenuItem>
