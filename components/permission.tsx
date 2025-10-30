@@ -152,6 +152,10 @@ const PermissionComponent = ({
     permissions ?? defaultPers ?? []
   );
 
+  React.useEffect(() => {
+    if (permissions) setPers(permissions);
+  }, [permissions]);
+
   const hasPer = (key: string) => {
     return !!pers.find((k) => key === k);
   };

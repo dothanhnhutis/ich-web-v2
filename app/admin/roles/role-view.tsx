@@ -122,7 +122,7 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
 
             {!isLoading ? (
               <PermissionComponent
-                defaultPers={role?.permissions ?? []}
+                permissions={role?.permissions ?? []}
                 viewMode
               />
             ) : (

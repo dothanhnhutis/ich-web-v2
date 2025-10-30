@@ -1,5 +1,10 @@
 "use client";
-import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { PlusIcon, SearchIcon, Trash2Icon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -105,7 +110,6 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
   const { data, isLoading } = useQuery({
     queryKey: ["users", userSearchParams],
     queryFn: () => queryUsersAction(userSearchParams),
-    staleTime: 10_000,
     placeholderData: keepPreviousData,
   });
 
@@ -424,6 +428,7 @@ type FormData = {
 const RoleForm = ({ role }: RoleFormProps) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const queryClient = useQueryClient();
   const [formData, setFormData] = React.useState<FormData>({
     name: role?.name ?? "",
     description: role?.description ?? "",
@@ -447,9 +452,13 @@ const RoleForm = ({ role }: RoleFormProps) => {
       if (!res.success) throw new Error(res.message);
       return res.message;
     },
-    onSuccess: (message: string) => {
+    onSuccess: async (message: string) => {
       router.push("/admin/roles");
       toast.success(message);
+      await queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "roles" || query.queryKey[0] === "role",
+      });
     },
     onError: (message: string) => {
       if (role)

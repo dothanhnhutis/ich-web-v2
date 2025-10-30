@@ -10,12 +10,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getRoleDetailAction } from "@/data/role";
-import { awaitCus } from "@/lib/utils";
 import RoleForm from "../../role-form";
 
 const UpdateRolePage = async (props: { params: Promise<{ id: string }> }) => {
   const params = await props.params;
-  await awaitCus(3000);
   const role = await getRoleDetailAction(params.id);
 
   if (!role || !role.can_update) notFound();

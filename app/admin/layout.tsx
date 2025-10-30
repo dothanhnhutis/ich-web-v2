@@ -1,9 +1,6 @@
-import { cookies, headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { UserProvider } from "@/components/user-context";
-import { currentUserAction } from "@/data/user";
-import { permissionRoutes } from "@/routes";
 import { AdminSidebar } from "./admin-sidebar";
 
 const AdminLayout = async ({

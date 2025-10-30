@@ -71,14 +71,11 @@ const RoleLoading = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-start w-[200px]">
-                  Tên vai trò
-                </TableHead>
+                <TableHead className="text-start">Tên vai trò</TableHead>
                 <TableHead>Mô tả</TableHead>
-                <TableHead className="text-center w-[130px]">
-                  Tài khoản
-                </TableHead>
-                <TableHead className="text-right w-[130px]"></TableHead>
+                <TableHead className="text-center">Tài khoản</TableHead>
+                <TableHead className="text-center">Trạng thái </TableHead>
+                <TableHead className="text-right"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -89,6 +86,9 @@ const RoleLoading = () => {
                   </TableCell>
                   <TableCell>
                     <Skeleton className="w-80 h-3 rounded-full" />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Skeleton className="w-12 h-3 inline-block" />
                   </TableCell>
                   <TableCell className="text-center">
                     <Skeleton className="w-12 h-3 inline-block" />
@@ -152,7 +152,7 @@ const RoleResult = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathName = usePathname();
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   const [viewId, setViewId] = React.useState<string | null>(null);
 
@@ -170,6 +170,7 @@ const RoleResult = () => {
     mutationFn: async (roleId: string) => {
       const res = await deleteRoleByIdAction(roleId);
       if (!res.success) throw new Error(res.message);
+      await queryClient.invalidateQueries({ queryKey: ["roles"] });
       return res.message;
     },
     onSuccess: (message: string) => {
