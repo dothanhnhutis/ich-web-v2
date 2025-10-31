@@ -47,7 +47,7 @@ const CreateNewUserPage = () => {
         </Breadcrumb>
       </header>
       <div className="p-4 w-full max-w-3xl mx-auto">
-        <CreateUserForm />{" "}
+        <CreateUserForm />
       </div>
     </>
   );

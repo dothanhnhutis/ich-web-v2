@@ -47,6 +47,7 @@ export function LoginForm({
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
       const res = await loginAction(formData);
+      console.log(res);
       if (!res.success) throw new Error(res.message);
       return res.message;
     },
@@ -54,8 +55,8 @@ export function LoginForm({
       router.refresh();
       toast.success(message);
     },
-    onError: (message: string) => {
-      toast.error(message);
+    onError: (err: Error) => {
+      toast.error(err.message);
     },
   });
 

@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/item";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { queryRolesAction } from "@/data/role";
@@ -112,8 +113,8 @@ const CreateUserForm = () => {
       toast.success(message);
       router.push("/admin/users");
     },
-    onError: (message: string) => {
-      toast.error(message);
+    onError: (err: Error) => {
+      toast.error(err.message);
     },
     onSettled: () => {
       handleRestData();
@@ -143,6 +144,84 @@ const CreateUserForm = () => {
 
     mutate();
   };
+
+  if (isLoading)
+    return (
+      <FieldGroup>
+        <FieldSet>
+          <div className="space-y-2">
+            <Skeleton className="w-20 h-4" />
+            <Skeleton className="w-60 h-3" />
+          </div>
+
+          <FieldGroup>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Field>
+                <div>
+                  <Skeleton className="w-20 h-3" />
+                </div>
+                <Skeleton className="w-full h-9" />
+              </Field>
+              <Field>
+                <div>
+                  <Skeleton className="w-20 h-3" />
+                </div>
+                <Skeleton className="w-full h-9" />
+              </Field>
+            </div>
+          </FieldGroup>
+        </FieldSet>
+        <FieldSet>
+          <div className="space-y-2">
+            <Skeleton className="w-20 h-3" />
+            <Skeleton className="w-60 h-3" />
+          </div>
+          <Skeleton className="w-full h-20" />
+          <Skeleton className="w-full h-20" />
+        </FieldSet>
+
+        <Field>
+          <div className="space-y-2">
+            <Skeleton className="w-20 h-3" />
+            <Skeleton className="w-80 h-3" />
+          </div>
+          <div className="flex flex-col gap-2 px-4">
+            <div className="flex items-center py-4">
+              <div className="space-y-2 w-full">
+                <Skeleton className="w-20 h-3" />
+                <Skeleton className="w-50 h-2" />
+              </div>
+              <Skeleton className="w-[32px] h-[18px] shrink-0" />
+            </div>
+            <div className="flex items-center py-4">
+              <div className="space-y-2 w-full">
+                <Skeleton className="w-20 h-3" />
+                <Skeleton className="w-50 h-2" />
+              </div>
+              <Skeleton className="w-[32px] h-[18px] shrink-0" />
+            </div>
+            <div className="flex items-center py-4">
+              <div className="space-y-2 w-full">
+                <Skeleton className="w-20 h-3" />
+                <Skeleton className="w-50 h-2" />
+              </div>
+              <Skeleton className="w-[32px] h-[18px] shrink-0" />
+            </div>
+            <div className="flex items-center py-4">
+              <div className="space-y-2 w-full">
+                <Skeleton className="w-20 h-3" />
+                <Skeleton className="w-50 h-2" />
+              </div>
+              <Skeleton className="w-[32px] h-[18px] shrink-0" />
+            </div>
+          </div>
+        </Field>
+        <Field orientation="horizontal" className="justify-end">
+          <Skeleton className="w-[60px] h-9" />
+          <Skeleton className="w-[55px] h-9" />
+        </Field>
+      </FieldGroup>
+    );
 
   return (
     <form onSubmit={handleSubmit}>

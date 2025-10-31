@@ -11,7 +11,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import UserResult from "./user-result";
-import UserTable from "./user-table";
 
 export const metadata: Metadata = {
   title: "Quản Lý Người Dùng",

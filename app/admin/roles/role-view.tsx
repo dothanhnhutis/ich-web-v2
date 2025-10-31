@@ -50,7 +50,7 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
         <div className="flex flex-col gap-2 p-4 flex-1">
           <div className="flex justify-between gap-1">
             <div className="flex flex-col gap-2">
-              <Label>Tên vai trò</Label>
+              <Label className="text-muted-foreground">Tên vai trò</Label>
               {!isLoading ? (
                 <p className="text-lg">{role?.name ?? "--"}</p>
               ) : (
@@ -58,7 +58,7 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
               )}
             </div>
             <div className="flex flex-col gap-2 ">
-              <Label>Trạng thái</Label>
+              <Label className="text-muted-foreground">Trạng thái</Label>
               {!isLoading ? (
                 <p
                   className={cn(
@@ -82,7 +82,7 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Mô tả</Label>
+            <Label className="text-muted-foreground">Mô tả</Label>
             {!isLoading ? (
               <p>
                 {!role || role.description === "" ? "--" : role.description}
@@ -97,7 +97,7 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
             )}
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Ngày vô hiệu hoá</Label>
+            <Label className="text-muted-foreground">Ngày vô hiệu hoá</Label>
             {!isLoading ? (
               <p>
                 {role?.deactived_at
@@ -118,7 +118,7 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
           <Separator orientation="horizontal" className="my-2" />
 
           <div className="flex flex-col gap-2">
-            <Label>Quyền hạn </Label>
+            <Label className="text-muted-foreground">Quyền truy cập </Label>
 
             {!isLoading ? (
               <PermissionComponent

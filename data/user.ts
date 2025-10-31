@@ -32,8 +32,6 @@ export type UserPassword = User & {
   password_hash: string;
 };
 
-export type QueryUsers = { users: UserWithoutPassword[]; metadata: Metadata };
-
 const userInstance = FetchAPI.create({
   credentials: "include",
   headers: {
@@ -212,5 +210,61 @@ export const logoutAction = async (): Promise<void> => {
       console.log(`logoutAction func error: ${error.message}`);
     }
     console.log(`logoutAction func error: ${error}`);
+  }
+};
+
+export type UpdateUserByIdActionData = {
+  email: string;
+  username: string;
+  status: string;
+  roleIds: string[];
+};
+
+type UpdateUserByIdAPIRes = {
+  statusCode: number;
+  statusText: string;
+  data: {
+    message: string;
+  };
+};
+
+export type UpdateUserByIdAction = {
+  success: boolean;
+  message: string;
+};
+
+export const updateUserByIdAction = async (
+  id: string,
+  data: UpdateUserByIdActionData
+): Promise<UpdateUserByIdAction> => {
+  try {
+    const res = await userInstance.patch<UpdateUserByIdAPIRes>(`/${id}`, data, {
+      headers: await getHeaders(),
+    });
+    console.log(res.data);
+    return {
+      success: true,
+      message: res.data.data.message,
+    };
+  } catch (error: unknown) {
+    if (error instanceof FetchAPIError) {
+      const res = error.response as FetchAPIResponse<UpdateUserByIdAPIRes>;
+      return {
+        success: false,
+        message: res.data.data.message,
+      };
+    }
+    if (error instanceof FetchAPINetWorkError) {
+      console.log(`updateUserByIdAction func error: ${error.message}`);
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+    console.log(`updateUserByIdAction func error: ${error}`);
+    return {
+      success: false,
+      message: "Cập nhật người dùng thất bại.",
+    };
   }
 };

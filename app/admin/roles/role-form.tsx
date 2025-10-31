@@ -460,7 +460,7 @@ const RoleForm = ({ role }: RoleFormProps) => {
           query.queryKey[0] === "roles" || query.queryKey[0] === "role",
       });
     },
-    onError: (message: string) => {
+    onError: (err: Error) => {
       if (role)
         setFormData({
           name: role.name,
@@ -478,7 +478,7 @@ const RoleForm = ({ role }: RoleFormProps) => {
           users: [],
         });
 
-      toast.error(message);
+      toast.error(err.message);
     },
   });
 
@@ -491,7 +491,9 @@ const RoleForm = ({ role }: RoleFormProps) => {
     <>
       <form onSubmit={handleSubmit}>
         <FieldSet>
-          <FieldLegend>Cập nhật vai trò</FieldLegend>
+          <FieldLegend>
+            {role ? "Cập nhật vai trò" : "Tạo vai trò mới"}
+          </FieldLegend>
           <FieldDescription>
             Nhập tên và lựa chọn các quyền cho vai trò
           </FieldDescription>

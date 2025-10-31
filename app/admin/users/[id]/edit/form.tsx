@@ -1,7 +1,10 @@
 "use client";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import { ChevronRightIcon, ShieldPlusIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React from "react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -19,26 +22,25 @@ import {
   ItemContent,
   ItemDescription,
   ItemGroup,
+  ItemMedia,
   ItemSeparator,
   ItemTitle,
 } from "@/components/ui/item";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { queryRolesAction, type Role } from "@/data/role";
-import type { UserDetail } from "@/data/user";
+import { queryRolesAction } from "@/data/role";
+import {
+  type UpdateUserByIdActionData,
+  type UserDetail,
+  updateUserByIdAction,
+} from "@/data/user";
 import { cn, convertImage, getShortName } from "@/lib/utils";
 
-type FormData = {
-  email: string;
-  username: string;
-  status: string;
-  roleIds: string[];
-};
-
 const UpdateUserForm = ({ user }: { user: UserDetail }) => {
-  const [formData, setFormData] = React.useState<FormData>({
+  const router = useRouter();
+  const [formData, setFormData] = React.useState<UpdateUserByIdActionData>({
     email: "",
     username: "",
     status: "ACTIVE",
@@ -61,15 +63,31 @@ const UpdateUserForm = ({ user }: { user: UserDetail }) => {
   });
 
   const { mutate, isPending } = useMutation({
-    mutationFn: () => {},
-    onSuccess: () => {},
-    onError: () => {},
+    mutationFn: async () => {
+      const res = await updateUserByIdAction(user.id, formData);
+      if (!res.success) throw new Error(res.message);
+      return res.message;
+    },
+    onSuccess: (message: string) => {
+      toast.success(message);
+      router.push("/admin/users");
+    },
+    onError: (err: Error) => {
+      setFormData({
+        email: user.email,
+        username: user.username,
+        roleIds: user.roles.map(({ id }) => id),
+        status: user.status,
+      });
+      toast.error(err.message);
+    },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     mutate();
   };
+
   return (
     <div className="p-4 w-full max-w-3xl mx-auto">
       <form onSubmit={handleSubmit}>
@@ -156,7 +174,38 @@ const UpdateUserForm = ({ user }: { user: UserDetail }) => {
               <FieldDescription>
                 Chọn vai trò cho tài khoản người dùng <b>(có thể chọn nhiều)</b>
               </FieldDescription>
-              {data?.roles ? (
+              {isLoading ? (
+                <div className="flex flex-col gap-2 px-4">
+                  <div className="flex items-center py-4">
+                    <div className="space-y-2 w-full">
+                      <Skeleton className="w-20 h-3" />
+                      <Skeleton className="w-50 h-2" />
+                    </div>
+                    <Skeleton className="w-[32px] h-[18px] shrink-0" />
+                  </div>
+                  <div className="flex items-center py-4">
+                    <div className="space-y-2 w-full">
+                      <Skeleton className="w-20 h-3" />
+                      <Skeleton className="w-50 h-2" />
+                    </div>
+                    <Skeleton className="w-[32px] h-[18px] shrink-0" />
+                  </div>
+                  <div className="flex items-center py-4">
+                    <div className="space-y-2 w-full">
+                      <Skeleton className="w-20 h-3" />
+                      <Skeleton className="w-50 h-2" />
+                    </div>
+                    <Skeleton className="w-[32px] h-[18px] shrink-0" />
+                  </div>
+                  <div className="flex items-center py-4">
+                    <div className="space-y-2 w-full">
+                      <Skeleton className="w-20 h-3" />
+                      <Skeleton className="w-50 h-2" />
+                    </div>
+                    <Skeleton className="w-[32px] h-[18px] shrink-0" />
+                  </div>
+                </div>
+              ) : data && data.roles.length > 0 ? (
                 <ItemGroup>
                   {data.roles.map((role, index) => (
                     <React.Fragment key={role.id}>
@@ -184,10 +233,23 @@ const UpdateUserForm = ({ user }: { user: UserDetail }) => {
                   ))}
                 </ItemGroup>
               ) : (
-                <p>Loading</p>
+                <Item variant="outline" size="sm" asChild>
+                  <Link href="/admin/roles/create">
+                    <ItemMedia>
+                      <ShieldPlusIcon className="size-5" />
+                    </ItemMedia>
+                    <ItemContent>
+                      <ItemTitle>
+                        Không có vai trò nào trong hệ thống.
+                      </ItemTitle>
+                    </ItemContent>
+                    <ItemActions>
+                      <ChevronRightIcon className="size-4" />
+                    </ItemActions>
+                  </Link>
+                </Item>
               )}
             </Field>
-
             <Field
               orientation="horizontal"
               className="justify-end flex-col sm:flex-row"

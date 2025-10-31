@@ -169,22 +169,26 @@ const PermissionComponent = ({
       .filter((p) => p.pers.length > 0);
     return (
       <div className="flex flex-col gap-2">
-        {filterPer.map((p) => (
-          <div
-            className="flex flex-col gap-1 py-1 border-t first:border-none"
-            key={p.name}
-          >
-            <p className="text-base font-medium line-clamp-2">{p.name}</p>
-            <p className="text-sm text-muted-foreground">{p.description}</p>
-            <div className="flex gap-1 flex-wrap">
-              {p.pers.map((p) => (
-                <Badge key={p.key} variant="outline">
-                  {p.label}
-                </Badge>
-              ))}
+        {filterPer.length > 0 ? (
+          filterPer.map((p) => (
+            <div
+              className="flex flex-col gap-1 py-1 border-t first:border-none"
+              key={p.name}
+            >
+              <p className="text-base font-medium line-clamp-2">{p.name}</p>
+              <p className="text-sm text-muted-foreground">{p.description}</p>
+              <div className="flex gap-1 flex-wrap">
+                {p.pers.map((p) => (
+                  <Badge key={p.key} variant="outline">
+                    {p.label}
+                  </Badge>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-sm"> Không có quyền truy cập nào</p>
+        )}
       </div>
     );
   }
