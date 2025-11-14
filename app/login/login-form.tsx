@@ -58,11 +58,13 @@ export function LoginForm({
     onError: (err: Error) => {
       toast.error(err.message);
     },
+    onSettled() {
+      setFormData({ email: "", password: "" });
+    },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormData({ email: "", password: "" });
     mutate();
   };
 

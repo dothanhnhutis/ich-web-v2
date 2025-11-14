@@ -5,6 +5,7 @@ import {
   FetchAPIError,
   FetchAPINetWorkError,
   type FetchAPIResponse,
+  hasFastifyZodValidationError,
 } from "./api";
 import { getHeaders, loadCookie } from "./utils";
 
@@ -25,10 +26,7 @@ export type LoginActionData = {
 
 export type LoginAPIRes = {
   statusCode: number;
-  statusText: string;
-  data: {
-    message: string;
-  };
+  message: string;
 };
 
 export type LoginAction = {
@@ -45,14 +43,25 @@ export async function loginAction(data: LoginActionData): Promise<LoginAction> {
     await loadCookie(rawCookie);
     return {
       success: true,
-      message: res.data.data.message,
+      message: res.data.message,
     };
   } catch (error) {
-    if (error instanceof FetchAPIError) {
-      const res = error.response as FetchAPIResponse<LoginAPIRes>;
+    if (hasFastifyZodValidationError(error)) {
       return {
         success: false,
-        message: res.data.data.message,
+        message:
+          error.data.details.issues[0].message ?? "unknow validation error.",
+      };
+    }
+
+    if (error instanceof FetchAPIError) {
+      const res = error.response as FetchAPIResponse<{
+        error: string;
+        message: string;
+      }>;
+      return {
+        success: false,
+        message: res.data.message,
       };
     }
 

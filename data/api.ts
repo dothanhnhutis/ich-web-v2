@@ -251,3 +251,31 @@ export class FetchAPI {
 //     console.error("Error:", error);
 //   }
 // })();
+
+export const hasFastifyZodValidationError = (
+  error: unknown
+): error is FetchAPIResponse<FastifyZodValidateError> => {
+  return (
+    error instanceof FetchAPIError &&
+    error.response.data instanceof FetchAPIError
+  );
+};
+
+interface FastifyZodValidateError {
+  error: string;
+  message: string;
+  statusCode: number;
+  details: {
+    issues: FastifySchemaValidationError[];
+    method: string;
+    url: string;
+  };
+}
+
+interface FastifySchemaValidationError {
+  keyword: string;
+  instancePath: string;
+  schemaPath: string;
+  params: Record<string, unknown>;
+  message?: string;
+}

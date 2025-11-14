@@ -10,8 +10,6 @@ import {
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 
-// This is sample data.
-
 export async function AdminSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {

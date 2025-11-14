@@ -47,6 +47,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleLogout = React.useCallback(async () => {
+    console.log("check");
     await logoutAction();
     router.push("/login");
   }, [router]);
