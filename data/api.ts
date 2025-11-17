@@ -35,14 +35,6 @@ export class FetchAPINetWorkError extends Error {
   }
 }
 
-export type DefaultAPIRes = {
-  statusText: string;
-  statusCode: number;
-  data: {
-    message: string;
-  };
-};
-
 export interface FetchAPIRequestConfig extends RequestInit {
   url?: string;
   baseUrl?: string;
@@ -252,14 +244,13 @@ export class FetchAPI {
 //   }
 // })();
 
-export const hasFastifyZodValidationError = (
-  error: unknown
-): error is FetchAPIResponse<FastifyZodValidateError> => {
-  return (
-    error instanceof FetchAPIError &&
-    error.response.data instanceof FetchAPIError
-  );
-};
+interface FastifySchemaValidationError {
+  keyword: string;
+  instancePath: string;
+  schemaPath: string;
+  params: Record<string, unknown>;
+  message?: string;
+}
 
 interface FastifyZodValidateError {
   error: string;
@@ -272,10 +263,18 @@ interface FastifyZodValidateError {
   };
 }
 
-interface FastifySchemaValidationError {
-  keyword: string;
-  instancePath: string;
-  schemaPath: string;
-  params: Record<string, unknown>;
-  message?: string;
-}
+export const hasFastifyZodValidationError = (
+  error: unknown
+): error is FetchAPIError<FastifyZodValidateError> => {
+  return (
+    error instanceof FetchAPIError &&
+    typeof error.response.data === "object" &&
+    "message" in error.response.data &&
+    "statusCode" in error.response.data &&
+    "details" in error.response.data &&
+    typeof error.response.data.details === "object" &&
+    "issues" in error.response.data.details &&
+    "method" in error.response.data.details &&
+    "url" in error.response.data.details
+  );
+};

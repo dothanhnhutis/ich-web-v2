@@ -50,7 +50,8 @@ export async function loginAction(data: LoginActionData): Promise<LoginAction> {
       return {
         success: false,
         message:
-          error.data.details.issues[0].message ?? "unknow validation error.",
+          error.response.data.details.issues[0].message ??
+          "unknow validation error.",
       };
     }
 

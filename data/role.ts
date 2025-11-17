@@ -36,7 +36,6 @@ export type Role = {
 
 type QueryRolesAPIRes = {
   statusCode: number;
-  statusText: string;
   data: {
     roles: (Role & { users: Omit<UserWithoutPassword, "role_count">[] })[];
     metadata: Metadata;
@@ -93,10 +92,7 @@ export type CreateRoleActionData = {
 
 type CreateUserAPIRes = {
   statusCode: number;
-  statusText: string;
-  data: {
-    message: string;
-  };
+  message: string;
 };
 
 export type CreateRoleAction = {
@@ -112,14 +108,14 @@ export const createRoleAction = async (
     });
     return {
       success: true,
-      message: res.data.data.message,
+      message: res.data.message,
     };
   } catch (error) {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
       return {
         success: false,
-        message: res.data.data.message,
+        message: res.data.message,
       };
     }
     if (error instanceof FetchAPINetWorkError) {
@@ -142,7 +138,6 @@ export type RoleDetail = Role & {
 };
 export type GetRoleDetailAPIRes = {
   statusCode: number;
-  statusText: string;
   data: RoleDetail;
 };
 export const getRoleDetailAction = cache(
@@ -170,7 +165,6 @@ export const getRoleDetailAction = cache(
 
 type GetRoleByIdActionRes = {
   statusCode: number;
-  statusText: string;
   data: Role;
 };
 export const getRoleByIdAction = cache(
@@ -198,7 +192,6 @@ export const getRoleByIdAction = cache(
 
 type GetUsersByRoleIdAPIRes = {
   statusCode: number;
-  statusText: string;
   data: {
     metadata: Metadata;
     users: UserWithoutPassword[];
@@ -262,14 +255,14 @@ export const updateRoleByIdAction = async (
     });
     return {
       success: true,
-      message: res.data.data.message,
+      message: res.data.message,
     };
   } catch (error) {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
       return {
         success: false,
-        message: res.data.data.message,
+        message: res.data.message,
       };
     }
     if (error instanceof FetchAPINetWorkError) {
@@ -294,14 +287,14 @@ export const deleteRoleByIdAction = async (id: string) => {
     });
     return {
       success: true,
-      message: res.data.data.message,
+      message: res.data.message,
     };
   } catch (error) {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
       return {
         success: false,
-        message: res.data.data.message,
+        message: res.data.message,
       };
     }
     if (error instanceof FetchAPINetWorkError) {

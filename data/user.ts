@@ -2,7 +2,6 @@
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { env } from "@/config";
-import { awaitCus } from "@/lib/utils";
 import {
   FetchAPI,
   FetchAPIError,
@@ -51,10 +50,7 @@ export type CreateUserData = {
 
 type CreateUserAPIRes = {
   statusCode: number;
-  statusText: string;
-  data: {
-    message: string;
-  };
+  message: string;
 };
 
 export type CreateUserAction = {
@@ -71,14 +67,14 @@ export const createUserAction = async (
     });
     return {
       success: true,
-      message: res.data.data.message,
+      message: res.data.message,
     };
   } catch (error: unknown) {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
       return {
         success: false,
-        message: res.data.data.message,
+        message: res.data.message,
       };
     }
     if (error instanceof FetchAPINetWorkError) {
@@ -98,7 +94,6 @@ export const createUserAction = async (
 
 export type QueryUsersAPIRes = {
   statusCode: number;
-  statusText: string;
   data: { metadata: Metadata; users: UserWithoutPassword[] };
 };
 export type QueryUsersAction = QueryUsersAPIRes["data"];
@@ -145,7 +140,6 @@ export type UserDetail = UserWithoutPassword & {
 
 type UserDetailAPIRes = {
   statusCode: number;
-  statusText: string;
   data: UserDetail;
 };
 
@@ -222,10 +216,7 @@ export type UpdateUserByIdActionData = {
 
 type UpdateUserByIdAPIRes = {
   statusCode: number;
-  statusText: string;
-  data: {
-    message: string;
-  };
+  message: string;
 };
 
 export type UpdateUserByIdAction = {
@@ -244,14 +235,14 @@ export const updateUserByIdAction = async (
     console.log(res.data);
     return {
       success: true,
-      message: res.data.data.message,
+      message: res.data.message,
     };
   } catch (error: unknown) {
     if (error instanceof FetchAPIError) {
       const res = error.response as FetchAPIResponse<UpdateUserByIdAPIRes>;
       return {
         success: false,
-        message: res.data.data.message,
+        message: res.data.message,
       };
     }
     if (error instanceof FetchAPINetWorkError) {

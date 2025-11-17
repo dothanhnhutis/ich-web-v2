@@ -35,6 +35,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, []);
 
+  console.log(user);
   const permissions = React.useMemo(() => {
     return user
       ? Array.from(new Set(user.roles.flatMap((r) => r.permissions)))

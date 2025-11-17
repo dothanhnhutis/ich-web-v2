@@ -49,7 +49,7 @@ type NavItem =
 
 const navItems: NavItem[] = [
   {
-    title: "Trung tâm kho hàng",
+    title: "Bảng điều khiển",
     icon: LayoutDashboardIcon,
     activeRegex: /^\/admin$/,
     url: "/admin",

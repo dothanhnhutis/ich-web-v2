@@ -17,60 +17,59 @@ export async function middleware(request: NextRequest) {
 
   const sid = request.cookies.get("sid");
 
-  if (nextUrl.pathname.startsWith("/admin")) {
-    if (!sid) {
-      const redirectUrl = new URL("/login", url);
-      const response = NextResponse.redirect(redirectUrl);
-      response.headers.set("x-redirected-from", nextUrl.pathname);
-      return response;
-    }
+  // if (nextUrl.pathname.startsWith("/admin")) {
+  //   if (!sid) {
+  //     const redirectUrl = new URL("/login", url);
+  //     const response = NextResponse.redirect(redirectUrl);
+  //     response.headers.set("x-redirected-from", nextUrl.pathname);
+  //     return response;
+  //   }
 
-    const user = await currentUserAction();
+  //   const user = await currentUserAction();
 
-    if (!user) {
-      const redirectUrl = new URL("/login", url);
-      const response = NextResponse.redirect(redirectUrl);
-      response.headers.set("x-redirected-from", nextUrl.pathname);
-      response.cookies.set("sid", "", { maxAge: 0 });
-      return response;
-    }
+  //   if (!user) {
+  //     const redirectUrl = new URL("/login", url);
+  //     const response = NextResponse.redirect(redirectUrl);
+  //     response.headers.set("x-redirected-from", nextUrl.pathname);
+  //     response.cookies.set("sid", "", { maxAge: 0 });
+  //     return response;
+  //   }
 
-    const permissions: string[] = Array.from(
-      new Set(user.roles.flatMap((r) => r.permissions))
-    );
+  //   const permissions: string[] = Array.from(
+  //     new Set(user.roles.flatMap((r) => r.permissions))
+  //   );
 
-    const hasPer = permissions
-      .map((p) => permissionRoutes[p] || null)
-      .filter((p) => p != null)
-      .some((regex) => regex.test(nextUrl.pathname));
+  //   const hasPer = permissions
+  //     .map((p) => permissionRoutes[p] || null)
+  //     .filter((p) => p != null)
+  //     .some((regex) => regex.test(nextUrl.pathname));
 
-    if (!hasPer) {
-      const redirectUrl = new URL("/notfound", url);
-      const response = NextResponse.redirect(redirectUrl);
-      response.headers.set("x-redirected-from", nextUrl.pathname);
-      return response;
-      // return new NextResponse("Not Found", { status: 404 });
-    }
-  }
+  //   if (!hasPer) {
+  //     const redirectUrl = new URL("/notfound", url);
+  //     const response = NextResponse.redirect(redirectUrl);
+  //     response.headers.set("x-redirected-from", nextUrl.pathname);
+  //     return response;
+  //     // return new NextResponse("Not Found", { status: 404 });
+  //   }
+  // }
 
-  if (nextUrl.pathname === "/login") {
-    if (sid) {
-      const user = await currentUserAction();
-      if (!user) {
-        const redirectUrl = new URL("/login", url);
-        const response = NextResponse.redirect(redirectUrl);
-        response.cookies.set("sid", "", { maxAge: 0 });
-        return response;
-      } else {
-        // redirect toi trang co permission
-
-        const redirectUrl = new URL("/admin/users", url);
-        const response = NextResponse.redirect(redirectUrl);
-        response.headers.set("x-redirected-from", nextUrl.pathname);
-        return response;
-      }
-    }
-  }
+  // if (nextUrl.pathname === "/login") {
+  //   if (sid) {
+  //     const user = await currentUserAction();
+  //     if (!user) {
+  //       const redirectUrl = new URL("/login", url);
+  //       const response = NextResponse.redirect(redirectUrl);
+  //       response.cookies.set("sid", "", { maxAge: 0 });
+  //       return response;
+  //     } else {
+  //       // redirect toi trang co permission
+  //       // const redirectUrl = new URL("/admin/users", url);
+  //       // const response = NextResponse.redirect(redirectUrl);
+  //       // response.headers.set("x-redirected-from", nextUrl.pathname);
+  //       // return response;
+  //     }
+  //   }
+  // }
 
   // if (!sid) {
   //   if (nextUrl.pathname.startsWith("/admin")) {

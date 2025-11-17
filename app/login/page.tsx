@@ -41,7 +41,7 @@ export default function LoginPage() {
           fill
           src="/images/landscape.webp"
           alt="Image"
-          className="absolute inset-0 h-full w-full object-right object-cover dark:brightness-[0.2] dark:grayscale"
+          className="absolute inset-0 h-full w-full object-right object-cover"
         />
       </div>
     </div>
