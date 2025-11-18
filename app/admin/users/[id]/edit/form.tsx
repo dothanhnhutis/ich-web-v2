@@ -58,7 +58,11 @@ const UpdateUserForm = ({ user }: { user: UserDetail }) => {
 
   const { data, isLoading } = useQuery({
     queryKey: ["roles", "created_at.desc"],
-    queryFn: () => queryRolesAction([["sort", "created_at.desc"]]),
+    queryFn: () =>
+      queryRolesAction([
+        ["status", "ACTIVE"],
+        ["sort", "created_at.desc"],
+      ]),
     placeholderData: keepPreviousData,
   });
 

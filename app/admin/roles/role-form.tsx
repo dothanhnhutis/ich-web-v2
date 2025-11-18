@@ -100,12 +100,13 @@ type UserModalProps = {
 const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
   const [selectedUsers, setSelectedUsers] = React.useState<
     Omit<UserWithoutPassword, "role_count">[]
-  >([]);
+  >(users ?? []);
 
   const [searchType, setSearchType] = React.useState<string>("email");
   const [searchData, setSearchData] = React.useState<string>("");
-  const [userSearchParams, setUserSearchParams] =
-    React.useState<string>("page=1&limit=5");
+  const [userSearchParams, setUserSearchParams] = React.useState<string>(
+    "status=ACTIVE&page=1&limit=5"
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["users", userSearchParams],
