@@ -156,9 +156,20 @@ const RoleResult = () => {
 
   const [viewId, setViewId] = React.useState<string | null>(null);
 
+  const newSearchParams = React.useMemo(() => {
+    const result = new URLSearchParams(searchParams.toString());
+    if (!result.has("limit")) {
+      result.set("limit", "10");
+    }
+    if (!result.has("page")) {
+      result.set("page", "1");
+    }
+    return result;
+  }, [searchParams]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["roles", searchParams.toString()],
-    queryFn: () => queryRolesAction(searchParams.toString()),
+    queryKey: ["roles", newSearchParams.toString()],
+    queryFn: () => queryRolesAction(newSearchParams.toString()),
     // staleTime: 10_000, // 10s trước khi refetch tự động
     placeholderData: keepPreviousData, // giữ dữ liệu cũ khi searchParams thay đổi
   });

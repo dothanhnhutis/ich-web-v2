@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,21 +12,14 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import RoleResult from "./role-result";
 
 export const metadata: Metadata = {
-  title: "Kho Hàng",
+  title: "Quản lý vai trò",
   robots: {
     index: false,
     follow: false,
   },
 };
 
-const RolesPage = async (props: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) => {
-  const searchParams = await props.searchParams;
-
-  if (Object.keys(searchParams).length === 0)
-    redirect(`/admin/roles?limit=10&page=1`);
-
+const RolesPage = async () => {
   return (
     <>
       <header className="sticky top-0 right-0 z-50 bg-background/10 backdrop-blur-lg flex h-16 shrink-0 items-center gap-2 border-b px-4">

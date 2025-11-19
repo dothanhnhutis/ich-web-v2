@@ -56,12 +56,12 @@ const navItems: NavItem[] = [
     permission: "admin",
   },
   {
-    title: "Người dùng & vai  trò",
+    title: "Tài khoản & vai trò",
     icon: ShieldUserIcon,
     activeRegex: /^\/admin\/(?:users|roles)(?:[0-9a-zA-Z/-])*?$/,
     items: [
       {
-        title: "Người dùng",
+        title: "Tài khoản",
         url: "/admin/users",
         activeRegex: /^\/admin\/users(?:[0-9a-zA-Z/-])*?$/,
         permission: "read:user",
@@ -80,34 +80,34 @@ const navItems: NavItem[] = [
     activeRegex: /^\/admin\/(?:warehouses|packagings|note)(?:[0-9a-zA-Z/-])*?$/,
     items: [
       {
-        title: "Kho Hàng",
+        title: "Nhà kho",
         url: "/admin/warehouses",
         activeRegex: /^\/admin\/warehouses(?:[0-9a-zA-Z/-])*?$/,
-        permission: "read:warehouse:*",
+        permission: "read:warehouse",
       },
       {
-        title: "Bao Bì",
+        title: "Bao bì",
         url: "/admin/packagings",
         activeRegex: /^\/admin\/packagings(?:[0-9a-zA-Z/-])*?$/,
-        permission: "read:packaging:*",
+        permission: "read:packaging",
       },
-      {
-        title: "Nguyên Liệu",
-        url: "/admin/packagings",
-        activeRegex: /^\/admin\/packagings(?:[0-9a-zA-Z/-])*?$/,
-        permission: "read:packaging:*",
-      },
-      {
-        title: "Thành Phẩm",
-        url: "/admin/packagings",
-        activeRegex: /^\/admin\/packagings(?:[0-9a-zA-Z/-])*?$/,
-        permission: "read:packaging:*",
-      },
+      // {
+      //   title: "Nguyên Liệu",
+      //   url: "/admin/packagings",
+      //   activeRegex: /^\/admin\/packagings(?:[0-9a-zA-Z/-])*?$/,
+      //   permission: "read:note",
+      // },
+      // {
+      //   title: "Thành Phẩm",
+      //   url: "/admin/packagings",
+      //   activeRegex: /^\/admin\/packagings(?:[0-9a-zA-Z/-])*?$/,
+      //   permission: "read:packaging",
+      // },
       {
         title: "Phiếu",
         url: "/admin/notes",
         activeRegex: /^\/admin\/notes(?:[0-9a-zA-Z/-])*?$/,
-        permission: "read:note:*",
+        permission: "read:note",
       },
     ],
   },

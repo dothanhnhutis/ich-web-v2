@@ -67,6 +67,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useUser } from "@/components/user-context";
 import { sortUserData } from "@/constants";
 import {
   createRoleAction,
@@ -428,6 +429,7 @@ type FormData = {
 
 const RoleForm = ({ role }: RoleFormProps) => {
   const router = useRouter();
+  const { user: me } = useUser();
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
   const queryClient = useQueryClient();
   const [formData, setFormData] = React.useState<FormData>({
@@ -460,6 +462,11 @@ const RoleForm = ({ role }: RoleFormProps) => {
         predicate: (query) =>
           query.queryKey[0] === "roles" || query.queryKey[0] === "role",
       });
+      if (me && role) {
+        const roleIds = me.roles.map(({ id }) => id);
+        if (roleIds.includes(role.id))
+          await queryClient.invalidateQueries({ queryKey: ["me"] });
+      }
     },
     onError: (err: Error) => {
       if (role)

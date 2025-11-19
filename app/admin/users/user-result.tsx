@@ -138,9 +138,21 @@ const UserResult = () => {
   const pathName = usePathname();
   const [viewId, setViewId] = React.useState<string | null>(null);
 
+  const newSearchParams = React.useMemo(() => {
+    const result = new URLSearchParams(searchParams.toString());
+    if (!result.has("limit")) {
+      result.set("limit", "10");
+    }
+    if (!result.has("page")) {
+      result.set("page", "1");
+    }
+
+    return result;
+  }, [searchParams]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["users", searchParams.toString()],
-    queryFn: () => queryUsersAction(searchParams.toString()),
+    queryKey: ["users", newSearchParams.toString() ?? ""],
+    queryFn: () => queryUsersAction(newSearchParams.toString() ?? ""),
     // staleTime: 10_000, // 10s trước khi refetch tự động
     placeholderData: keepPreviousData, // giữ dữ liệu cũ khi searchParams thay đổi
   });

@@ -1,4 +1,5 @@
 "use client";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { currentUserAction, logoutAction, type UserDetail } from "@/data/user";
@@ -23,19 +24,11 @@ export function useUser() {
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [user, setUser] = React.useState<UserDetail | null>(null);
+  const { data: user, isPending } = useQuery({
+    queryKey: ["me"],
+    queryFn: currentUserAction,
+  });
 
-  React.useEffect(() => {
-    async function fetchUser() {
-      const user = await currentUserAction();
-      setUser(user);
-      setLoading(false);
-    }
-    fetchUser();
-  }, []);
-
-  console.log(user);
   const permissions = React.useMemo(() => {
     return user
       ? Array.from(new Set(user.roles.flatMap((r) => r.permissions)))
@@ -55,13 +48,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const contextValue = React.useMemo<UserContextProps>(
     () => ({
-      user,
-      loading,
+      user: user ?? null,
+      loading: isPending,
       permissions,
       hasPermission,
       handleLogout,
     }),
-    [user, loading, permissions, hasPermission, handleLogout]
+    [user, isPending, permissions, hasPermission, handleLogout]
   );
 
   return (

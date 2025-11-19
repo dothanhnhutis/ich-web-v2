@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,17 +9,15 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import UserResult from "./user-result";
-
 export const metadata: Metadata = {
-  title: "Quản Lý Người Dùng",
+  title: "Quản lý kho hàng",
   robots: {
     index: false,
     follow: false,
   },
 };
 
-const UsersPage = async () => {
+const WarehousePage = () => {
   return (
     <>
       <header className="sticky top-0 right-0 z-50 bg-background/10 backdrop-blur-lg flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -32,25 +29,24 @@ const UsersPage = async () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/admin">Chức năng chính</BreadcrumbLink>
+              <BreadcrumbLink href="/admin">Chức Năng Chính</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem className="hidden md:block">
               <BreadcrumbPage className="text-muted-foreground">
-                Người dùng & vai trò
+                Trung tâm kho hàng
               </BreadcrumbPage>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>Người dùng</BreadcrumbPage>
+              <BreadcrumbPage>Nhà kho</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </header>
-
-      <UserResult />
+      <div></div>
     </>
   );
 };
 
-export default UsersPage;
+export default WarehousePage;

@@ -1,5 +1,10 @@
 "use client";
-import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { ChevronRightIcon, ShieldPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useUser } from "@/components/user-context";
 import { queryRolesAction } from "@/data/role";
 import {
   type UpdateUserByIdActionData,
@@ -39,6 +45,8 @@ import {
 import { cn, convertImage, getShortName } from "@/lib/utils";
 
 const UpdateUserForm = ({ user }: { user: UserDetail }) => {
+  const queryClient = useQueryClient();
+  const { user: me } = useUser();
   const router = useRouter();
   const [formData, setFormData] = React.useState<UpdateUserByIdActionData>({
     email: "",
@@ -72,8 +80,21 @@ const UpdateUserForm = ({ user }: { user: UserDetail }) => {
       if (!res.success) throw new Error(res.message);
       return res.message;
     },
-    onSuccess: (message: string) => {
+    onSuccess: async (message: string) => {
       toast.success(message);
+
+      if (me?.id === user.id) {
+        const oldRoleId = user.roles.map(({ id }) => id);
+        if (
+          oldRoleId.length !== formData.roleIds.length ||
+          !formData.roleIds.every((id) => oldRoleId.includes(id))
+        ) {
+          await queryClient.invalidateQueries({
+            queryKey: ["me"],
+          });
+        }
+      }
+
       router.push("/admin/users");
     },
     onError: (err: Error) => {
