@@ -2,34 +2,14 @@
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { env } from "@/config";
+import type { UserDetailWithoutPassword } from "@/types/summary-types";
 import {
   FetchAPI,
   FetchAPIError,
   FetchAPINetWorkError,
   type FetchAPIResponse,
 } from "./api";
-import type { Role } from "./role";
 import { getHeaders } from "./utils";
-
-export type User = {
-  id: string;
-  email: string;
-  username: string;
-  status: string;
-  avatar: Image | null;
-  deactived_at: Date;
-  role_count: number;
-  created_at: Date;
-  updated_at: Date;
-};
-
-export type UserWithoutPassword = User & {
-  has_password: boolean;
-};
-
-export type UserPassword = User & {
-  password_hash: string;
-};
 
 const userInstance = FetchAPI.create({
   credentials: "include",
@@ -92,32 +72,35 @@ export const createUserAction = async (
   }
 };
 
-export type QueryUsersAPIRes = {
+export type FindManyUsersAPIRes = {
   statusCode: number;
-  data: { metadata: Metadata; users: UserWithoutPassword[] };
+  data: { users: UserDetailWithoutPassword[]; metadata: Metadata };
 };
-export type QueryUsersAction = QueryUsersAPIRes["data"];
+export type FindManyUsersAction = FindManyUsersAPIRes["data"];
 
-export const queryUsersAction = cache(
+export const findManyUsersAction = cache(
   async (
     searchParams?: Record<string, string> | string | [string, string][]
-  ): Promise<QueryUsersAction> => {
+  ): Promise<FindManyUsersAction> => {
     const q = new URLSearchParams(searchParams || "").toString();
 
     try {
-      const res = await userInstance.get<QueryUsersAPIRes>(q ? `?${q}` : "", {
-        headers: await getHeaders(),
-      });
+      const res = await userInstance.get<FindManyUsersAPIRes>(
+        q ? `?${q}` : "",
+        {
+          headers: await getHeaders(),
+        }
+      );
       return res.data.data;
     } catch (error: unknown) {
       if (error instanceof FetchAPIError) {
         const res = error.response as FetchAPIResponse<{ message: string }>;
-        console.log(`queryUserAction func error: `, res.data.message);
+        console.log(`findManyUsersAction func error: `, res.data.message);
       }
       if (error instanceof FetchAPINetWorkError) {
-        console.log(`queryUserAction func error: ${error.message}`);
+        console.log(`findManyUsersAction func error: ${error.message}`);
       } else {
-        console.log(`queryUserAction func error: ${error}`);
+        console.log(`findManyUsersAction func error: ${error}`);
       }
       return {
         metadata: {
@@ -134,57 +117,55 @@ export const queryUsersAction = cache(
   }
 );
 
-export type UserDetail = UserWithoutPassword & {
-  roles: Role[];
-};
-
 type UserDetailAPIRes = {
   statusCode: number;
-  data: UserDetail;
+  data: UserDetailWithoutPassword;
 };
 
-export const currentUserAction = cache(async (): Promise<UserDetail | null> => {
-  try {
-    const {
-      data: { data },
-    } = await userInstance.get<UserDetailAPIRes>("/me", {
-      headers: await getHeaders(),
-    });
-    return data;
-  } catch (error: unknown) {
-    const cookieList = await cookies();
-    if (cookieList.has("sid")) cookieList.delete("sid");
-
-    if (error instanceof FetchAPIError) {
-      const res = error.response as FetchAPIResponse<{ message: string }>;
-      console.log(`currentUserAction func error: ${res.data.message}`);
-    }
-    if (error instanceof FetchAPINetWorkError) {
-      console.log(`currentUserAction func error: ${error.message}`);
-    }
-    console.log(`currentUserAction func error: ${error}`);
-    return null;
-  }
-});
-
-export const getUserDetailAction = cache(
-  async (id: string): Promise<UserDetail | null> => {
+export const currentUserAction = cache(
+  async (): Promise<UserDetailWithoutPassword | null> => {
     try {
       const {
         data: { data },
-      } = await userInstance.get<UserDetailAPIRes>(`/${id}/detail`, {
+      } = await userInstance.get<UserDetailAPIRes>("/me", {
+        headers: await getHeaders(),
+      });
+      return data;
+    } catch (error: unknown) {
+      const cookieList = await cookies();
+      if (cookieList.has("sid")) cookieList.delete("sid");
+
+      if (error instanceof FetchAPIError) {
+        const res = error.response as FetchAPIResponse<{ message: string }>;
+        console.log(`currentUserAction func error: ${res.data.message}`);
+      }
+      if (error instanceof FetchAPINetWorkError) {
+        console.log(`currentUserAction func error: ${error.message}`);
+      }
+      console.log(`currentUserAction func error: ${error}`);
+      return null;
+    }
+  }
+);
+
+export const findUserDetailAction = cache(
+  async (userId: string): Promise<UserDetailWithoutPassword | null> => {
+    try {
+      const {
+        data: { data },
+      } = await userInstance.get<UserDetailAPIRes>(`/${userId}/detail`, {
         headers: await getHeaders(),
       });
       return data;
     } catch (error: unknown) {
       if (error instanceof FetchAPIError) {
         const res = error.response as FetchAPIResponse<{ message: string }>;
-        console.log(`getUserDetailAction func error: ${res.data.message}`);
+        console.log(`findUserDetailAction func error: ${res.data.message}`);
       }
       if (error instanceof FetchAPINetWorkError) {
-        console.log(`getUserDetailAction func error: ${error.message}`);
+        console.log(`findUserDetailAction func error: ${error.message}`);
       }
-      console.log(`getUserDetailAction func error: ${error}`);
+      console.log(`findUserDetailAction func error: ${error}`);
       return null;
     }
   }
@@ -211,7 +192,7 @@ export type UpdateUserByIdActionData = {
   email: string;
   username: string;
   status: string;
-  roleIds: string[];
+  roleIds?: string[];
 };
 
 type UpdateUserByIdAPIRes = {
@@ -232,7 +213,6 @@ export const updateUserByIdAction = async (
     const res = await userInstance.patch<UpdateUserByIdAPIRes>(`/${id}`, data, {
       headers: await getHeaders(),
     });
-    console.log(res.data);
     return {
       success: true,
       message: res.data.message,

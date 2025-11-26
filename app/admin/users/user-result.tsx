@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
-import { queryUsersAction } from "@/data/user";
+import { findManyUsersAction } from "@/data/user";
 import { buildSortField, cn, hasDuplicateKey } from "@/lib/utils";
 import UserFilter from "./user-filter";
 import UserTable from "./user-table";
@@ -152,7 +152,7 @@ const UserResult = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ["users", newSearchParams.toString() ?? ""],
-    queryFn: () => queryUsersAction(newSearchParams.toString() ?? ""),
+    queryFn: () => findManyUsersAction(newSearchParams.toString() ?? ""),
     // staleTime: 10_000, // 10s trước khi refetch tự động
     placeholderData: keepPreviousData, // giữ dữ liệu cũ khi searchParams thay đổi
   });

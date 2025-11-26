@@ -39,6 +39,7 @@ import {
 import { useUser } from "@/components/user-context";
 import { deleteRoleByIdAction, queryRolesAction } from "@/data/role";
 import { buildSortField, cn, hasDuplicateKey } from "@/lib/utils";
+import type { UserDetailWithoutPassword } from "@/types/summary-types";
 import RoleFilter from "./role-filter";
 import RoleTable from "./role-table";
 import RoleView from "./role-view";
@@ -154,7 +155,8 @@ const RoleResult = () => {
   const pathName = usePathname();
   const queryClient = useQueryClient();
 
-  const [viewId, setViewId] = React.useState<string | null>(null);
+  const [viewDetail, setViewDetail] =
+    React.useState<UserDetailWithoutPassword | null>(null);
 
   const newSearchParams = React.useMemo(() => {
     const result = new URLSearchParams(searchParams.toString());
@@ -301,7 +303,7 @@ const RoleResult = () => {
                 <RoleTable
                   roles={data.roles}
                   onViewRole={(id) => {
-                    setViewId(id);
+                    setViewDetail(id);
                   }}
                   onDeleteRole={(userId: string) => {
                     setDeleteRoleId(userId);

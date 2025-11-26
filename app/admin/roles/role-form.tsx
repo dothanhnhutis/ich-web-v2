@@ -69,13 +69,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useUser } from "@/components/user-context";
 import { sortUserData } from "@/constants";
-import {
-  createRoleAction,
-  type RoleDetail,
-  updateRoleByIdAction,
-} from "@/data/role";
-import { queryUsersAction, type UserWithoutPassword } from "@/data/user";
+import { createRoleAction, updateRoleByIdAction } from "@/data/role";
+import { findManyUsersAction } from "@/data/user";
 import { cn, convertImage, getShortName } from "@/lib/utils";
+import type { RoleDetail, UserWithoutPassword } from "@/types/summary-types";
 
 const searchTypes = [
   {
@@ -94,8 +91,8 @@ type UserModalProps = {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
-  users?: Omit<UserWithoutPassword, "role_count">[];
-  handleSave?: (users: Omit<UserWithoutPassword, "role_count">[]) => void;
+  users?: UserWithoutPassword[];
+  handleSave?: (users: UserWithoutPassword[]) => void;
 };
 
 const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
@@ -111,7 +108,7 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
 
   const { data, isLoading } = useQuery({
     queryKey: ["users", userSearchParams],
-    queryFn: () => queryUsersAction(userSearchParams),
+    queryFn: () => findManyUsersAction(userSearchParams),
     placeholderData: keepPreviousData,
   });
 
@@ -423,7 +420,7 @@ type FormData = {
   name: string;
   description: string;
   permissions: string[];
-  users: Omit<UserWithoutPassword, "role_count">[];
+  users: UserWithoutPassword[];
   status: string;
 };
 

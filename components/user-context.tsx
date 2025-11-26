@@ -2,10 +2,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { currentUserAction, logoutAction, type UserDetail } from "@/data/user";
+import { currentUserAction, logoutAction } from "@/data/user";
+import type { UserDetailWithoutPassword } from "@/types/summary-types";
 
 type UserContextProps = {
-  user: UserDetail | null;
+  user: UserDetailWithoutPassword | null;
   permissions: string[];
   hasPermission: (permission: string) => boolean;
   handleLogout: () => Promise<void>;

@@ -1,13 +1,13 @@
 "use server";
 import { cache } from "react";
 import { env } from "@/config";
+import type { Role, RoleDetail } from "@/types/summary-types";
 import {
   FetchAPI,
   FetchAPIError,
   FetchAPINetWorkError,
   type FetchAPIResponse,
 } from "./api";
-import type { UserWithoutPassword } from "./user";
 import { getHeaders } from "./utils";
 
 const roleInstance = FetchAPI.create({
@@ -20,41 +20,30 @@ const roleInstance = FetchAPI.create({
   baseUrl: `${env.SERVER_URL}/api/v1/roles`,
 });
 
-export type Role = {
-  id: string;
-  name: string;
-  permissions: string[];
-  description: string;
-  status: string;
-  deactived_at: Date;
-  created_at: Date;
-  updated_at: Date;
-  user_count: number;
-  can_delete: boolean;
-  can_update: boolean;
-};
-
-type QueryRolesAPIRes = {
+type FindManyRolesAPIRes = {
   statusCode: number;
   data: {
-    roles: (Role & { users: Omit<UserWithoutPassword, "role_count">[] })[];
+    roles: Role[];
     metadata: Metadata;
   };
 };
 
-export type QueryRolesAction = QueryRolesAPIRes["data"];
+export type FindManyRolesAction = FindManyRolesAPIRes["data"];
 
-export const queryRolesAction = cache(
+export const findManyRolesAction = cache(
   async (
     searchParams?: Record<string, string> | string | [string, string][]
-  ): Promise<QueryRolesAction> => {
+  ): Promise<FindManyRolesAction> => {
     try {
       const q = new URLSearchParams(searchParams || "").toString();
 
-      const res = await roleInstance.get<QueryRolesAPIRes>(q ? `?${q}` : "", {
-        headers: await getHeaders(),
-        cache: "no-store",
-      });
+      const res = await roleInstance.get<FindManyRolesAPIRes>(
+        q ? `?${q}` : "",
+        {
+          headers: await getHeaders(),
+          cache: "no-store",
+        }
+      );
 
       return res.data.data;
     } catch (error) {
@@ -133,31 +122,28 @@ export const createRoleAction = async (
   }
 };
 
-export type RoleDetail = Role & {
-  users: Omit<UserWithoutPassword, "role_count">[];
-};
-export type GetRoleDetailAPIRes = {
+export type FindRoleDetailAPIRes = {
   statusCode: number;
   data: RoleDetail;
 };
-export const getRoleDetailAction = cache(
+export const findRoleDetailAction = cache(
   async (roleId: string): Promise<RoleDetail | null> => {
     try {
       const {
         data: { data },
-      } = await roleInstance.get<GetRoleDetailAPIRes>(`/${roleId}/detail`, {
+      } = await roleInstance.get<FindRoleDetailAPIRes>(`/${roleId}/detail`, {
         headers: await getHeaders(),
       });
       return data;
     } catch (error: unknown) {
       if (error instanceof FetchAPIError) {
         const res = error.response as FetchAPIResponse<{ message: string }>;
-        console.log(`getRoleDetailAction func error: ${res.data.message}`);
+        console.log(`findRoleDetailAction func error: ${res.data.message}`);
       }
       if (error instanceof FetchAPINetWorkError) {
-        console.log(`getRoleDetailAction func error: ${error.message}`);
+        console.log(`findRoleDetailAction func error: ${error.message}`);
       }
-      console.log(`getRoleDetailAction func error: ${error}`);
+      console.log(`findRoleDetailAction func error: ${error}`);
       return null;
     }
   }
