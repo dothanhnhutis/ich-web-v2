@@ -2,11 +2,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { currentUserAction, logoutAction } from "@/data/user";
+import { currentUserAction } from "@/data/user/currentUserAction";
+import { logoutAction } from "@/data/user/logoutAction";
 import type { UserDetailWithoutPassword } from "@/types/summary-types";
 
 type UserContextProps = {
-  user: UserDetailWithoutPassword | null;
+  user?: UserDetailWithoutPassword | null;
   permissions: string[];
   hasPermission: (permission: string) => boolean;
   handleLogout: () => Promise<void>;
@@ -42,14 +43,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleLogout = React.useCallback(async () => {
-    console.log("check");
     await logoutAction();
     router.push("/login");
   }, [router]);
 
   const contextValue = React.useMemo<UserContextProps>(
     () => ({
-      user: user ?? null,
+      user,
       loading: isPending,
       permissions,
       hasPermission,

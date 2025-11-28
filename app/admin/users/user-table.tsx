@@ -23,11 +23,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
-import type { UserWithoutPassword } from "@/data/user";
 import { convertImage, getShortName } from "@/lib/utils";
+import type { UserDetailWithoutPassword } from "@/types/summary-types";
 
 type UserTableProps = {
-  users: UserWithoutPassword[];
+  users: UserDetailWithoutPassword[];
   onViewUser?: (userId: string) => void;
   onResetUserPassword?: (userId: string) => void;
 };

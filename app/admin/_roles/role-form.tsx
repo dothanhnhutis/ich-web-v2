@@ -69,8 +69,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useUser } from "@/components/user-context";
 import { sortUserData } from "@/constants";
-import { createRoleAction, updateRoleByIdAction } from "@/data/role";
-import { findManyUsersAction } from "@/data/user";
 import { cn, convertImage, getShortName } from "@/lib/utils";
 import type { RoleDetail, UserWithoutPassword } from "@/types/summary-types";
 

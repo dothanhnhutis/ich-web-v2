@@ -6,8 +6,10 @@ import { CopyIcon, HashIcon } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -18,7 +20,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getUserDetailAction } from "@/data/user";
+import { findUserDetailAction } from "@/data/user/findUserDetailAction";
 import { cn, convertImage, getShortName } from "@/lib/utils";
 
 type UserViewProps = React.ComponentProps<typeof Sheet> & {
@@ -29,7 +31,7 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
   const { data: user, isLoading } = useQuery({
     enabled: !!id,
     queryKey: ["user", id],
-    queryFn: () => getUserDetailAction(id ?? ""),
+    queryFn: () => findUserDetailAction(id ?? ""),
   });
 
   return (
@@ -195,7 +197,7 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
           ) : (
             <div>
               <Label>Vai trò ({user.role_count})</Label>
-              <div className="max-h-[calc(100vh_-_326px)] overflow-auto">
+              <div className="max-h-[calc(100vh_-_326px)] overflow-auto hidden">
                 <table className="min-w-full">
                   <tbody>
                     {user.roles.map((r) => (
@@ -208,6 +210,11 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
                             <p className="text-xs text-muted-foreground">
                               {r.description}
                             </p>
+                            <div className="flex gap-2 items-center w-full overflow-scroll">
+                              {r.permissions.map((p) => (
+                                <p key={p}>{p}</p>
+                              ))}
+                            </div>
                           </div>
                         </td>
                         <td className="p-2 align-middle whitespace-nowrap text-end">
@@ -217,6 +224,33 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="max-h-[calc(100vh_-_326px)] overflow-auto flex flex-col gap-2 pt-4">
+                {user.roles.map((r) => (
+                  <div
+                    key={r.id}
+                    className="text-start flex flex-col gap-1 border-b"
+                  >
+                    <p className="text-base font-medium line-clamp-2">
+                      {r.name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {r.description}
+                    </p>
+                    <ScrollArea className="w-full whitespace-nowrap">
+                      <div className="flex w-max space-x-2 mb-3">
+                        {r.permissions.map((p) => (
+                          <Badge key={p} variant="secondary">
+                            {p}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
+                    {/* <div className="flex gap-2 items-center w-full overflow-x-scroll"></div> */}
+                  </div>
+                ))}
               </div>
             </div>
           )}

@@ -22,7 +22,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
-import { type LoginActionData, loginAction } from "@/data/auth";
+import { type LoginFormData, loginAction } from "@/data/auth/loginAction";
 import { cn } from "@/lib/utils";
 
 export function LoginForm({
@@ -32,7 +32,7 @@ export function LoginForm({
   const router = useRouter();
   const [error, setError] = React.useState<string | null>(null);
   const [isPassword, setIsPassword] = React.useState<boolean>(true);
-  const [formData, setFormData] = React.useState<LoginActionData>({
+  const [formData, setFormData] = React.useState<LoginFormData>({
     email: "",
     password: "",
   });

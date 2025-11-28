@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { getRoleDetailAction } from "@/data/role";
 import RoleForm from "../../role-form";
 
 const UpdateRolePage = async (props: { params: Promise<{ id: string }> }) => {

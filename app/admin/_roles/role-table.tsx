@@ -23,7 +23,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
-import type { QueryRolesAction } from "@/data/role";
 import { convertImage, getShortName } from "@/lib/utils";
 
 const RoleTable = ({

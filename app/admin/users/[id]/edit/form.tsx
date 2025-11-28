@@ -36,38 +36,48 @@ import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useUser } from "@/components/user-context";
-import { queryRolesAction } from "@/data/role";
+import { findManyRoleAction } from "@/data/role/findManyRoleAction";
+import { findRolesByUserIdAction } from "@/data/user/findRolesByUserIdAction";
 import {
-  type UpdateUserByIdActionData,
-  type UserDetail,
+  type UpdateUserByIdFormData,
   updateUserByIdAction,
-} from "@/data/user";
+} from "@/data/user/updateUserByIdAction";
 import { cn, convertImage, getShortName } from "@/lib/utils";
+import type { UserWithoutPassword } from "@/types/summary-types";
 
-const UpdateUserForm = ({ user }: { user: UserDetail }) => {
+const UpdateUserForm = ({ user }: { user: UserWithoutPassword }) => {
   const queryClient = useQueryClient();
   const { user: me } = useUser();
   const router = useRouter();
-  const [formData, setFormData] = React.useState<UpdateUserByIdActionData>({
+  const [formData, setFormData] = React.useState<
+    Required<UpdateUserByIdFormData>
+  >({
     email: "",
     username: "",
     status: "ACTIVE",
     roleIds: [],
   });
 
+  const { data: oldUserRoleRes, isPending: userRoleIsPending } = useQuery({
+    queryKey: ["user", user.id, "roles"],
+    queryFn: () =>
+      findRolesByUserIdAction(user.id, [["sort", "created_at.desc"]]),
+    placeholderData: keepPreviousData,
+  });
+
   React.useEffect(() => {
     setFormData({
       email: user.email,
       username: user.username,
-      roleIds: user.roles.map(({ id }) => id),
       status: user.status,
+      roleIds: oldUserRoleRes ? oldUserRoleRes.roles.map(({ id }) => id) : [],
     });
-  }, [user]);
+  }, [user, oldUserRoleRes]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["roles", "created_at.desc"],
     queryFn: () =>
-      queryRolesAction([
+      findManyRoleAction([
         ["status", "ACTIVE"],
         ["sort", "created_at.desc"],
       ]),
@@ -82,17 +92,14 @@ const UpdateUserForm = ({ user }: { user: UserDetail }) => {
     },
     onSuccess: async (message: string) => {
       toast.success(message);
+      await queryClient.invalidateQueries({
+        queryKey: ["user", user.id, "roles"],
+      });
 
       if (me?.id === user.id) {
-        const oldRoleId = user.roles.map(({ id }) => id);
-        if (
-          oldRoleId.length !== formData.roleIds.length ||
-          !formData.roleIds.every((id) => oldRoleId.includes(id))
-        ) {
-          await queryClient.invalidateQueries({
-            queryKey: ["me"],
-          });
-        }
+        await queryClient.invalidateQueries({
+          queryKey: ["me"],
+        });
       }
 
       router.push("/admin/users");
@@ -101,7 +108,7 @@ const UpdateUserForm = ({ user }: { user: UserDetail }) => {
       setFormData({
         email: user.email,
         username: user.username,
-        roleIds: user.roles.map(({ id }) => id),
+        roleIds: oldUserRoleRes ? oldUserRoleRes.roles.map(({ id }) => id) : [],
         status: user.status,
       });
       toast.error(err.message);

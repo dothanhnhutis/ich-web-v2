@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { getUserDetailAction } from "@/data/user";
+import { findUserWithoutPasswordByIdAction } from "@/data/user/findUserWithoutPasswordByIdAction";
 import UpdateUserForm from "./form";
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 const UpdateUserPage = async (props: { params: Promise<{ id: string }> }) => {
-  const user = await getUserDetailAction((await props.params).id);
+  const user = await findUserWithoutPasswordByIdAction((await props.params).id);
 
   if (!user) notFound();
 

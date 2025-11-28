@@ -38,19 +38,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
-import { queryRolesAction } from "@/data/role";
-import { createUserAction } from "@/data/user";
+import { findManyRoleAction } from "@/data/role/findManyRoleAction";
+import type { CreateUserFormData } from "@/data/user";
+import { createUserAction } from "@/data/user/createUserAction";
 import { cn } from "@/lib/utils";
 
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]+$/;
 const passwordSchema = z.string().min(8).max(125).regex(passwordRegex);
-
-type FormData = {
-  email: string;
-  username: string;
-  roleIds: string[];
-};
 
 type PasswordData = {
   type: string;
@@ -62,7 +57,7 @@ type PasswordData = {
 const CreateUserForm = () => {
   const router = useRouter();
   const [invalidEmail, setInvalidEmail] = React.useState<boolean>(false);
-  const [formData, setFormData] = React.useState<FormData>({
+  const [formData, setFormData] = React.useState<CreateUserFormData>({
     email: "",
     username: "",
     roleIds: [],
@@ -77,7 +72,7 @@ const CreateUserForm = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ["roles", "created_at.desc"],
-    queryFn: () => queryRolesAction([["sort", "created_at.desc"]]),
+    queryFn: () => findManyRoleAction([["sort", "created_at.desc"]]),
     placeholderData: keepPreviousData,
   });
 

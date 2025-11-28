@@ -37,7 +37,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
-import { deleteRoleByIdAction, queryRolesAction } from "@/data/role";
 import { buildSortField, cn, hasDuplicateKey } from "@/lib/utils";
 import type { UserDetailWithoutPassword } from "@/types/summary-types";
 import RoleFilter from "./role-filter";

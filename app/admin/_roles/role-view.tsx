@@ -17,7 +17,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getRoleDetailAction } from "@/data/role";
 import { cn } from "@/lib/utils";
 
 type RoleViewProps = React.ComponentProps<typeof Sheet> & {
