@@ -14,7 +14,7 @@ export const sortRoleData: Record<
     title: "Trạng thái",
     description: "Sắp xếp theo trạng thái",
   },
-  deactived_at: {
+  disabled_at: {
     title: "Ngày vô hiệu hoá",
     description: "Sắp xếp theo ngày vô hiệu hoá",
   },
@@ -43,7 +43,7 @@ export const sortUserData: Record<
     title: "Trạng thái",
     description: "Sắp xếp theo trạng thái",
   },
-  deactived_at: {
+  disabled_at: {
     title: "Ngày vô hiệu hoá",
     description: "Sắp xếp theo ngày vô hiệu hoá",
   },

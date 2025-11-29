@@ -37,7 +37,7 @@ const UserTable = ({
   onViewUser,
   onResetUserPassword,
 }: UserTableProps) => {
-  const { hasPermission } = useUser();
+  const { hasPermission, user } = useUser();
 
   return (
     <Table>
@@ -131,6 +131,21 @@ const UserTable = ({
                           }}
                         >
                           Đặt lại mật khẩu
+                        </DropdownMenuItem>
+                      </>
+                    )}
+
+                    {hasPermission("delete:user") && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          disabled={u.id === user?.id}
+                          // onClick={() => {
+                          //   if (onDeleteRole) onDeleteRole(r.id);
+                          // }}
+                        >
+                          Xoá
                         </DropdownMenuItem>
                       </>
                     )}

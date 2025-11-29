@@ -58,7 +58,7 @@ const UpdateUserForm = ({ user }: { user: UserWithoutPassword }) => {
     roleIds: [],
   });
 
-  const { data: oldUserRoleRes, isPending: userRoleIsPending } = useQuery({
+  const { data: oldUserRoleRes, isPending: _ } = useQuery({
     queryKey: ["user", user.id, "roles"],
     queryFn: () =>
       findRolesByUserIdAction(user.id, [["sort", "created_at.desc"]]),
@@ -81,6 +81,21 @@ const UpdateUserForm = ({ user }: { user: UserWithoutPassword }) => {
         ["status", "ACTIVE"],
         ["sort", "created_at.desc"],
       ]),
+    select(data) {
+      const systemRoles = oldUserRoleRes
+        ? oldUserRoleRes.roles
+            .filter(({ can_update }) => !can_update)
+            .map(({ id }) => id)
+        : [];
+
+      return {
+        ...data,
+        roles: data.roles.filter(
+          ({ id, can_delete, can_update }) =>
+            systemRoles.includes(id) || (can_delete && can_update)
+        ),
+      };
+    },
     placeholderData: keepPreviousData,
   });
 
@@ -185,7 +200,7 @@ const UpdateUserForm = ({ user }: { user: UserWithoutPassword }) => {
                   }}
                 >
                   <ToggleGroupItem
-                    value="INACTIVE"
+                    value="DISABLED"
                     aria-label="asc"
                     className="data-[state=on]:bg-destructive/10"
                   >
@@ -248,6 +263,7 @@ const UpdateUserForm = ({ user }: { user: UserWithoutPassword }) => {
                         </ItemContent>
                         <ItemActions>
                           <Switch
+                            disabled={!role.can_update}
                             checked={formData.roleIds.includes(role.id)}
                             onCheckedChange={(checked) =>
                               setFormData((prev) => ({

@@ -69,8 +69,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useUser } from "@/components/user-context";
 import { sortUserData } from "@/constants";
+import { createRoleAction } from "@/data/role/createRoleAction";
+import { findUsersByRoleIdAction } from "@/data/role/findUsersByRoleIdAction";
+import { updateRoleByIdAction } from "@/data/role/updateRoleById";
+import { findManyUserAction } from "@/data/user/findManyUserAction";
 import { cn, convertImage, getShortName } from "@/lib/utils";
-import type { RoleDetail, UserWithoutPassword } from "@/types/summary-types";
+import type { Role, UserWithoutPassword } from "@/types/summary-types";
 
 const searchTypes = [
   {
@@ -106,7 +110,7 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
 
   const { data, isLoading } = useQuery({
     queryKey: ["users", userSearchParams],
-    queryFn: () => findManyUsersAction(userSearchParams),
+    queryFn: () => findManyUserAction(userSearchParams),
     placeholderData: keepPreviousData,
   });
 
@@ -411,7 +415,7 @@ const UserModal = ({ handleSave, users, ...props }: UserModalProps) => {
 const DESCRIPTION_LENGTH = 225;
 
 type RoleFormProps = {
-  role?: RoleDetail;
+  role?: Role;
 };
 
 type FormData = {
@@ -428,12 +432,35 @@ const RoleForm = ({ role }: RoleFormProps) => {
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
   const queryClient = useQueryClient();
   const [formData, setFormData] = React.useState<FormData>({
-    name: role?.name ?? "",
-    description: role?.description ?? "",
-    permissions: role?.permissions ?? [],
-    status: role?.status ?? "ACTIVE",
-    users: role?.users ?? [],
+    name: "",
+    description: "",
+    permissions: [],
+    status: "ACTIVE",
+    users: [],
   });
+
+  const { data: oldUserRes, isPending: _ } = useQuery({
+    enabled: !!role,
+    queryKey: ["role", role?.id, "users"],
+    queryFn: () =>
+      findUsersByRoleIdAction(role?.id ?? "", [["sort", "created_at.desc"]]),
+    placeholderData: keepPreviousData,
+  });
+
+  React.useEffect(() => {
+    if (role) {
+      setFormData({
+        name: role.name,
+        description: role.description,
+        permissions: role.permissions,
+        status: role.status,
+        users:
+          oldUserRes && oldUserRes.metadata.totalItem > 0
+            ? oldUserRes.users
+            : [],
+      });
+    }
+  }, [role, oldUserRes]);
 
   const { isPending, mutate } = useMutation({
     mutationFn: async () => {
@@ -457,10 +484,11 @@ const RoleForm = ({ role }: RoleFormProps) => {
         predicate: (query) =>
           query.queryKey[0] === "roles" || query.queryKey[0] === "role",
       });
-      if (me && role) {
-        const roleIds = me.roles.map(({ id }) => id);
-        if (roleIds.includes(role.id))
-          await queryClient.invalidateQueries({ queryKey: ["me"] });
+
+      if (me && oldUserRes && oldUserRes.users.some(({ id }) => me.id === id)) {
+        // const roleIds = me.roles.map(({ id }) => id);
+        // if (roleIds.includes(role.id))
+        await queryClient.invalidateQueries({ queryKey: ["me"] });
       }
     },
     onError: (err: Error) => {
@@ -470,7 +498,10 @@ const RoleForm = ({ role }: RoleFormProps) => {
           description: role.description,
           permissions: role.permissions,
           status: role.status,
-          users: role.users,
+          users:
+            oldUserRes && oldUserRes.metadata.totalItem > 0
+              ? oldUserRes.users
+              : [],
         });
       else
         setFormData({
@@ -548,7 +579,7 @@ const RoleForm = ({ role }: RoleFormProps) => {
                     }}
                   >
                     <ToggleGroupItem
-                      value="INACTIVE"
+                      value="DISABLED"
                       aria-label="asc"
                       className="data-[state=on]:bg-destructive/10"
                     >

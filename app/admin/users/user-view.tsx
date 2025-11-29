@@ -5,6 +5,7 @@ import { vi } from "date-fns/locale";
 import { CopyIcon, HashIcon } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
+import { convertPermissionName } from "@/components/permission";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -57,9 +58,9 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
               <Label>Ngày vô hiệu hoá</Label>
               {!isLoading ? (
                 <p>
-                  {user?.deactived_at
+                  {user?.deleted_at
                     ? format(
-                        new Date(user.deactived_at).toISOString(),
+                        new Date(user.deleted_at).toISOString(),
                         "EEEE, dd/MM/yy HH:mm:ss 'GMT'XXX",
                         {
                           locale: vi,
@@ -99,7 +100,7 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
           <div className="grid gap-2 w-full">
             <Label>Thông tin người dùng </Label>
             {!isLoading ? (
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <Avatar className="size-9 group-hover:hidden bg-white">
                   <AvatarImage
                     src={
@@ -114,8 +115,10 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid">
-                  <p className="font-bold text-lg">Do Thanh Nhut</p>
-                  <p className="text-sm">gaconght@gmail.com</p>
+                  <p className="font-bold text-lg">
+                    {user?.username || "null"}
+                  </p>
+                  <p className="text-sm">{user?.email || "null"}</p>
                 </div>
               </div>
             ) : (
@@ -197,7 +200,7 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
           ) : (
             <div>
               <Label>Vai trò ({user.role_count})</Label>
-              <div className="max-h-[calc(100vh_-_326px)] overflow-auto hidden">
+              {/* <div className="max-h-[calc(100vh_-_326px)] overflow-auto hidden">
                 <table className="min-w-full">
                   <tbody>
                     {user.roles.map((r) => (
@@ -224,7 +227,7 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </div> */}
               <div className="max-h-[calc(100vh_-_326px)] overflow-auto flex flex-col gap-2 pt-4">
                 {user.roles.map((r) => (
                   <div
@@ -239,7 +242,7 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
                     </p>
                     <ScrollArea className="w-full whitespace-nowrap">
                       <div className="flex w-max space-x-2 mb-3">
-                        {r.permissions.map((p) => (
+                        {convertPermissionName(r.permissions).map((p) => (
                           <Badge key={p} variant="secondary">
                             {p}
                           </Badge>

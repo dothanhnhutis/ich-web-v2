@@ -1,11 +1,19 @@
 "use client";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import { CheckIcon, EyeClosedIcon, EyeIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  CircleAlertIcon,
+  EyeClosedIcon,
+  EyeIcon,
+  ShieldPlusIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
 import z from "zod/v4";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Field,
@@ -30,6 +38,7 @@ import {
   ItemContent,
   ItemDescription,
   ItemGroup,
+  ItemMedia,
   ItemSeparator,
   ItemTitle,
 } from "@/components/ui/item";
@@ -38,6 +47,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
+import { useUser } from "@/components/user-context";
 import { findManyRoleAction } from "@/data/role/findManyRoleAction";
 import type { CreateUserFormData } from "@/data/user";
 import { createUserAction } from "@/data/user/createUserAction";
@@ -56,6 +66,7 @@ type PasswordData = {
 };
 const CreateUserForm = () => {
   const router = useRouter();
+  const { hasPermission } = useUser();
   const [invalidEmail, setInvalidEmail] = React.useState<boolean>(false);
   const [formData, setFormData] = React.useState<CreateUserFormData>({
     email: "",
@@ -73,6 +84,14 @@ const CreateUserForm = () => {
   const { data, isLoading } = useQuery({
     queryKey: ["roles", "created_at.desc"],
     queryFn: () => findManyRoleAction([["sort", "created_at.desc"]]),
+    select(data) {
+      return {
+        ...data,
+        roles: data.roles.filter(
+          ({ can_delete, can_update }) => can_delete && can_update
+        ),
+      };
+    },
     placeholderData: keepPreviousData,
   });
 
@@ -428,46 +447,73 @@ const CreateUserForm = () => {
           <FieldDescription>
             Chọn vai trò cho tài khoản người dùng. có thể chọn nhiều vai trò
           </FieldDescription>
+
           {data ? (
-            <ScrollArea className="max-h-[315px] pr-2">
-              <ItemGroup>
-                {data.roles.map((role, index) => (
-                  <React.Fragment key={role.id}>
-                    <Item>
-                      <ItemContent className="gap-1">
-                        <ItemTitle>{role.name}</ItemTitle>
-                        <ItemDescription>{role.description}</ItemDescription>
-                      </ItemContent>
-                      <ItemActions>
-                        <Switch
-                          disabled={isPending}
-                          checked={formData.roleIds.includes(role.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setFormData((prev) => ({
-                                ...prev,
-                                roleIds: [...prev.roleIds, role.id],
-                              }));
-                            } else {
-                              setFormData((prev) => ({
-                                ...prev,
-                                roleIds: prev.roleIds.filter(
-                                  (id) => id !== role.id
-                                ),
-                              }));
-                            }
-                          }}
-                        />
-                      </ItemActions>
-                    </Item>
-                    {index !== data.roles.length - 1 && <ItemSeparator />}
-                  </React.Fragment>
-                ))}
-              </ItemGroup>
-            </ScrollArea>
-          ) : (
-            <p>Loading...</p>
-          )}
+            data.roles.length === 0 ? (
+              hasPermission("create:role") ? (
+                <Item variant="outline" size="sm" asChild>
+                  <Link href="/admin/roles/create">
+                    <ItemMedia>
+                      <ShieldPlusIcon className="size-5" />
+                    </ItemMedia>
+                    <ItemContent>
+                      <ItemTitle>
+                        Không có vai trò nào trong hệ thống.
+                      </ItemTitle>
+                    </ItemContent>
+                    <ItemActions>
+                      Tạo
+                      <ChevronRightIcon className="size-4" />
+                    </ItemActions>
+                  </Link>
+                </Item>
+              ) : (
+                <Alert>
+                  <CircleAlertIcon />
+                  <AlertTitle>
+                    Không tìm thấy vai trò nào trong hệ thống.
+                  </AlertTitle>
+                </Alert>
+              )
+            ) : (
+              <ScrollArea className="max-h-[315px] pr-2">
+                <ItemGroup>
+                  {data.roles.map((role, index) => (
+                    <React.Fragment key={role.id}>
+                      <Item>
+                        <ItemContent className="gap-1">
+                          <ItemTitle>{role.name}</ItemTitle>
+                          <ItemDescription>{role.description}</ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            disabled={isPending}
+                            checked={formData.roleIds.includes(role.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  roleIds: [...prev.roleIds, role.id],
+                                }));
+                              } else {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  roleIds: prev.roleIds.filter(
+                                    (id) => id !== role.id
+                                  ),
+                                }));
+                              }
+                            }}
+                          />
+                        </ItemActions>
+                      </Item>
+                      {index !== data.roles.length - 1 && <ItemSeparator />}
+                    </React.Fragment>
+                  ))}
+                </ItemGroup>
+              </ScrollArea>
+            )
+          ) : null}
         </Field>
 
         <Field orientation="horizontal" className="justify-end">

@@ -37,6 +37,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
+import { deleteRoleByIdAction } from "@/data/role/deleteRoleByIdAction";
+import { findManyRoleAction } from "@/data/role/findManyRoleAction";
 import { buildSortField, cn, hasDuplicateKey } from "@/lib/utils";
 import type { UserDetailWithoutPassword } from "@/types/summary-types";
 import RoleFilter from "./role-filter";
@@ -57,7 +59,7 @@ const sortRoleEnum = buildSortField([
   "name",
   "permissions",
   "description",
-  "deactived_at",
+  "disabled_at",
   "status",
   "created_at",
   "updated_at",
@@ -154,8 +156,7 @@ const RoleResult = () => {
   const pathName = usePathname();
   const queryClient = useQueryClient();
 
-  const [viewDetail, setViewDetail] =
-    React.useState<UserDetailWithoutPassword | null>(null);
+  const [viewId, setViewId] = React.useState<string | null>(null);
 
   const newSearchParams = React.useMemo(() => {
     const result = new URLSearchParams(searchParams.toString());
@@ -170,7 +171,7 @@ const RoleResult = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ["roles", newSearchParams.toString()],
-    queryFn: () => queryRolesAction(newSearchParams.toString()),
+    queryFn: () => findManyRoleAction(newSearchParams.toString()),
     // staleTime: 10_000, // 10s trước khi refetch tự động
     placeholderData: keepPreviousData, // giữ dữ liệu cũ khi searchParams thay đổi
   });
@@ -302,7 +303,7 @@ const RoleResult = () => {
                 <RoleTable
                   roles={data.roles}
                   onViewRole={(id) => {
-                    setViewDetail(id);
+                    setViewId(id);
                   }}
                   onDeleteRole={(userId: string) => {
                     setDeleteRoleId(userId);
@@ -319,12 +320,12 @@ const RoleResult = () => {
       </div>
       <RoleView
         id={viewId}
+        open={!!viewId}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setViewId(null);
           }
         }}
-        open={!!viewId}
       />
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>

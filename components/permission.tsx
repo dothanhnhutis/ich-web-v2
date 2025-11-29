@@ -10,10 +10,27 @@ import {
 import { Badge } from "./ui/badge";
 import { Checkbox } from "./ui/checkbox";
 
-const permissionData = [
+export const convertPermissionName = (permissions: string[]) => {
+  return permissions.reduce<string[]>((prev, curr) => {
+    const existRole = permissionData.find((p) =>
+      p.pers.find((p1) => curr === p1.key)
+    );
+    if (existRole) {
+      prev.push(
+        `${existRole.name} : ${
+          existRole.pers.find((p) => curr === p.key)?.label ?? "null"
+        }`
+      );
+    }
+    return prev;
+  }, []);
+};
+
+export const permissionData = [
   {
     name: "Bảng điều khiển",
     description: "Xem các báo cáo thống kê",
+    can_create: true,
     pers: [
       {
         label: "Đọc",
@@ -24,6 +41,7 @@ const permissionData = [
   {
     name: "Người dùng",
     description: "Quản lý thông tin tài khoản trong hệ thống.",
+    can_create: false,
     pers: [
       {
         label: "Tạo",
@@ -46,6 +64,7 @@ const permissionData = [
   {
     name: "Vai trò",
     description: "Quản lý vai trò của hệ thống",
+    can_create: false,
     pers: [
       {
         label: "Tạo",
@@ -68,6 +87,7 @@ const permissionData = [
   {
     name: "Nhà kho",
     description: "Quản lý kho hàng của nhà máy",
+    can_create: true,
     pers: [
       {
         label: "Tạo",
@@ -90,6 +110,7 @@ const permissionData = [
   {
     name: "Bao bì",
     description: "Quản lý bao bì trong kho hàng",
+    can_create: true,
     pers: [
       {
         label: "Tạo",
@@ -112,6 +133,7 @@ const permissionData = [
   {
     name: "Nhập xuất kho",
     description: "Quản lý nhập xuất hàng hoá trong kho hàng",
+    can_create: true,
     pers: [
       {
         label: "Tạo",
@@ -179,7 +201,7 @@ const PermissionComponent = ({
               <p className="text-sm text-muted-foreground">{p.description}</p>
               <div className="flex gap-1 flex-wrap">
                 {p.pers.map((p) => (
-                  <Badge key={p.key} variant="outline">
+                  <Badge key={p.key} variant="secondary">
                     {p.label}
                   </Badge>
                 ))}
@@ -199,73 +221,78 @@ const PermissionComponent = ({
       className="w-full"
       // defaultValue={permissionData.map((p) => p.name)}
     >
-      {permissionData.map((p) => {
-        const mainCheck: CheckedState = p.pers.every(({ key }) =>
-          pers.includes(key)
-        )
-          ? true
-          : p.pers.every(({ key }) => !pers.includes(key))
-          ? false
-          : "indeterminate";
+      {permissionData
+        .filter((p) => p.can_create)
+        .map((p) => {
+          const mainCheck: CheckedState = p.pers.every(({ key }) =>
+            pers.includes(key)
+          )
+            ? true
+            : p.pers.every(({ key }) => !pers.includes(key))
+            ? false
+            : "indeterminate";
 
-        const handleMainCheck = (checked: CheckedState) => {
-          const keys = p.pers.map(({ key }) => key);
-          const newPers =
-            checked === "indeterminate" || !checked
-              ? Array.from(new Set(pers.filter((k) => !keys.includes(k))))
-              : Array.from(new Set([...pers, ...keys]));
-          setPers(newPers);
-          if (onPermissionsChange) {
-            onPermissionsChange(newPers);
-          }
-        };
+          const handleMainCheck = (checked: CheckedState) => {
+            const keys = p.pers.map(({ key }) => key);
+            const newPers =
+              checked === "indeterminate" || !checked
+                ? Array.from(new Set(pers.filter((k) => !keys.includes(k))))
+                : Array.from(new Set([...pers, ...keys]));
+            setPers(newPers);
+            if (onPermissionsChange) {
+              onPermissionsChange(newPers);
+            }
+          };
 
-        return (
-          <AccordionItem value={p.name} key={p.name}>
-            <div className="flex items-center gap-2 w-full has-[h3[data-orientation=vertical]]:[&>h3]:w-full">
-              <Checkbox checked={mainCheck} onCheckedChange={handleMainCheck} />
-              <AccordionTrigger>{p.name}</AccordionTrigger>
-            </div>
-            <AccordionContent className="flex flex-col gap-4 text-balance">
-              <table>
-                <tbody>
-                  <tr>
-                    <td className="text-start" rowSpan={2}>
-                      {p.description}
-                    </td>
-                    {p.pers.map((l) => (
-                      <td className="text-center px-2 pb-2" key={l.key}>
-                        {l.label}
+          return (
+            <AccordionItem value={p.name} key={p.name}>
+              <div className="flex items-center gap-2 w-full has-[h3[data-orientation=vertical]]:[&>h3]:w-full">
+                <Checkbox
+                  checked={mainCheck}
+                  onCheckedChange={handleMainCheck}
+                />
+                <AccordionTrigger>{p.name}</AccordionTrigger>
+              </div>
+              <AccordionContent className="flex flex-col gap-4 text-balance">
+                <table>
+                  <tbody>
+                    <tr>
+                      <td className="text-start" rowSpan={2}>
+                        {p.description}
                       </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    {p.pers.map((l) => (
-                      <td className="text-center px-2 pb-2" key={l.key}>
-                        <Checkbox
-                          disabled={disabled}
-                          checked={hasPer(l.key)}
-                          onCheckedChange={(checked) => {
-                            const newPers = checked
-                              ? Array.from(new Set([...pers, l.key]))
-                              : Array.from(
-                                  new Set(pers.filter((k) => k !== l.key))
-                                );
-                            setPers(newPers);
-                            if (onPermissionsChange) {
-                              onPermissionsChange(newPers);
-                            }
-                          }}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </AccordionContent>
-          </AccordionItem>
-        );
-      })}
+                      {p.pers.map((l) => (
+                        <td className="text-center px-2 pb-2" key={l.key}>
+                          {l.label}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      {p.pers.map((l) => (
+                        <td className="text-center px-2 pb-2" key={l.key}>
+                          <Checkbox
+                            disabled={disabled}
+                            checked={hasPer(l.key)}
+                            onCheckedChange={(checked) => {
+                              const newPers = checked
+                                ? Array.from(new Set([...pers, l.key]))
+                                : Array.from(
+                                    new Set(pers.filter((k) => k !== l.key))
+                                  );
+                              setPers(newPers);
+                              if (onPermissionsChange) {
+                                onPermissionsChange(newPers);
+                              }
+                            }}
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </AccordionContent>
+            </AccordionItem>
+          );
+        })}
     </Accordion>
   );
 };

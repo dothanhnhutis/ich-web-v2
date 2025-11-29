@@ -17,6 +17,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { findRoleDetailAction } from "@/data/role/findRoleDetailAction";
 import { cn } from "@/lib/utils";
 
 type RoleViewProps = React.ComponentProps<typeof Sheet> & {
@@ -26,7 +27,7 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
   const { data: role, isLoading } = useQuery({
     enabled: !!id,
     queryKey: ["role", id],
-    queryFn: () => getRoleDetailAction(id ?? ""),
+    queryFn: () => findRoleDetailAction(id ?? ""),
   });
 
   return (
@@ -99,9 +100,9 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
             <Label className="text-muted-foreground">Ngày vô hiệu hoá</Label>
             {!isLoading ? (
               <p>
-                {role?.deactived_at
+                {role?.disabled_at
                   ? format(
-                      new Date(role.deactived_at).toISOString(),
+                      new Date(role.disabled_at).toISOString(),
                       "EEEE, dd/MM/yy HH:mm:ss 'GMT'XXX",
                       {
                         locale: vi,
@@ -117,7 +118,7 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
           <Separator orientation="horizontal" className="my-2" />
 
           <div className="flex flex-col gap-2">
-            <Label className="text-muted-foreground">Quyền truy cập </Label>
+            <Label className="text-muted-foreground">Quyền truy cập</Label>
 
             {!isLoading ? (
               <PermissionComponent

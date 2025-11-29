@@ -39,7 +39,7 @@ const statusData = [
   },
   {
     label: "Vô hiệu hoá",
-    value: "INACTIVE",
+    value: "DISABLED",
   },
 ];
 

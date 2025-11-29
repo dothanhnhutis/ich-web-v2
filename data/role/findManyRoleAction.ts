@@ -1,7 +1,7 @@
 "use server";
 
 import { cache } from "react";
-import type { Role } from "@/types/summary-types";
+import type { RoleDetail } from "@/types/summary-types";
 import {
   FetchAPIError,
   FetchAPINetWorkError,
@@ -13,7 +13,7 @@ import { roleInstance } from "./instance";
 type FindManyRoleAPIRes = {
   statusCode: number;
   data: {
-    roles: Role[];
+    roles: RoleDetail[];
     metadata: Metadata;
   };
 };

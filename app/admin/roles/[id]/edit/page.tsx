@@ -9,11 +9,12 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { findRoleByIdAction } from "@/data/role/findRoleByIdAction";
 import RoleForm from "../../role-form";
 
 const UpdateRolePage = async (props: { params: Promise<{ id: string }> }) => {
   const params = await props.params;
-  const role = await getRoleDetailAction(params.id);
+  const role = await findRoleByIdAction(params.id);
 
   if (!role || !role.can_update) notFound();
 

@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
+import type { FindManyRoleAction } from "@/data/role/findManyRoleAction";
 import { convertImage, getShortName } from "@/lib/utils";
 
 const RoleTable = ({
@@ -30,7 +31,7 @@ const RoleTable = ({
   onViewRole,
   onDeleteRole,
 }: {
-  roles?: QueryRolesAction["roles"];
+  roles?: FindManyRoleAction["roles"];
   onViewRole?: (id: string) => void;
   onDeleteRole?: (userId: string) => void;
 }) => {

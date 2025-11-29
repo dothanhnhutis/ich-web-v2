@@ -126,7 +126,7 @@ const sortRoleEnum = buildSortField([
   "username",
   "email",
   "status",
-  "deactived_at",
+  "disabled_at",
   "created_at",
   "updated_at",
 ]);
