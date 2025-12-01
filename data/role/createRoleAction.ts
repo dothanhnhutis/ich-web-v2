@@ -14,7 +14,7 @@ export type CreateRoleFormData = {
   userIds?: string[];
 };
 
-type CreateUserAPIRes = {
+type CreateRoleAPIRes = {
   statusCode: number;
   message: string;
 };
@@ -28,7 +28,7 @@ export const createRoleAction = async (
   data: CreateRoleFormData
 ): Promise<CreateRoleAction> => {
   try {
-    const res = await roleInstance.post<CreateUserAPIRes>("/", data, {
+    const res = await roleInstance.post<CreateRoleAPIRes>("/", data, {
       headers: await getHeaders(),
     });
     return {
@@ -37,7 +37,7 @@ export const createRoleAction = async (
     };
   } catch (error) {
     if (error instanceof FetchAPIError) {
-      const res = error.response as FetchAPIResponse<CreateUserAPIRes>;
+      const res = error.response as FetchAPIResponse<CreateRoleAPIRes>;
       return {
         success: false,
         message: res.data.message,

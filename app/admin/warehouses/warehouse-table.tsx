@@ -3,7 +3,6 @@ import { EllipsisVerticalIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,7 +18,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -30,6 +28,7 @@ import {
 } from "@/components/ui/table";
 import { useUser } from "@/components/user-context";
 import type { FindManyWarehouseAction } from "@/data/warehouse/findManyWarehouseAction";
+import { convertImage } from "@/lib/utils";
 
 const WarehouseTable = ({
   warehouses,
@@ -74,132 +73,47 @@ const WarehouseTable = ({
                     </HoverCardTrigger>
 
                     <HoverCardContent
-                      className="max-h-72 w-96 relative overflow-auto"
+                      className="max-h-[274px] w-80 flex flex-col gap-2 overflow-auto p-2"
                       side="right"
                       align="start"
                     >
-                      <div className="flex justify-between gap-4">
-                        <div>
-                          <div className="size-[60px] bg-accent"></div>
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="text-sm font-semibold">Ten bao bi</h4>
-                          <p className="text-sm"></p>
-                          <div className="text-muted-foreground text-xs">
-                            Số lượng: 1000
+                      {w.packagings.map((p) => (
+                        <div key={p.id} className="flex gap-2">
+                          <Image
+                            src={
+                              p.image
+                                ? convertImage(p.image).url
+                                : "/icons/box5.png"
+                            }
+                            alt="image"
+                            width={p.image?.width || 192}
+                            height={p.image?.height || 192}
+                            className="size-[80px] rounded-sm bg-accent"
+                          />
+
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-semibold line-clamp-2">
+                              {p.name}
+                            </h4>
+                            {p.unit === "CARTON" ? (
+                              <div className="flex flex-col gap-1 text-muted-foreground text-xs">
+                                <p>Quy cách: {p.pcs_ctn} / Thùng</p>
+                                <p>Số lượng: {p.quantity}</p>
+                              </div>
+                            ) : (
+                              <p className="text-muted-foreground text-xs">
+                                Số lượng: {p.quantity}
+                              </p>
+                            )}
                           </div>
                         </div>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <Avatar>
-                          <AvatarImage src="https://github.com/vercel.png" />
-                          <AvatarFallback>VC</AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-1">
-                          <h4 className="text-sm font-semibold">@nextjs</h4>
-                          <p className="text-sm">
-                            The React Framework – created and maintained by
-                            @vercel.
-                          </p>
-                          <div className="text-muted-foreground text-xs">
-                            Joined December 2021
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <Avatar>
-                          <AvatarImage src="https://github.com/vercel.png" />
-                          <AvatarFallback>VC</AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-1">
-                          <h4 className="text-sm font-semibold">@nextjs</h4>
-                          <p className="text-sm">
-                            The React Framework – created and maintained by
-                            @vercel.
-                          </p>
-                          <div className="text-muted-foreground text-xs">
-                            Joined December 2021
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <Avatar>
-                          <AvatarImage src="https://github.com/vercel.png" />
-                          <AvatarFallback>VC</AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-1">
-                          <h4 className="text-sm font-semibold">@nextjs</h4>
-                          <p className="text-sm">
-                            The React Framework – created and maintained by
-                            @vercel.
-                          </p>
-                          <div className="text-muted-foreground text-xs">
-                            Joined December 2021
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <Avatar>
-                          <AvatarImage src="https://github.com/vercel.png" />
-                          <AvatarFallback>VC</AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-1">
-                          <h4 className="text-sm font-semibold">@nextjs</h4>
-                          <p className="text-sm">
-                            The React Framework – created and maintained by
-                            @vercel.
-                          </p>
-                          <div className="text-muted-foreground text-xs">
-                            Joined December 2021
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <Avatar>
-                          <AvatarImage src="https://github.com/vercel.png" />
-                          <AvatarFallback>VC</AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-1">
-                          <h4 className="text-sm font-semibold">@nextjs</h4>
-                          <p className="text-sm">
-                            The React Framework – created and maintained by
-                            @vercel.
-                          </p>
-                          <div className="text-muted-foreground text-xs">
-                            Joined December 2021
-                          </div>
-                        </div>
-                      </div>
+                      ))}
                     </HoverCardContent>
                   </HoverCard>
                 ) : (
                   w.packaging_count
                 )}
               </TableCell>
-              {/* <TableCell className="text-center">
-                <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 ">
-                  {w.users.map((u) => (
-                    <Avatar key={u.id} className="bg-white">
-                      <AvatarImage
-                        src={
-                          u.avatar
-                            ? convertImage(u.avatar).url
-                            : "/images/logo-square.png"
-                        }
-                        alt={u.avatar?.file_name || u.username}
-                      />
-                      <AvatarFallback>
-                        {getShortName(u.username)}
-                      </AvatarFallback>
-                    </Avatar>
-                  ))}
-                  {r.user_count > 3 && (
-                    <Avatar>
-                      <AvatarFallback>+{r.user_count - 3}</AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              </TableCell> */}
 
               <TableCell className="text-right">
                 <DropdownMenu>
