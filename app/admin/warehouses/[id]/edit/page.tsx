@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { findWarehouseByIdAction } from "@/data/warehouse/findWarehouseByIdAction";
 import WarehouseForm from "../../warehouse-form";
 
 export const metadata: Metadata = {
@@ -18,7 +20,14 @@ export const metadata: Metadata = {
     follow: false,
   },
 };
-const UpdateWarehousePage = () => {
+const UpdateWarehousePage = async (props: {
+  params: Promise<{ id: string }>;
+}) => {
+  const params = await props.params;
+  const warehouse = await findWarehouseByIdAction(params.id);
+
+  if (!warehouse) notFound();
+
   return (
     <>
       <header className="sticky top-0 right-0 z-50 bg-background/10 backdrop-blur-lg flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -27,6 +36,7 @@ const UpdateWarehousePage = () => {
           orientation="vertical"
           className="mr-2 data-[orientation=vertical]:h-4"
         />
+
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
@@ -48,7 +58,7 @@ const UpdateWarehousePage = () => {
         </Breadcrumb>
       </header>
       <div className="p-4 w-full max-w-3xl mx-auto">
-        <WarehouseForm />
+        <WarehouseForm warehouse={warehouse} />
       </div>
     </>
   );

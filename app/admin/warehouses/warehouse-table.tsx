@@ -73,9 +73,9 @@ const WarehouseTable = ({
                     </HoverCardTrigger>
 
                     <HoverCardContent
-                      className="max-h-[274px] w-80 flex flex-col gap-2 overflow-auto p-2"
-                      side="right"
-                      align="start"
+                      className="max-h-[274px] w-92 flex flex-col gap-2 overflow-auto p-2"
+                      side="bottom"
+                      align="center"
                     >
                       {w.packagings.map((p) => (
                         <div key={p.id} className="flex gap-2">
@@ -91,23 +91,34 @@ const WarehouseTable = ({
                             className="size-[80px] rounded-sm bg-accent"
                           />
 
-                          <div className="space-y-1">
+                          <div className="space-y-1 w-full">
                             <h4 className="text-sm font-semibold line-clamp-2">
                               {p.name}
                             </h4>
                             {p.unit === "CARTON" ? (
                               <div className="flex flex-col gap-1 text-muted-foreground text-xs">
                                 <p>Quy cách: {p.pcs_ctn} / Thùng</p>
-                                <p>Số lượng: {p.quantity}</p>
+                                <p>Số lượng: {p.quantity} thùng</p>
                               </div>
                             ) : (
                               <p className="text-muted-foreground text-xs">
-                                Số lượng: {p.quantity}
+                                Số lượng: {p.quantity} thùng
                               </p>
                             )}
                           </div>
                         </div>
                       ))}
+                      <Button
+                        type="button"
+                        variant={"secondary"}
+                        onClick={() => {
+                          if (onViewWarehouse) {
+                            onViewWarehouse(w.id);
+                          }
+                        }}
+                      >
+                        Xem hết
+                      </Button>
                     </HoverCardContent>
                   </HoverCard>
                 ) : (
@@ -144,7 +155,7 @@ const WarehouseTable = ({
                       </DropdownMenuItem>
                       {hasPermission("update:role") && (
                         <DropdownMenuItem asChild>
-                          <Link href={`/admin/roles/${w.id}/edit`}>
+                          <Link href={`/admin/warehouses/${w.id}/edit`}>
                             Chỉnh sửa
                           </Link>
                         </DropdownMenuItem>

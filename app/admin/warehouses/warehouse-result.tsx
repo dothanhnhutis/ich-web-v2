@@ -27,6 +27,7 @@ import { deleteWarehouseByIdAction } from "@/data/warehouse/deleteWarehouseByIdA
 import { findManyWarehouseAction } from "@/data/warehouse/findManyWarehouseAction";
 import { cn } from "@/lib/utils";
 import WarehouseTable from "./warehouse-table";
+import WarehouseView from "./warehouse-view";
 
 const WarehouseResult = () => {
   const { hasPermission } = useUser();
@@ -108,7 +109,7 @@ const WarehouseResult = () => {
                 <WarehouseTable
                   warehouses={data.warehouses}
                   onViewWarehouse={(id) => {
-                    // setViewId(id);
+                    setViewId(id);
                   }}
                   onDeleteWarehouse={(userId: string) => {
                     setDeleteWarehouseId(userId);

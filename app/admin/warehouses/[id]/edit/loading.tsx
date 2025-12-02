@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,18 +6,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import WarehouseResult from "./warehouse-result";
-export const metadata: Metadata = {
-  title: "Quản lý kho hàng",
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
 
-const WarehousePage = () => {
+const LoadingPage = () => {
   return (
     <>
       <header className="sticky top-0 right-0 z-50 bg-background/10 backdrop-blur-lg flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -30,24 +22,26 @@ const WarehousePage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/admin">Chức Năng Chính</BreadcrumbLink>
+              <BreadcrumbPage className="text-muted-foreground">
+                Chức Năng Chính
+              </BreadcrumbPage>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem className="hidden xs:block">
-              <BreadcrumbPage className="text-muted-foreground">
+              <BreadcrumbLink href="/admin/warehouses">
                 Trung tâm kho hàng
-              </BreadcrumbPage>
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden xs:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>Nhà kho</BreadcrumbPage>
+              <BreadcrumbPage>Cập nhật nhà kho</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </header>
-      <WarehouseResult />
+      <div className="p-4 w-full max-w-3xl mx-auto">Loading...</div>
     </>
   );
 };
 
-export default WarehousePage;
+export default LoadingPage;

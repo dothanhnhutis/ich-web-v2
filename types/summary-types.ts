@@ -203,7 +203,7 @@ export type Packaging = {
   status: string;
   disabled_at: null | Date;
   deleted_at: Date | null;
-  image: Image;
+  image: Image | null;
   created_at: Date;
   updated_at: Date;
 };

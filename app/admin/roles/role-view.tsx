@@ -17,7 +17,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { findRoleDetailAction } from "@/data/role/findRoleDetailAction";
+import { findRoleByIdAction } from "@/data/role/findRoleByIdAction";
 import { cn } from "@/lib/utils";
 
 type RoleViewProps = React.ComponentProps<typeof Sheet> & {
@@ -27,7 +27,7 @@ const RoleView = ({ id, children, ...props }: RoleViewProps) => {
   const { data: role, isLoading } = useQuery({
     enabled: !!id,
     queryKey: ["role", id],
-    queryFn: () => findRoleDetailAction(id ?? ""),
+    queryFn: () => findRoleByIdAction(id ?? ""),
   });
 
   return (

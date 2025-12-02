@@ -7,7 +7,6 @@ import {
   ChevronsRightIcon,
   ChevronsUpDown,
 } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import calcPages from "@/lib/calcPages";
 import { cn } from "@/lib/utils";

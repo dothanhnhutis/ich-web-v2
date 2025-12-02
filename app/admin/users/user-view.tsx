@@ -200,34 +200,6 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
           ) : (
             <div>
               <Label>Vai trò ({user.role_count})</Label>
-              {/* <div className="max-h-[calc(100vh_-_326px)] overflow-auto hidden">
-                <table className="min-w-full">
-                  <tbody>
-                    {user.roles.map((r) => (
-                      <tr key={r.id}>
-                        <td className="p-2 align-middle">
-                          <div className="text-start">
-                            <p className="text-base font-medium line-clamp-2">
-                              {r.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {r.description}
-                            </p>
-                            <div className="flex gap-2 items-center w-full overflow-scroll">
-                              {r.permissions.map((p) => (
-                                <p key={p}>{p}</p>
-                              ))}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-2 align-middle whitespace-nowrap text-end">
-                          <p>{r.permissions.length}</p>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div> */}
               <div className="max-h-[calc(100vh_-_326px)] overflow-auto flex flex-col gap-2 pt-4">
                 {user.roles.map((r) => (
                   <div
@@ -251,7 +223,6 @@ const UserView = ({ id, children, ...props }: UserViewProps) => {
 
                       <ScrollBar orientation="horizontal" />
                     </ScrollArea>
-                    {/* <div className="flex gap-2 items-center w-full overflow-x-scroll"></div> */}
                   </div>
                 ))}
               </div>

@@ -20,35 +20,42 @@ import {
   type CreateWarehouseFormData,
   createWarehouseAction,
 } from "@/data/warehouse/createWarehouseAction";
+import { updateWarehouseByIdAction } from "@/data/warehouse/updateWarehouseById";
+import type { Warehouse } from "@/types/summary-types";
 
-const WarehouseForm = () => {
+const WarehouseForm = ({ warehouse }: { warehouse?: Warehouse }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = React.useState<CreateWarehouseFormData>({
-    name: "",
-    address: "",
+    name: warehouse?.name ?? "",
+    address: warehouse?.address ?? "",
   });
 
   const { isPending, mutate } = useMutation({
     mutationFn: async () => {
-      const res = await createWarehouseAction(formData);
+      const res = warehouse
+        ? await updateWarehouseByIdAction(warehouse.id, formData)
+        : await createWarehouseAction(formData);
       if (!res.success) throw new Error(res.message);
       return res.message;
     },
     onSuccess: async (message: string) => {
       router.push("/admin/warehouses");
       toast.success(message);
+
       await queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === "warehouses" ||
-          query.queryKey[0] === "warehouse",
+          (!!warehouse &&
+            query.queryKey[0] === "warehouses" &&
+            query.queryKey[1] === warehouse.id),
       });
     },
     onError: (err: Error) => {
       setFormData({
-        name: "",
-        address: "",
+        name: warehouse?.name ?? "",
+        address: warehouse?.address ?? "",
       });
       toast.error(err.message);
     },
@@ -92,10 +99,10 @@ const WarehouseForm = () => {
           </Field>
           <Field orientation="responsive" dir="rtl">
             <Button type="submit" disabled={isPending}>
-              {isPending && <Spinner />} Tạo
+              {isPending && <Spinner />} {warehouse ? "Lưu" : "Tạo"}
             </Button>
             <Button type="button" variant="outline" asChild>
-              <Link href={"/admin/warehouses"}>Huỷ</Link>
+              <Link href={"/admin/warehouses"}>Trở về</Link>
             </Button>
           </Field>
         </FieldGroup>
