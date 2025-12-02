@@ -130,7 +130,9 @@ const Pagination = ({
                           } else {
                             newSearchParams.set("limit", currentValue);
                           }
+                          newSearchParams.sort();
                           setSearchParams(newSearchParams);
+
                           if (onPageChange) {
                             onPageChange(newSearchParams.toString());
                           }
@@ -161,6 +163,7 @@ const Pagination = ({
                           } else {
                             newSearchParams.set("limit", currentValue);
                           }
+                          newSearchParams.sort();
                           setSearchParams(newSearchParams);
                           if (onPageChange) {
                             onPageChange(newSearchParams.toString());
@@ -196,6 +199,7 @@ const Pagination = ({
                 searchParams.toString()
               );
               newSearchParams.set("page", "1");
+              newSearchParams.sort();
               setSearchParams(newSearchParams);
               if (onPageChange) {
                 onPageChange(newSearchParams.toString());
@@ -215,6 +219,7 @@ const Pagination = ({
                 searchParams.toString()
               );
               newSearchParams.set("page", currentPage.toString());
+              newSearchParams.sort();
               setSearchParams(newSearchParams);
               if (onPageChange) {
                 onPageChange(newSearchParams.toString());
@@ -237,6 +242,7 @@ const Pagination = ({
                 searchParams.toString()
               );
               newSearchParams.set("page", currentPage.toString());
+              newSearchParams.sort();
               setSearchParams(newSearchParams);
               if (onPageChange) {
                 onPageChange(newSearchParams.toString());
@@ -257,6 +263,7 @@ const Pagination = ({
                 searchParams.toString()
               );
               newSearchParams.set("page", metadata.totalPage.toString());
+              newSearchParams.sort();
               setSearchParams(newSearchParams);
               if (onPageChange) {
                 onPageChange(newSearchParams.toString());
@@ -280,6 +287,7 @@ const Pagination = ({
                     searchParams.toString()
                   );
                   newSearchParams.set("page", currentPage.toString());
+                  newSearchParams.sort();
                   setSearchParams(newSearchParams);
                   if (onPageChange) {
                     onPageChange(newSearchParams.toString());
@@ -323,6 +331,7 @@ const Pagination = ({
                         searchParams.toString()
                       );
                       newSearchParams.set("page", p.toString());
+                      newSearchParams.sort();
                       setSearchParams(newSearchParams);
                       if (onPageChange) {
                         onPageChange(newSearchParams.toString());
@@ -347,6 +356,7 @@ const Pagination = ({
                     searchParams.toString()
                   );
                   newSearchParams.set("page", currentPage.toString());
+                  newSearchParams.sort();
                   setSearchParams(newSearchParams);
                   if (onPageChange) {
                     onPageChange(newSearchParams.toString());

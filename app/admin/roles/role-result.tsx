@@ -40,7 +40,6 @@ import { useUser } from "@/components/user-context";
 import { deleteRoleByIdAction } from "@/data/role/deleteRoleByIdAction";
 import { findManyRoleAction } from "@/data/role/findManyRoleAction";
 import { buildSortField, cn, hasDuplicateKey } from "@/lib/utils";
-import type { UserDetailWithoutPassword } from "@/types/summary-types";
 import RoleFilter from "./role-filter";
 import RoleTable from "./role-table";
 import RoleView from "./role-view";

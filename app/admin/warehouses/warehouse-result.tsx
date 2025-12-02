@@ -26,6 +26,7 @@ import { useUser } from "@/components/user-context";
 import { deleteWarehouseByIdAction } from "@/data/warehouse/deleteWarehouseByIdAction";
 import { findManyWarehouseAction } from "@/data/warehouse/findManyWarehouseAction";
 import { cn } from "@/lib/utils";
+import WarehouseFilter from "./warehouse-filter";
 import WarehouseTable from "./warehouse-table";
 import WarehouseView from "./warehouse-view";
 
@@ -101,6 +102,8 @@ const WarehouseResult = () => {
             </Link>
           ) : null}
         </div>
+
+        <WarehouseFilter />
 
         {data && (
           <div className="outline-none relative flex flex-col gap-4 overflow-auto">

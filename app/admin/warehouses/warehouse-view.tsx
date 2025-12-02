@@ -7,6 +7,7 @@ import Link from "next/link";
 import React from "react";
 import Pagination from "@/components/page1";
 import SortModal from "@/components/sort-modal";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   InputGroup,
@@ -24,6 +25,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { sortPackagingByWarehouseIdData } from "@/constants";
 import { findPackagingsByWarehouseIdAction } from "@/data/warehouse/findPackagingsByWarehouseIdAction";
 import { findWarehouseByIdAction } from "@/data/warehouse/findWarehouseByIdAction";
 import { cn, convertImage } from "@/lib/utils";
@@ -34,7 +36,7 @@ type WarehouseViewProps = React.ComponentProps<typeof Sheet> & {
 const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
   const [searchName, setSearchName] = React.useState<string>("");
   const [packagingSearchParams, setPackagingSearchParams] =
-    React.useState<string>("page=1&limit=10");
+    React.useState<string>("limit=10&page=1");
 
   const { data: warehouse, isLoading } = useQuery({
     enabled: !!id,
@@ -49,10 +51,12 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
       findPackagingsByWarehouseIdAction(id ?? "", packagingSearchParams),
   });
 
+  console.log(packagingSearchParams);
+
   return (
     <Sheet {...props}>
       <SheetContent className="w-full xs:max-w-md sm:max-w-md gap-0 h-screen flex flex-col overflow-y-scroll">
-        <SheetHeader className=" border-b py-1 gap-0">
+        <SheetHeader className="border-b py-1 gap-0">
           <SheetTitle className="flex items-center gap-2 max-w-[calc(100%_-_24px)]">
             <HashIcon className="shrink-0 w-5 h-5" />
             {!isLoading ? (
@@ -162,6 +166,7 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                             packagingSearchParams
                           );
                           newSearchParams.delete("name");
+                          newSearchParams.sort();
                           setPackagingSearchParams(newSearchParams.toString());
                         }
                       }}
@@ -183,6 +188,7 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                             packagingSearchParams
                           );
                           newSearchParams.delete("name");
+                          newSearchParams.sort();
                           setPackagingSearchParams(newSearchParams.toString());
                         }}
                       >
@@ -199,6 +205,7 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                               packagingSearchParams
                             );
                             newSearchParams.set("name", searchName);
+                            newSearchParams.sort();
                             setPackagingSearchParams(
                               newSearchParams.toString()
                             );
@@ -210,7 +217,9 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                     </InputGroupAddon>
                   </InputGroup>
                   <SortModal
-                    data={{ name: { title: "name", description: "--" } }}
+                    data={sortPackagingByWarehouseIdData}
+                    searchParamsString={packagingSearchParams}
+                    onSortChange={setPackagingSearchParams}
                   />
                 </div>
               )}
@@ -238,7 +247,14 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col gap-2 max-h-[calc(100vh_-_452px)] overflow-auto">
+                <div
+                  className={cn(
+                    "flex flex-col gap-2  overflow-auto",
+                    packagingsData && packagingsData.packagings.length > 3
+                      ? "max-h-[calc(100vh_-_452px)] min-h-[264px]"
+                      : "h-auto"
+                  )}
+                >
                   {packagingsData?.packagings.map((p) => (
                     <div key={p.id} className="flex gap-2">
                       <Image
@@ -254,7 +270,17 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                       />
 
                       <div className="space-y-1 w-full">
-                        <h4 className="line-clamp-2">{p.name}</h4>
+                        <h4 className="line-clamp-2">
+                          {p.disabled_at && (
+                            <Badge
+                              variant={"destructive"}
+                              className="rounded-sm mr-1"
+                            >
+                              Vô hiệu hoá
+                            </Badge>
+                          )}
+                          {p.name}
+                        </h4>
                         {p.unit === "CARTON" ? (
                           <div className="flex gap-1 text-muted-foreground text-sm">
                             <p className="w-full">

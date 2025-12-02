@@ -8,8 +8,9 @@ import { getHeaders } from "../utils";
 import { warehouseInstance } from "./instance";
 
 export type UpdateWarehouseByIdFormData = {
-  name: string;
-  address: string;
+  name?: string;
+  address?: string;
+  status?: string;
 };
 
 type UpdateWarehouseByIdAPIRes = {
