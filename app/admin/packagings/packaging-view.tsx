@@ -67,7 +67,7 @@ const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
           </SheetTitle>
           <SheetDescription>Chi tiết bao bì</SheetDescription>
         </SheetHeader>
-        <div className="flex flex-col gap-2 p-4 flex-1">
+        <div className="flex flex-col gap-4 p-4 flex-1">
           <div className="flex justify-between gap-1">
             <div className="flex flex-col gap-2">
               <Label className="text-muted-foreground">Tên bao bì</Label>
@@ -104,16 +104,13 @@ const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
               )}
             </div>
           </div>
-          <div className="flex  gap-2">
+          <div className="flex justify-between gap-2 text-center">
             <div>
               <Label className="text-muted-foreground">Số lượng</Label>
               {!isLoading ? (
                 <p>{!packaging ? "--" : packaging.total_quantity}</p>
               ) : (
-                <>
-                  <Skeleton className="w-80 h-3" />
-                  <Skeleton className="w-96 h-3" />
-                </>
+                <Skeleton className="w-10 h-3 mx-auto mt-2" />
               )}
             </div>
             <div>
@@ -121,12 +118,27 @@ const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
                 Mức tồn kho tối thiểu
               </Label>
               {!isLoading ? (
-                <p>{!packaging ? "--" : packaging.min_stock_level}</p>
+                <p>
+                  {!packaging?.min_stock_level
+                    ? "--"
+                    : packaging.min_stock_level}
+                </p>
               ) : (
-                <>
-                  <Skeleton className="w-80 h-3" />
-                  <Skeleton className="w-96 h-3" />
-                </>
+                <Skeleton className="w-10 h-3 mx-auto mt-2" />
+              )}
+            </div>
+            <div>
+              <Label className="text-muted-foreground">Đơn vị lưu trữ</Label>
+              {!isLoading ? (
+                <p>
+                  {!packaging
+                    ? "--"
+                    : packaging.unit === "CARTON"
+                    ? "Thùng"
+                    : "Cái"}
+                </p>
+              ) : (
+                <Skeleton className="w-10 h-3 mx-auto mt-2" />
               )}
             </div>
           </div>
@@ -149,7 +161,7 @@ const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
             )}
           </div>
 
-          <Separator orientation="horizontal" className="my-2" />
+          <Separator orientation="horizontal" className="" />
 
           <div className="flex flex-col gap-2">
             <Label className="text-muted-foreground">Nhà kho</Label>
