@@ -17,13 +17,13 @@ type FindUsersByRoleIdAPIRes = {
   };
 };
 
-type GetUsersByRoleIdAction = FindUsersByRoleIdAPIRes["data"];
+type FindUsersByRoleIdAction = FindUsersByRoleIdAPIRes["data"];
 
 export const findUsersByRoleIdAction = cache(
   async (
     roleId: string,
     searchParams?: Record<string, string> | string | [string, string][]
-  ): Promise<GetUsersByRoleIdAction> => {
+  ): Promise<FindUsersByRoleIdAction> => {
     const q = new URLSearchParams(searchParams || "").toString();
 
     try {

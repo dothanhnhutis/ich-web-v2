@@ -8,7 +8,7 @@ import {
   UserSearchIcon,
   XIcon,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import SortComponent from "@/components/sort";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ const statusData = [
 
 const FilterUser = () => {
   const router = useRouter();
+  const pathName = usePathname();
   const searchParams = useSearchParams();
   const [searchEmail, setSearchEmail] = React.useState<string>("");
   const [searchUsername, setSearchUsername] = React.useState<string>("");
@@ -75,6 +76,13 @@ const FilterUser = () => {
             value={searchEmail}
             onChange={(e) => {
               setSearchEmail(e.target.value);
+              const newSearchParams = new URLSearchParams(searchParams);
+              if (newSearchParams.has("email")) {
+                newSearchParams.delete("email");
+                newSearchParams.set("page", "1");
+                newSearchParams.set("limit", "10");
+                router.push(`${pathName}?${newSearchParams.toString()}`);
+              }
             }}
           />
           <InputGroupAddon>
@@ -94,7 +102,7 @@ const FilterUser = () => {
                   newSearchParams.delete("email");
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
-                  router.push(`/admin/users?${newSearchParams.toString()}`);
+                  router.push(`${pathName}?${newSearchParams.toString()}`);
                 }
               }}
             >
@@ -118,7 +126,7 @@ const FilterUser = () => {
                 } else {
                   newSearchParams.delete("email");
                 }
-                router.push(`/admin/users?${newSearchParams.toString()}`);
+                router.push(`${pathName}?${newSearchParams.toString()}`);
               }}
             >
               <SearchIcon />
@@ -133,6 +141,13 @@ const FilterUser = () => {
             value={searchUsername}
             onChange={(e) => {
               setSearchUsername(e.target.value);
+              const newSearchParams = new URLSearchParams(searchParams);
+              if (newSearchParams.has("username")) {
+                newSearchParams.delete("username");
+                newSearchParams.set("page", "1");
+                newSearchParams.set("limit", "10");
+                router.push(`${pathName}?${newSearchParams.toString()}`);
+              }
             }}
           />
           <InputGroupAddon>
@@ -155,7 +170,7 @@ const FilterUser = () => {
                   newSearchParams.delete("username");
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
-                  router.push(`/admin/users?${newSearchParams.toString()}`);
+                  router.push(`${pathName}?${newSearchParams.toString()}`);
                 }
               }}
             >
@@ -179,7 +194,7 @@ const FilterUser = () => {
                 } else {
                   newSearchParams.delete("username");
                 }
-                router.push(`/admin/users?${newSearchParams.toString()}`);
+                router.push(`${pathName}?${newSearchParams.toString()}`);
               }}
             >
               <SearchIcon />
@@ -238,7 +253,7 @@ const FilterUser = () => {
                           newSearchParams.set("page", "1");
                           newSearchParams.set("limit", "10");
                           router.push(
-                            `/admin/users?${newSearchParams.toString()}`
+                            `${pathName}?${newSearchParams.toString()}`
                           );
                         }}
                       >

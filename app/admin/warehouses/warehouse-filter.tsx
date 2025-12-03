@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  BrickWallShieldIcon,
-  CaptionsIcon,
   CheckIcon,
   ChevronDownIcon,
+  MapPinHouseIcon,
   SearchIcon,
+  WarehouseIcon,
   XIcon,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -56,7 +56,7 @@ const RoleFilter = () => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
     const paramSetters = {
       name: setSearchName,
-      description: setSearchAddress,
+      address: setSearchAddress,
       status: setStatus,
     };
     // cập nhật dữ liệu
@@ -76,10 +76,15 @@ const RoleFilter = () => {
             value={searchName}
             onChange={(e) => {
               setSearchName(e.target.value);
+              if (e.target.value === "") {
+                const newSearchParams = new URLSearchParams(searchParams);
+                newSearchParams.delete("name");
+                router.push(`${pathName}?${newSearchParams.toString()}`);
+              }
             }}
           />
           <InputGroupAddon>
-            <BrickWallShieldIcon />
+            <WarehouseIcon />
           </InputGroupAddon>
           <InputGroupAddon
             align="inline-end"
@@ -87,7 +92,7 @@ const RoleFilter = () => {
           >
             <button
               type="button"
-              className=" p-2"
+              className="p-2"
               onClick={() => {
                 const newSearchParams = new URLSearchParams(searchParams);
                 setSearchName("");
@@ -116,10 +121,8 @@ const RoleFilter = () => {
                   newSearchParams.set("name", searchName);
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
-                } else {
-                  newSearchParams.delete("name");
+                  router.push(`${pathName}?${newSearchParams.toString()}`);
                 }
-                router.push(`${pathName}?${newSearchParams.toString()}`);
               }}
             >
               <SearchIcon />
@@ -134,10 +137,15 @@ const RoleFilter = () => {
             value={searchAddress}
             onChange={(e) => {
               setSearchAddress(e.target.value);
+              if (e.target.value === "") {
+                const newSearchParams = new URLSearchParams(searchParams);
+                newSearchParams.delete("address");
+                router.push(`${pathName}?${newSearchParams.toString()}`);
+              }
             }}
           />
           <InputGroupAddon>
-            <CaptionsIcon />
+            <MapPinHouseIcon />
           </InputGroupAddon>
           <InputGroupAddon
             align="inline-end"
@@ -177,10 +185,8 @@ const RoleFilter = () => {
                   newSearchParams.set("address", searchAddress);
                   newSearchParams.set("page", "1");
                   newSearchParams.set("limit", "10");
-                } else {
-                  newSearchParams.delete("address");
+                  router.push(`${pathName}?${newSearchParams.toString()}`);
                 }
-                router.push(`${pathName}?${newSearchParams.toString()}`);
               }}
             >
               <SearchIcon />

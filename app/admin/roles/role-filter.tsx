@@ -76,6 +76,13 @@ const RoleFilter = () => {
             value={searchName}
             onChange={(e) => {
               setSearchName(e.target.value);
+              const newSearchParams = new URLSearchParams(searchParams);
+              if (newSearchParams.has("name")) {
+                newSearchParams.delete("name");
+                newSearchParams.set("page", "1");
+                newSearchParams.set("limit", "10");
+                router.push(`${pathName}?${newSearchParams.toString()}`);
+              }
             }}
           />
           <InputGroupAddon>
@@ -134,6 +141,13 @@ const RoleFilter = () => {
             value={searchDescription}
             onChange={(e) => {
               setSearchDescription(e.target.value);
+              const newSearchParams = new URLSearchParams(searchParams);
+              if (newSearchParams.has("description")) {
+                newSearchParams.delete("description");
+                newSearchParams.set("page", "1");
+                newSearchParams.set("limit", "10");
+                router.push(`${pathName}?${newSearchParams.toString()}`);
+              }
             }}
           />
           <InputGroupAddon>

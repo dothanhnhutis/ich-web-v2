@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { CopyIcon, HashIcon, SearchIcon, XIcon } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import Pagination from "@/components/page1";
@@ -26,29 +25,29 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { sortPackagingByWarehouseIdData } from "@/constants";
-import { findPackagingsByWarehouseIdAction } from "@/data/warehouse/findPackagingsByWarehouseIdAction";
-import { findWarehouseByIdAction } from "@/data/warehouse/findWarehouseByIdAction";
-import { cn, convertImage } from "@/lib/utils";
+import { findPackagingByIdAction } from "@/data/packaging/findPackagingByIdAction";
+import { findWarehousesByPackagingIdAction } from "@/data/packaging/findWarehousesByPackagingIdAction";
+import { cn } from "@/lib/utils";
 
-type WarehouseViewProps = React.ComponentProps<typeof Sheet> & {
+type PackagingViewProps = React.ComponentProps<typeof Sheet> & {
   id: string | null;
 };
-const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
+const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
   const [searchName, setSearchName] = React.useState<string>("");
-  const [packagingSearchParams, setPackagingSearchParams] =
+  const [warehouseSearchParams, setPackagingSearchParams] =
     React.useState<string>("limit=10&page=1");
 
-  const { data: warehouse, isLoading } = useQuery({
+  const { data: packaging, isLoading } = useQuery({
     enabled: !!id,
-    queryKey: ["warehouses", id],
-    queryFn: () => findWarehouseByIdAction(id ?? ""),
+    queryKey: ["packagings", id],
+    queryFn: () => findPackagingByIdAction(id ?? ""),
   });
 
-  const { data: packagingsData, isLoading: isLoading1 } = useQuery({
+  const { data: warehousesData, isLoading: isLoading1 } = useQuery({
     enabled: !!id,
-    queryKey: ["warehouses", id, "packagings", packagingSearchParams],
+    queryKey: ["packagings", id, "warehouses", warehouseSearchParams],
     queryFn: () =>
-      findPackagingsByWarehouseIdAction(id ?? "", packagingSearchParams),
+      findWarehousesByPackagingIdAction(id ?? "", warehouseSearchParams),
   });
 
   return (
@@ -66,14 +65,14 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
               <Skeleton className="h-3 w-40" />
             )}
           </SheetTitle>
-          <SheetDescription>Chi tiết nhà kho</SheetDescription>
+          <SheetDescription>Chi tiết bao bì</SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-2 p-4 flex-1">
           <div className="flex justify-between gap-1">
             <div className="flex flex-col gap-2">
-              <Label className="text-muted-foreground">Tên nhà kho</Label>
+              <Label className="text-muted-foreground">Tên bao bì</Label>
               {!isLoading ? (
-                <p className="line-clamp-2">{warehouse?.name ?? "--"}</p>
+                <p className="line-clamp-2">{packaging?.name ?? "--"}</p>
               ) : (
                 <>
                   <Skeleton className="w-50 h-3" />
@@ -87,15 +86,15 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                 <p
                   className={cn(
                     "font-bold",
-                    warehouse
-                      ? warehouse?.status === "ACTIVE"
+                    packaging
+                      ? packaging?.status === "ACTIVE"
                         ? "text-green-500"
                         : "text-destructive"
                       : ""
                   )}
                 >
-                  {warehouse
-                    ? warehouse.status === "ACTIVE"
+                  {packaging
+                    ? packaging.status === "ACTIVE"
                       ? "Hoạt động"
                       : "Vô hiệu hoá"
                     : "--"}
@@ -105,28 +104,39 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
               )}
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label className="text-muted-foreground">Địa chỉ</Label>
-            {!isLoading ? (
-              <p className="line-clamp-2">
-                {!warehouse || warehouse.address === ""
-                  ? "--"
-                  : warehouse.address}
-              </p>
-            ) : (
-              <>
-                <Skeleton className="w-80 h-3" />
-                <Skeleton className="w-96 h-3" />
-              </>
-            )}
+          <div className="flex  gap-2">
+            <div>
+              <Label className="text-muted-foreground">Số lượng</Label>
+              {!isLoading ? (
+                <p>{!packaging ? "--" : packaging.total_quantity}</p>
+              ) : (
+                <>
+                  <Skeleton className="w-80 h-3" />
+                  <Skeleton className="w-96 h-3" />
+                </>
+              )}
+            </div>
+            <div>
+              <Label className="text-muted-foreground">
+                Mức tồn kho tối thiểu
+              </Label>
+              {!isLoading ? (
+                <p>{!packaging ? "--" : packaging.min_stock_level}</p>
+              ) : (
+                <>
+                  <Skeleton className="w-80 h-3" />
+                  <Skeleton className="w-96 h-3" />
+                </>
+              )}
+            </div>
           </div>
           <div className="flex flex-col gap-2">
             <Label className="text-muted-foreground">Ngày vô hiệu hoá</Label>
             {!isLoading ? (
               <p>
-                {warehouse?.disabled_at
+                {packaging?.disabled_at
                   ? format(
-                      new Date(warehouse.disabled_at).toISOString(),
+                      new Date(packaging.disabled_at).toISOString(),
                       "EEEE, dd/MM/yy HH:mm:ss",
                       {
                         locale: vi,
@@ -142,7 +152,7 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
           <Separator orientation="horizontal" className="my-2" />
 
           <div className="flex flex-col gap-2">
-            <Label className="text-muted-foreground">Bao bì</Label>
+            <Label className="text-muted-foreground">Nhà kho</Label>
 
             <div className="flex flex-col gap-2">
               {isLoading ? (
@@ -161,7 +171,7 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                         setSearchName(e.target.value);
                         if (e.target.value === "") {
                           const newSearchParams = new URLSearchParams(
-                            packagingSearchParams
+                            warehouseSearchParams
                           );
                           newSearchParams.delete("name");
                           newSearchParams.sort();
@@ -183,7 +193,7 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                         onClick={() => {
                           setSearchName("");
                           const newSearchParams = new URLSearchParams(
-                            packagingSearchParams
+                            warehouseSearchParams
                           );
                           newSearchParams.delete("name");
                           newSearchParams.sort();
@@ -200,7 +210,7 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                         onClick={() => {
                           if (searchName !== "") {
                             const newSearchParams = new URLSearchParams(
-                              packagingSearchParams
+                              warehouseSearchParams
                             );
                             newSearchParams.set("name", searchName);
                             newSearchParams.sort();
@@ -216,7 +226,7 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                   </InputGroup>
                   <SortModal
                     data={sortPackagingByWarehouseIdData}
-                    searchParamsString={packagingSearchParams}
+                    searchParamsString={warehouseSearchParams}
                     onSortChange={setPackagingSearchParams}
                   />
                 </div>
@@ -248,28 +258,16 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                 <div
                   className={cn(
                     "flex flex-col gap-2  overflow-auto",
-                    packagingsData && packagingsData.packagings.length > 3
+                    warehousesData && warehousesData.warehouses.length > 3
                       ? "max-h-[calc(100vh_-_452px)] min-h-[264px]"
                       : "h-auto"
                   )}
                 >
-                  {packagingsData?.packagings.map((p) => (
-                    <div key={p.id} className="flex gap-2">
-                      <Image
-                        src={
-                          p.image
-                            ? convertImage(p.image).url
-                            : "/icons/box5.png"
-                        }
-                        alt="image"
-                        width={p.image?.width || 192}
-                        height={p.image?.height || 192}
-                        className="size-[80px] rounded-sm bg-accent"
-                      />
-
+                  {warehousesData?.warehouses.map((w) => (
+                    <div key={w.id} className="flex gap-2">
                       <div className="space-y-1 w-full">
                         <h4 className="line-clamp-2">
-                          {p.disabled_at && (
+                          {w.disabled_at && (
                             <Badge
                               variant={"destructive"}
                               className="rounded-sm mr-1"
@@ -277,22 +275,13 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
                               Vô hiệu hoá
                             </Badge>
                           )}
-                          {p.name}
+                          {w.name}
                         </h4>
-                        {p.unit === "CARTON" ? (
-                          <div className="flex gap-1 text-muted-foreground text-sm">
-                            <p className="w-full">
-                              Số lượng: {p.quantity} thùng
-                            </p>
-                            <p className="shrink-0">
-                              Quy cách: {p.pcs_ctn} / Thùng
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground text-sm">
-                            Số lượng: {p.quantity} cái
-                          </p>
-                        )}
+
+                        <div className="flex gap-1 text-muted-foreground text-sm">
+                          <p className="w-full">{w.address}</p>
+                          <p className="shrink-0">Số lượng: {w.quantity}</p>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -300,8 +289,8 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
               )}
 
               <Pagination
-                metadata={isLoading ? undefined : packagingsData?.metadata}
-                searchParamsString={packagingSearchParams}
+                metadata={isLoading ? undefined : warehousesData?.metadata}
+                searchParamsString={warehouseSearchParams}
                 onPageChange={(v) => setPackagingSearchParams(v)}
               />
             </div>
@@ -311,7 +300,7 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
         <SheetFooter className="flex-row border-t">
           {!isLoading ? (
             <Link
-              href={`/admin/warehouses/${warehouse?.id}/edit`}
+              href={`/admin/warehouses/${packaging?.id}/edit`}
               className={cn("w-full", buttonVariants({ variant: "outline" }))}
             >
               Chỉnh Sửa
@@ -325,4 +314,4 @@ const WarehouseView = ({ id, children, ...props }: WarehouseViewProps) => {
   );
 };
 
-export default WarehouseView;
+export default PackagingView;

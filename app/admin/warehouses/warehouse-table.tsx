@@ -48,7 +48,7 @@ const WarehouseTable = ({
           <TableHead>Tên nhà kho</TableHead>
           <TableHead>Địa chỉ</TableHead>
           <TableHead>Trạng thái</TableHead>
-          <TableHead className="text-center">Số sản phẩm</TableHead>
+          <TableHead className="text-center">Số bao bì</TableHead>
           <TableHead></TableHead>
         </TableRow>
       </TableHeader>

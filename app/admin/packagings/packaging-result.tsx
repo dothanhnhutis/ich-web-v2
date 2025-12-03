@@ -23,14 +23,14 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useUser } from "@/components/user-context";
-import { deleteWarehouseByIdAction } from "@/data/warehouse/deleteWarehouseByIdAction";
-import { findManyWarehouseAction } from "@/data/warehouse/findManyWarehouseAction";
+import { deletePackagingByIdAction } from "@/data/packaging/deleteWarehouseByIdAction";
+import { findManyPackagingAction } from "@/data/packaging/findManyPackagingAction";
 import { cn } from "@/lib/utils";
-import WarehouseFilter from "./warehouse-filter";
-import WarehouseTable from "./warehouse-table";
-import WarehouseView from "./warehouse-view";
+import WarehouseTable from "../warehouses/warehouse-table";
+import PackagingTable from "./packaging-table";
+import PackagingView from "./packaging-view";
 
-const WarehouseResult = () => {
+const PackagingResult = () => {
   const { hasPermission } = useUser();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -52,17 +52,17 @@ const WarehouseResult = () => {
   }, [searchParams]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["warehouses", newSearchParams.toString()],
-    queryFn: () => findManyWarehouseAction(newSearchParams.toString()),
+    queryKey: ["packagings", newSearchParams.toString()],
+    queryFn: () => findManyPackagingAction(newSearchParams.toString()),
     // staleTime: 10_000, // 10s trước khi refetch tự động
     placeholderData: keepPreviousData, // giữ dữ liệu cũ khi searchParams thay đổi
   });
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (warehouseId: string) => {
-      const res = await deleteWarehouseByIdAction(warehouseId);
+      const res = await deletePackagingByIdAction(warehouseId);
       if (!res.success) throw new Error(res.message);
-      await queryClient.invalidateQueries({ queryKey: ["warehouses"] });
+      await queryClient.invalidateQueries({ queryKey: ["packagings"] });
       return res.message;
     },
     onSuccess: (message: string) => {
@@ -87,48 +87,47 @@ const WarehouseResult = () => {
     <div className="w-full overflow-hidden">
       <div className="flex flex-col gap-4 p-4 mx-auto max-w-5xl">
         <div className="flex items-center gap-2 justify-between">
-          <h3 className="text-2xl font-bold shrink-0">Quản lý nhà kho </h3>
-
-          {hasPermission("create:warehouse") ? (
+          <h3 className="text-2xl font-bold shrink-0">Quản lý bao bì</h3>
+          {hasPermission("create:packaging") ? (
             <Link
-              href="/admin/warehouses/create"
+              href="/admin/packagings/create"
               className={cn(
                 buttonVariants({ variant: "default" }),
                 "text-white"
               )}
             >
-              <span className="hidden xs:inline ">Tạo nhà kho mới</span>
+              <span className="hidden xs:inline">Tạo nhà bao bì mới</span>
               <PlusIcon className="w-4 h-4 shrink-0" />
             </Link>
           ) : null}
         </div>
 
-        <WarehouseFilter />
+        {/* <WarehouseFilter /> */}
 
         {data && (
           <div className="outline-none relative flex flex-col gap-4 overflow-auto">
             <div className="overflow-hidden rounded-lg border">
               <div className="relative w-full overflow-x-auto">
-                <WarehouseTable
-                  warehouses={data.warehouses}
-                  onViewWarehouse={(id) => {
+                <PackagingTable
+                  packagings={data.packagings}
+                  onViewPackaging={(id) => {
                     setViewId(id);
                   }}
-                  onDeleteWarehouse={(userId: string) => {
+                  onDeletePackaging={(userId: string) => {
                     setDeleteWarehouseId(userId);
                     setOpen(true);
                   }}
                 />
               </div>
             </div>
-            {data.warehouses.length > 0 && (
+            {data.packagings.length > 0 && (
               <PageComponent metadata={data.metadata} />
             )}
           </div>
         )}
       </div>
 
-      <WarehouseView
+      <PackagingView
         id={viewId}
         open={!!viewId}
         onOpenChange={(isOpen) => {
@@ -164,4 +163,4 @@ const WarehouseResult = () => {
   );
 };
 
-export default WarehouseResult;
+export default PackagingResult;

@@ -1,11 +1,6 @@
 "use server";
 import { cache } from "react";
-import type {
-  Packaging,
-  PackagingAtWarehouse,
-  UserWithoutPassword,
-  WarehouseDetail,
-} from "@/types/summary-types";
+import type { PackagingAtWarehouse } from "@/types/summary-types";
 import {
   FetchAPIError,
   FetchAPINetWorkError,
@@ -22,13 +17,14 @@ type FindPackagingsByWarehouseIdAPIRes = {
   };
 };
 
-type GetUsersByRoleIdAction = FindPackagingsByWarehouseIdAPIRes["data"];
+type FindPackagingsByWarehouseIdAction =
+  FindPackagingsByWarehouseIdAPIRes["data"];
 
 export const findPackagingsByWarehouseIdAction = cache(
   async (
     warehouseId: string,
     searchParams?: Record<string, string> | string | [string, string][]
-  ): Promise<GetUsersByRoleIdAction> => {
+  ): Promise<FindPackagingsByWarehouseIdAction> => {
     const q = new URLSearchParams(searchParams || "").toString();
 
     try {

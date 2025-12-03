@@ -21,7 +21,7 @@ import {
 } from "./ui/pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
-const itemPerPages = ["10", "20", "30", "40", "50", "All"];
+const itemPerPages = ["10", "20", "30", "40", "50"];
 //delete
 const PageComponent = ({
   metadata = {
@@ -232,8 +232,6 @@ const PageComponent = ({
             {calcPages({
               totalPage: metadata.totalPage,
               currPage: Math.ceil(metadata.itemEnd / metadata.limit),
-              // totalPage: 10,
-              // currPage: 5,
             }).map((p) => {
               if (p === "…")
                 return (
@@ -241,7 +239,7 @@ const PageComponent = ({
                     <PaginationEllipsis />
                   </PaginationItem>
                 );
-              if (p.toString() === searchParams.get("page"))
+              if (p === Math.ceil(metadata.itemEnd / metadata.limit))
                 return (
                   <PaginationItem key={p}>
                     <button

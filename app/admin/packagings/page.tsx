@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import PackagingResult from "./packaging-result";
 export const metadata: Metadata = {
   title: "Quản lý kho hàng",
   robots: {
@@ -44,7 +45,7 @@ const PackagingPage = () => {
           </BreadcrumbList>
         </Breadcrumb>
       </header>
-      {/* <WarehouseResult /> */}
+      <PackagingResult />
     </>
   );
 };
