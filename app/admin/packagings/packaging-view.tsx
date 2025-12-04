@@ -28,6 +28,7 @@ import { sortPackagingByWarehouseIdData } from "@/constants";
 import { findPackagingByIdAction } from "@/data/packaging/findPackagingByIdAction";
 import { findWarehousesByPackagingIdAction } from "@/data/packaging/findWarehousesByPackagingIdAction";
 import { cn } from "@/lib/utils";
+import PackagingAlert from "./packaging-alert";
 
 type PackagingViewProps = React.ComponentProps<typeof Sheet> & {
   id: string | null;
@@ -106,9 +107,17 @@ const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
           </div>
           <div className="flex justify-between gap-2 text-center">
             <div>
-              <Label className="text-muted-foreground">Số lượng</Label>
+              <Label className="text-muted-foreground">
+                Số lượng
+                {packaging && (
+                  <PackagingAlert
+                    total_quantity={packaging.total_quantity}
+                    min_stock_level={packaging.min_stock_level}
+                  />
+                )}
+              </Label>
               {!isLoading ? (
-                <p>{!packaging ? "--" : packaging.total_quantity}</p>
+                <p>{packaging?.total_quantity ?? "--"}</p>
               ) : (
                 <Skeleton className="w-10 h-3 mx-auto mt-2" />
               )}
@@ -142,22 +151,34 @@ const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
               )}
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label className="text-muted-foreground">Ngày vô hiệu hoá</Label>
-            {!isLoading ? (
-              <p>
-                {packaging?.disabled_at
-                  ? format(
-                      new Date(packaging.disabled_at).toISOString(),
-                      "EEEE, dd/MM/yy HH:mm:ss",
-                      {
-                        locale: vi,
-                      }
-                    )
-                  : "--"}
-              </p>
-            ) : (
-              <Skeleton className="w-60 h-3" />
+          <div className="flex justify-between gap-2 ">
+            <div>
+              <Label className="text-muted-foreground">Ngày vô hiệu hoá</Label>
+              {!isLoading ? (
+                <p>
+                  {packaging?.disabled_at
+                    ? format(
+                        new Date(packaging.disabled_at).toISOString(),
+                        "EEEE, dd/MM/yy HH:mm:ss",
+                        {
+                          locale: vi,
+                        }
+                      )
+                    : "--"}
+                </p>
+              ) : (
+                <Skeleton className="w-60 h-3" />
+              )}
+            </div>
+            {packaging?.unit === "CARTON" && (
+              <div className="text-center">
+                <Label className="text-muted-foreground">Quy cách</Label>
+                {!isLoading ? (
+                  <p>{packaging?.pcs_ctn ?? "--"}</p>
+                ) : (
+                  <Skeleton className="w-20 h-3" />
+                )}
+              </div>
             )}
           </div>
 

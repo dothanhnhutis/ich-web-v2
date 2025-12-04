@@ -1,6 +1,5 @@
 "use client";
-import { EllipsisVerticalIcon, TriangleAlertIcon } from "lucide-react";
-import Image from "next/image";
+import { EllipsisVerticalIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -33,39 +32,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useUser } from "@/components/user-context";
 import type { FindManyPackagingAction } from "@/data/packaging/findManyPackagingAction";
-import { cn } from "@/lib/utils";
-
-const AlertTooltip = ({
-  min_stock_level,
-  total_quantity,
-}: {
-  min_stock_level?: number;
-  total_quantity: number;
-}) => {
-  if (!min_stock_level || total_quantity / min_stock_level >= 2) return;
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <TriangleAlertIcon
-          className={cn(
-            "size-4",
-            total_quantity / min_stock_level <= 1
-              ? "text-destructive"
-              : "text-orange-300"
-          )}
-        />
-      </TooltipTrigger>
-      <TooltipContent side="right" align="center" className="w-40">
-        {total_quantity / min_stock_level <= 1 ? (
-          <p>Số lượng tồn kho đang ở mức thấp</p>
-        ) : (
-          <p>Số lượng bao bì tồn kho đang ở mức trung bình</p>
-        )}
-      </TooltipContent>
-    </Tooltip>
-  );
-};
+import PackagingAlert from "./packaging-alert";
 
 const PackagingTable = ({
   packagings,
@@ -134,9 +101,9 @@ const PackagingTable = ({
                           type="button"
                           variant={"secondary"}
                           onClick={() => {
-                            // if (onViewWarehouse) {
-                            //   onViewWarehouse(w.id);
-                            // }
+                            if (onViewPackaging) {
+                              onViewPackaging(p.id);
+                            }
                           }}
                         >
                           Xem hết
@@ -146,7 +113,7 @@ const PackagingTable = ({
                   ) : (
                     <p>{p.total_quantity}</p>
                   )}
-                  <AlertTooltip
+                  <PackagingAlert
                     min_stock_level={p.min_stock_level}
                     total_quantity={p.total_quantity}
                   />
