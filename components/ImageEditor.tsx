@@ -1,20 +1,18 @@
-import { readFile } from "fs";
-import { getOrientation } from "get-orientation/browser";
-import {
-  AlertTriangle,
-  FlipHorizontal,
-  FlipVertical,
-  ImageUpIcon,
-  SearchIcon,
-} from "lucide-react";
+import { FlipHorizontal, FlipVertical } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 import Cropper, { type Area, type Point } from "react-easy-crop";
 import { cn } from "@/lib/utils";
-import { createImage, getAspectFraction, getCroppedImg } from "./canvas-utils";
+import {
+  createImage,
+  flipImage,
+  getAspectFraction,
+  getCroppedCircleImg,
+  getCroppedImg,
+  type ImageFileData,
+} from "./canvas-utils";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -23,14 +21,7 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "./ui/empty";
+
 import { Label } from "./ui/label";
 import {
   Select,
@@ -46,11 +37,14 @@ import { Slider } from "./ui/slider";
 type ImageEditorProps = {
   title: string;
   description?: string;
+  className?: string;
   children?: React.ReactNode;
-  uploadType?: "single" | "mutiple";
   cropShape?: "rect" | "round";
   showGrid?: boolean;
+  accept?: string;
+  multiple?: boolean;
   aspectRatioList?: ("1 : 1" | "4 : 3" | "3 : 4" | "16 : 9" | "9 : 16")[];
+  onSaveImage?: (files: File[]) => void;
 };
 const aspectRatios: Record<
   NonNullable<ImageEditorProps["aspectRatioList"]>[number],
@@ -61,21 +55,6 @@ const aspectRatios: Record<
   "16 : 9": 16 / 9,
   "9 : 16": 9 / 16,
   "1 : 1": 1,
-};
-
-const DefaultUploadChild = () => {
-  return (
-    <Empty className="border-2 hover:border-primary">
-      <EmptyHeader className="gap-1">
-        <EmptyMedia>
-          <ImageUpIcon className="size-12" />
-        </EmptyMedia>
-        <EmptyTitle>Tải hình ảnh</EmptyTitle>
-        <EmptyDescription>asdasd</EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent></EmptyContent>
-    </Empty>
-  );
 };
 
 type OutputProps = {
@@ -111,28 +90,24 @@ const Output = ({ croppedArea }: OutputProps) => {
   );
 };
 
-type ImageEditorData = {
+export type ImageEditorData = {
   crop: Point;
   rotation: number;
   zoom: number;
   croppedArea: Area;
   aspectRatio?: NonNullable<ImageEditorProps["aspectRatioList"]>[number];
-  image: {
-    file: File;
-    src: string;
-    width: number;
-    height: number;
-    aspectFraction: string;
-  };
+  data: ImageFileData;
 };
 
 const ImageEditor = ({
   children,
   title,
   description,
-  uploadType = "single",
   aspectRatioList,
   cropShape = "rect",
+  className,
+  onSaveImage,
+  showGrid,
   ...props
 }: ImageEditorProps) => {
   const id = React.useId();
@@ -145,17 +120,21 @@ const ImageEditor = ({
     // setCroppedArea(croppedArea);
   };
 
-  const showCroppedImage = async () => {
-    if (data[currEditIndex]) {
-      try {
-        const croppedImage = await getCroppedImg(
-          data[0].image.src,
-          data[0].croppedArea,
-          data[0].rotation
-        );
-        console.log("donee", { croppedImage });
-      } catch (e) {
-        console.error(e);
+  const croppedImage = async () => {
+    const files: File[] = [];
+    if (onSaveImage) {
+      for (const { data: imageData, croppedArea, rotation } of data) {
+        try {
+          // files.push(await getCroppedImg(imageData, croppedArea, rotation));
+          files.push(
+            await getCroppedCircleImg(imageData, croppedArea, rotation)
+          );
+          URL.revokeObjectURL(imageData.url);
+        } catch (e) {
+          console.log(e);
+          new Error("Crop image error.");
+        }
+        onSaveImage(files);
       }
     }
   };
@@ -164,6 +143,8 @@ const ImageEditor = ({
     const tempUpload: ImageEditorData[] = [];
 
     if (e.target.files && e.target.files.length > 0) {
+      // if (uploadType === "mutiple" && e.target.files.length > max)
+      //   throw new Error("");
       for (const file of e.target.files) {
         const url = URL.createObjectURL(file);
         const image = await createImage(url);
@@ -172,13 +153,17 @@ const ImageEditor = ({
           crop: { x: 0, y: 0 },
           rotation: 0,
           zoom: 1,
-          croppedArea: null,
+          croppedArea: {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+          },
           aspectRatio: aspectRatioList?.[0],
-          image: {
+          data: {
             file,
-            src: url,
-            width: image.width,
-            height: image.height,
+            url,
+            image,
             aspectFraction,
           },
         });
@@ -187,7 +172,10 @@ const ImageEditor = ({
 
       if (!aspectRatioList || aspectRatioList.length === 0) {
         // gọi callback trả về hình ảnh đã upload
-        console.log(tempUpload);
+
+        if (onSaveImage) {
+          onSaveImage(tempUpload.map((d) => d.data.file));
+        }
         return;
       }
 
@@ -254,87 +242,38 @@ const ImageEditor = ({
   };
 
   const handleFlipX = async () => {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (data[currEditIndex] && ctx) {
-      canvas.width = data[currEditIndex].image.width;
-      canvas.height = data[currEditIndex].image.height;
-      // ✅ Lật ngang bằng setTransform
-      ctx.setTransform(-1, 0, 0, 1, data[currEditIndex].image.width, 0);
-      ctx.drawImage(await createImage(data[currEditIndex].image.src), 0, 0);
-
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const fixedFile = new File(
-            [blob],
-            data[currEditIndex].image.file.name,
-            {
-              type: data[currEditIndex].image.file.type,
-            }
-          );
-
-          const fixedUrl = URL.createObjectURL(fixedFile);
-          URL.revokeObjectURL(data[currEditIndex].image.src);
-
-          setData((prev) =>
-            prev.map((d, idx) =>
-              idx === currEditIndex
-                ? {
-                    ...d,
-                    image: {
-                      ...d.image,
-                      src: fixedUrl,
-                      file: fixedFile,
-                    },
-                  }
-                : d
-            )
-          );
-        }
-      }, data[currEditIndex].image.file.type);
+    if (data[currEditIndex]) {
+      const { url } = data[currEditIndex].data;
+      const newData = await flipImage("horizontal", data[currEditIndex].data);
+      URL.revokeObjectURL(url);
+      setData((prev) =>
+        prev.map((d, idx) =>
+          idx === currEditIndex
+            ? {
+                ...d,
+                data: newData,
+              }
+            : d
+        )
+      );
     }
   };
 
   const handleFlipY = async () => {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (data[currEditIndex] && ctx) {
-      canvas.width = data[currEditIndex].image.width;
-      canvas.height = data[currEditIndex].image.height;
-
-      // ✅ Lật dọc bằng setTransform
-      ctx.setTransform(1, 0, 0, -1, 0, data[currEditIndex].image.height);
-      ctx.drawImage(await createImage(data[currEditIndex].image.src), 0, 0);
-
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const fixedFile = new File(
-            [blob],
-            data[currEditIndex].image.file.name,
-            {
-              type: data[currEditIndex].image.file.type,
-            }
-          );
-
-          const fixedUrl = URL.createObjectURL(fixedFile);
-          URL.revokeObjectURL(data[currEditIndex].image.src);
-
-          setData((prev) =>
-            prev.map((d, idx) =>
-              idx === currEditIndex
-                ? {
-                    ...d,
-                    image: {
-                      ...d.image,
-                      src: fixedUrl,
-                      file: fixedFile,
-                    },
-                  }
-                : d
-            )
-          );
-        }
-      }, data[currEditIndex].image.file.type);
+    if (data[currEditIndex]) {
+      const { url } = data[currEditIndex].data;
+      const newData = await flipImage("vertical", data[currEditIndex].data);
+      URL.revokeObjectURL(url);
+      setData((prev) =>
+        prev.map((d, idx) =>
+          idx === currEditIndex
+            ? {
+                ...d,
+                data: newData,
+              }
+            : d
+        )
+      );
     }
   };
 
@@ -345,20 +284,22 @@ const ImageEditor = ({
         setOpenModal(open);
         if (data.length > 0 && !open) {
           for (const d of data) {
-            URL.revokeObjectURL(d.image.src);
+            URL.revokeObjectURL(d.data.url);
           }
         }
       }}
     >
-      <label htmlFor={id}>{children ?? <DefaultUploadChild />}</label>
-      <input
-        className="hidden"
-        id={id}
-        name="upload"
-        type="file"
-        multiple={uploadType === "mutiple"}
-        onChange={onFileChange}
-      />
+      <label htmlFor={id} className={className}>
+        {children}
+        <input
+          {...props}
+          id={id}
+          type="file"
+          className="hidden"
+          onChange={onFileChange}
+        />
+      </label>
+
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -367,10 +308,10 @@ const ImageEditor = ({
           )}
         </AlertDialogHeader>
 
-        <div className="relative size-50 bg-foreground w-full">
+        <div className="relative size-96 bg-foreground w-full">
           <Cropper
             {...props}
-            image={data[currEditIndex]?.image.src ?? ""}
+            image={data[currEditIndex]?.data.url ?? ""}
             cropShape={cropShape}
             aspect={
               data[currEditIndex]?.aspectRatio
@@ -380,9 +321,9 @@ const ImageEditor = ({
             crop={data[currEditIndex]?.crop}
             zoom={data[currEditIndex]?.zoom}
             rotation={data[currEditIndex]?.rotation}
+            onCropChange={handleCropChange}
             onZoomChange={handleZoomChange}
             onRotationChange={handleRotationChange}
-            onCropChange={handleCropChange}
             onCropComplete={onCropComplete}
             onCropAreaChange={onCropAreaChange}
           />
@@ -449,6 +390,7 @@ const ImageEditor = ({
         <AlertDialogFooter>
           <AlertDialogCancel>Huỷ</AlertDialogCancel>
           <Button
+            type="button"
             variant={"secondary"}
             className={cn(currEditIndex === 0 ? "hidden" : "")}
             onClick={() => {
@@ -461,9 +403,10 @@ const ImageEditor = ({
           </Button>
 
           <Button
+            type="button"
             onClick={async () => {
               if (currEditIndex === maxEditIndex) {
-                await showCroppedImage();
+                await croppedImage();
                 setOpenModal(false);
               } else {
                 setCurrEditIndex((prev) => prev + 1);

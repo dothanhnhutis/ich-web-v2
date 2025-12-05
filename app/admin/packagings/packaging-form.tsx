@@ -1,12 +1,20 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ImageUpIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
-import Cropper, { type Area, type Point } from "react-easy-crop";
 import { toast } from "sonner";
 import ImageEditor from "@/components/ImageEditor";
 import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Field,
   FieldDescription,
@@ -26,12 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import {
-  type CreatePackagingFormData,
-  createPackagingAction,
-} from "@/data/packaging/createPackagingAction";
+import { createPackagingAction } from "@/data/packaging/createPackagingAction";
 import { cn } from "@/lib/utils";
 
 type PackagingFormData = {
@@ -118,11 +122,28 @@ const PackagingForm = () => {
             <FieldLabel htmlFor="name">Hình ảnh</FieldLabel>
 
             <ImageEditor
+              multiple
+              accept="image/jpeg, image/png, image/jpg"
               title="Chỉnh sửa hình ảnh"
+              cropShape="round"
               description="Chỉnh sửa hình ảnh bao bì"
               aspectRatioList={["1 : 1", "16 : 9", "3 : 4"]}
-              uploadType="mutiple"
-            />
+              onSaveImage={(files) => {
+                console.log(files);
+                console.log(URL.createObjectURL(files[0]));
+              }}
+            >
+              <Empty className="border-2 hover:border-primary">
+                <EmptyHeader className="gap-1">
+                  <EmptyMedia>
+                    <ImageUpIcon className="size-12" />
+                  </EmptyMedia>
+                  <EmptyTitle>Tải hình ảnh</EmptyTitle>
+                  <EmptyDescription>asdasd</EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent></EmptyContent>
+              </Empty>
+            </ImageEditor>
           </Field>
           <div
             className={cn(
