@@ -1,11 +1,22 @@
-export const createImage = (url) =>
-  new Promise((resolve, reject) => {
+export const createImage = (url: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.addEventListener("load", () => resolve(image));
     image.addEventListener("error", (error) => reject(error));
     image.setAttribute("crossOrigin", "anonymous"); // needed to avoid cross-origin issues on CodeSandbox
     image.src = url;
   });
+
+const gcd = (a: number, b: number): number => {
+  return b === 0 ? a : gcd(b, a % b);
+};
+
+export const getAspectFraction = (width: number, height: number): string => {
+  const divisor = gcd(width, height);
+  const w = width / divisor;
+  const h = height / divisor;
+  return `${w} : ${h}`;
+};
 
 export function getRadianAngle(degreeValue) {
   return (degreeValue * Math.PI) / 180;

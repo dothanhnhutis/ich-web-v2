@@ -9,6 +9,8 @@ import {
 import Image from "next/image";
 import React from "react";
 import Cropper, { type Area, type Point } from "react-easy-crop";
+import { cn } from "@/lib/utils";
+import { createImage, getAspectFraction } from "./canvas-utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,8 +115,13 @@ type ImageEditorData = {
   rotation: number;
   zoom: number;
   croppedArea: Area | null;
-  url: string;
-  //   cropedData: string;
+  aspectRatio?: NonNullable<ImageEditorProps["aspectRatioList"]>[number];
+  image: {
+    src: string;
+    width: number;
+    height: number;
+    aspectFraction: string;
+  };
 };
 
 const ImageEditor = ({
@@ -127,23 +134,26 @@ const ImageEditor = ({
   ...props
 }: ImageEditorProps) => {
   const id = React.useId();
-  const [crop, setCrop] = React.useState<Point>({ x: 0, y: 0 });
-  const [rotation, setRotation] = React.useState<number>(0);
-  const [croppedArea, setCroppedArea] = React.useState<Area | null>(null);
-  const [data, setData] = React.useState<unknown[]>();
-  const [zoom, setZoom] = React.useState<number>(1);
-  const [aspectRatio, setAspectRatio] = React.useState<
-    NonNullable<ImageEditorProps["aspectRatioList"]>[number]
-  >(
-    aspectRatioList && aspectRatioList.length > 0 ? aspectRatioList[0] : "4 : 3"
-  );
+  // const [zoom, setZoom] = React.useState<number>(1);
+  // const [rotation, setRotation] = React.useState<number>(0);
+  const [data, setData] = React.useState<ImageEditorData[]>([]);
+  // const [crop, setCrop] = React.useState<Point>({ x: 0, y: 0 });
+  const [openModal, setOpenModal] = React.useState<boolean>(false);
+  // const [croppedArea, setCroppedArea] = React.useState<Area | null>(null);
+  // const [aspectRatio, setAspectRatio] = React.useState<
+  //   NonNullable<ImageEditorProps["aspectRatioList"]>[number]
+  // >(
+  //   aspectRatioList && aspectRatioList.length > 0 ? aspectRatioList[0] : "4 : 3"
+  // );
+  const [currEditIndex, setCurrEditIndex] = React.useState<number>(-1);
+  const [maxEditIndex, setMaxEditIndex] = React.useState<number>(-1);
 
   const onCropComplete = (croppedArea: Area, croppedAreaPixels: Area) => {
     // console.log(croppedArea, croppedAreaPixels);
   };
 
   const onCropAreaChange = (croppedArea: Area, _croppedAreaPixels: Area) => {
-    setCroppedArea(croppedArea);
+    // setCroppedArea(croppedArea);
   };
 
   //   const showCroppedImage = async () => {
@@ -161,8 +171,41 @@ const ImageEditor = ({
   //   };
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const tempUpload: ImageEditorData[] = [];
+
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
+      for (const file of e.target.files) {
+        const url = URL.createObjectURL(file);
+        const image = await createImage(url);
+        const aspectFraction = getAspectFraction(image.width, image.height);
+
+        tempUpload.push({
+          crop: { x: 0, y: 0 },
+          rotation: 0,
+          zoom: 1,
+          croppedArea: null,
+          aspectRatio: aspectRatioList?.[0],
+          image: {
+            src: url,
+            width: image.width,
+            height: image.height,
+            aspectFraction,
+          },
+        });
+      }
+      e.target.value = "";
+
+      if (!aspectRatioList || aspectRatioList.length === 0) {
+        // gọi callback trả về hình ảnh đã upload
+        return;
+      }
+
+      if (tempUpload.length > 0) {
+        setData(tempUpload);
+        setCurrEditIndex(0);
+        setMaxEditIndex(tempUpload.length - 1);
+        setOpenModal(true);
+      }
 
       //   const reader = new FileReader();
 
@@ -179,8 +222,50 @@ const ImageEditor = ({
     }
   };
 
+  console.log(data);
+
+  // console.log(currEditIndex);
+  // console.log(maxEditIndex);
+
+  // console.log(data[currEditIndex]?.image.src ?? "");
+
+  const handleZoomChange = (zoom: number) => {
+    if (data[currEditIndex]) {
+      setData((prev) =>
+        prev.map((d, idx) => (idx === currEditIndex ? { ...d, zoom } : d))
+      );
+    }
+  };
+  const handleRotationChange = (rotation: number) => {
+    if (data[currEditIndex]) {
+      setData((prev) =>
+        prev.map((d, idx) => (idx === currEditIndex ? { ...d, rotation } : d))
+      );
+    }
+  };
+
+  const handleCropChange = (location: Point) => {
+    if (data[currEditIndex]) {
+      setData((prev) =>
+        prev.map((d, idx) =>
+          idx === currEditIndex ? { ...d, crop: location } : d
+        )
+      );
+    }
+  };
+
   return (
-    <AlertDialog defaultOpen={true}>
+    <AlertDialog
+      open={openModal}
+      onOpenChange={(open) => {
+        setOpenModal(open);
+        if (data.length > 0 && !open) {
+          for (const d of data) {
+            URL.revokeObjectURL(d.image.src);
+          }
+        }
+      }}
+    >
       <label htmlFor={id}>{children ?? <DefaultUploadChild />}</label>
       <input
         className="hidden"
@@ -201,15 +286,16 @@ const ImageEditor = ({
         <div className="relative size-50 bg-foreground w-full">
           <Cropper
             {...props}
-            image="/images/landscape.webp"
+            image={data[currEditIndex]?.image.src ?? ""}
             cropShape={cropShape}
-            aspect={aspectRatioList ? aspectRatios[aspectRatio] : undefined}
-            crop={crop}
-            zoom={zoom}
-            onZoomChange={setZoom}
-            rotation={rotation}
-            onRotationChange={setRotation}
-            onCropChange={setCrop}
+            // aspect={aspectRatioList ? aspectRatios[aspectRatio] : undefined}
+            aspect={1}
+            crop={data[currEditIndex]?.crop}
+            zoom={data[currEditIndex]?.zoom}
+            rotation={data[currEditIndex]?.rotation}
+            onZoomChange={handleZoomChange}
+            onRotationChange={handleRotationChange}
+            onCropChange={handleCropChange}
             onCropComplete={onCropComplete}
             onCropAreaChange={onCropAreaChange}
           />
@@ -255,14 +341,14 @@ const ImageEditor = ({
               </Button>
             </div>
           </div>
-          <div>{croppedArea && <Output croppedArea={croppedArea} />}</div>
+          {/* <div>{croppedArea && <Output croppedArea={croppedArea} />}</div> */}
         </div>
 
         <div className="flex flex-col gap-1">
           <Label className="text-muted-foreground text-sm"> Thu / Phóng</Label>
           <Slider
-            value={[zoom]}
-            onValueChange={(v) => setZoom(v[0])}
+            value={[data[currEditIndex] ? data[currEditIndex].zoom : 1]}
+            onValueChange={(v) => handleZoomChange(v[0])}
             min={1}
             max={3}
             step={0.1}
@@ -271,8 +357,8 @@ const ImageEditor = ({
         <div className="flex flex-col gap-1">
           <Label className="text-muted-foreground text-sm">Xoay</Label>
           <Slider
-            value={[rotation]}
-            onValueChange={(v) => setRotation(v[0])}
+            value={[data[currEditIndex] ? data[currEditIndex].rotation : 1]}
+            onValueChange={(v) => handleRotationChange(v[0])}
             min={0}
             max={360}
             step={1}
@@ -280,8 +366,30 @@ const ImageEditor = ({
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
+          <AlertDialogCancel>Huỷ</AlertDialogCancel>
+          <Button
+            variant={"secondary"}
+            className={cn(currEditIndex === 0 ? "hidden" : "")}
+            onClick={() => {
+              if (currEditIndex > 0) {
+                setCurrEditIndex((prev) => prev - 1);
+              }
+            }}
+          >
+            Trở về
+          </Button>
+
+          <Button
+            onClick={() => {
+              if (currEditIndex === maxEditIndex) {
+                setOpenModal(false);
+              } else {
+                setCurrEditIndex((prev) => prev + 1);
+              }
+            }}
+          >
+            {currEditIndex === maxEditIndex ? "Lưu" : "Lưu & tiếp tục"}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

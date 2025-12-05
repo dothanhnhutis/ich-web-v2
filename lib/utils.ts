@@ -32,6 +32,7 @@ export const hasDuplicateKey = (arr: string[]): boolean => {
   return unique.size !== keys.length; // nếu có trùng thì true
 };
 
+// rename getImageURL
 export function convertImage(image: Image): ImageURL {
   const url = `${env.SERVER_URL}/api/v1${image.destination
     .replace("uploads", "files")
