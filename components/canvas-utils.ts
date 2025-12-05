@@ -1,3 +1,5 @@
+import type { Area } from "react-easy-crop";
+
 export const createImage = (url: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
@@ -18,14 +20,14 @@ export const getAspectFraction = (width: number, height: number): string => {
   return `${w} : ${h}`;
 };
 
-export function getRadianAngle(degreeValue) {
+export function getRadianAngle(degreeValue: number) {
   return (degreeValue * Math.PI) / 180;
 }
 
 /**
  * Returns the new bounding area of a rotated rectangle.
  */
-export function rotateSize(width, height, rotation) {
+export function rotateSize(width: number, height: number, rotation: number) {
   const rotRad = getRadianAngle(rotation);
 
   return {
@@ -43,12 +45,12 @@ export function rotateSize(width, height, rotation) {
  * This function was adapted from the one in the ReadMe of https://github.com/DominicTobias/react-image-crop
  */
 export async function getCroppedImg(
-  imageSrc,
-  pixelCrop,
-  rotation = 0,
+  src: string,
+  pixelCrop: Area,
+  rotation: number = 0,
   flip = { horizontal: false, vertical: false }
 ) {
-  const image = await createImage(imageSrc);
+const image = await createImage(src)
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
@@ -72,7 +74,7 @@ export async function getCroppedImg(
   // translate canvas context to a central location to allow rotating and flipping around the center
   ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
   ctx.rotate(rotRad);
-  ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
+  // ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
   ctx.translate(-image.width / 2, -image.height / 2);
 
   // draw rotated image
@@ -114,8 +116,7 @@ export async function getCroppedImg(
   });
 }
 
-export async function getRotatedImage(imageSrc, rotation = 0) {
-  const image = await createImage(imageSrc);
+export async function getRotatedImage(image: HTMLImageElement, rotation = 0:number) {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 

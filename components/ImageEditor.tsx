@@ -1,4 +1,5 @@
 import { readFile } from "fs";
+import { getOrientation } from "get-orientation/browser";
 import {
   AlertTriangle,
   FlipHorizontal,
@@ -10,7 +11,7 @@ import Image from "next/image";
 import React from "react";
 import Cropper, { type Area, type Point } from "react-easy-crop";
 import { cn } from "@/lib/utils";
-import { createImage, getAspectFraction } from "./canvas-utils";
+import { createImage, getAspectFraction, getCroppedImg } from "./canvas-utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -114,9 +115,10 @@ type ImageEditorData = {
   crop: Point;
   rotation: number;
   zoom: number;
-  croppedArea: Area | null;
+  croppedArea: Area;
   aspectRatio?: NonNullable<ImageEditorProps["aspectRatioList"]>[number];
   image: {
+    file: File;
     src: string;
     width: number;
     height: number;
@@ -134,41 +136,29 @@ const ImageEditor = ({
   ...props
 }: ImageEditorProps) => {
   const id = React.useId();
-  // const [zoom, setZoom] = React.useState<number>(1);
-  // const [rotation, setRotation] = React.useState<number>(0);
   const [data, setData] = React.useState<ImageEditorData[]>([]);
-  // const [crop, setCrop] = React.useState<Point>({ x: 0, y: 0 });
   const [openModal, setOpenModal] = React.useState<boolean>(false);
-  // const [croppedArea, setCroppedArea] = React.useState<Area | null>(null);
-  // const [aspectRatio, setAspectRatio] = React.useState<
-  //   NonNullable<ImageEditorProps["aspectRatioList"]>[number]
-  // >(
-  //   aspectRatioList && aspectRatioList.length > 0 ? aspectRatioList[0] : "4 : 3"
-  // );
   const [currEditIndex, setCurrEditIndex] = React.useState<number>(-1);
   const [maxEditIndex, setMaxEditIndex] = React.useState<number>(-1);
-
-  const onCropComplete = (croppedArea: Area, croppedAreaPixels: Area) => {
-    // console.log(croppedArea, croppedAreaPixels);
-  };
 
   const onCropAreaChange = (croppedArea: Area, _croppedAreaPixels: Area) => {
     // setCroppedArea(croppedArea);
   };
 
-  //   const showCroppedImage = async () => {
-  //     try {
-  //       const croppedImage = await getCroppedImg(
-  //         imageSrc,
-  //         croppedAreaPixels,
-  //         rotation
-  //       );
-  //       console.log("donee", { croppedImage });
-  //       setCroppedImage(croppedImage);
-  //     } catch (e) {
-  //       console.error(e);
-  //     }
-  //   };
+  const showCroppedImage = async () => {
+    if (data[currEditIndex]) {
+      try {
+        const croppedImage = await getCroppedImg(
+          data[0].image.src,
+          data[0].croppedArea,
+          data[0].rotation
+        );
+        console.log("donee", { croppedImage });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const tempUpload: ImageEditorData[] = [];
@@ -178,7 +168,6 @@ const ImageEditor = ({
         const url = URL.createObjectURL(file);
         const image = await createImage(url);
         const aspectFraction = getAspectFraction(image.width, image.height);
-
         tempUpload.push({
           crop: { x: 0, y: 0 },
           rotation: 0,
@@ -186,6 +175,7 @@ const ImageEditor = ({
           croppedArea: null,
           aspectRatio: aspectRatioList?.[0],
           image: {
+            file,
             src: url,
             width: image.width,
             height: image.height,
@@ -197,6 +187,7 @@ const ImageEditor = ({
 
       if (!aspectRatioList || aspectRatioList.length === 0) {
         // gọi callback trả về hình ảnh đã upload
+        console.log(tempUpload);
         return;
       }
 
@@ -206,28 +197,8 @@ const ImageEditor = ({
         setMaxEditIndex(tempUpload.length - 1);
         setOpenModal(true);
       }
-
-      //   const reader = new FileReader();
-
-      //   reader.onload = (event) => {
-      //     const text = event.target?.result as string;
-      //     console.log("Nội dung file:", text);
-      //   };
-
-      //   reader.onerror = (error) => {
-      //     console.error("Lỗi đọc file:", error);
-      //   };
-
-      //   reader.readAsDataURL(file); // ✅ Quan trọng
     }
   };
-
-  console.log(data);
-
-  // console.log(currEditIndex);
-  // console.log(maxEditIndex);
-
-  // console.log(data[currEditIndex]?.image.src ?? "");
 
   const handleZoomChange = (zoom: number) => {
     if (data[currEditIndex]) {
@@ -236,6 +207,7 @@ const ImageEditor = ({
       );
     }
   };
+
   const handleRotationChange = (rotation: number) => {
     if (data[currEditIndex]) {
       setData((prev) =>
@@ -251,6 +223,118 @@ const ImageEditor = ({
           idx === currEditIndex ? { ...d, crop: location } : d
         )
       );
+    }
+  };
+
+  const onCropComplete = (_croppedArea: Area, croppedAreaPixels: Area) => {
+    if (data[currEditIndex]) {
+      setData((prev) =>
+        prev.map((d, idx) =>
+          idx === currEditIndex ? { ...d, croppedArea: croppedAreaPixels } : d
+        )
+      );
+    }
+  };
+
+  const handleAspectRatio = (value: string) => {
+    if (data[currEditIndex]) {
+      setData((prev) =>
+        prev.map((d, idx) =>
+          idx === currEditIndex
+            ? {
+                ...d,
+                aspectRatio: value as NonNullable<
+                  ImageEditorProps["aspectRatioList"]
+                >[number],
+              }
+            : d
+        )
+      );
+    }
+  };
+
+  const handleFlipX = async () => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (data[currEditIndex] && ctx) {
+      canvas.width = data[currEditIndex].image.width;
+      canvas.height = data[currEditIndex].image.height;
+      // ✅ Lật ngang bằng setTransform
+      ctx.setTransform(-1, 0, 0, 1, data[currEditIndex].image.width, 0);
+      ctx.drawImage(await createImage(data[currEditIndex].image.src), 0, 0);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const fixedFile = new File(
+            [blob],
+            data[currEditIndex].image.file.name,
+            {
+              type: data[currEditIndex].image.file.type,
+            }
+          );
+
+          const fixedUrl = URL.createObjectURL(fixedFile);
+          URL.revokeObjectURL(data[currEditIndex].image.src);
+
+          setData((prev) =>
+            prev.map((d, idx) =>
+              idx === currEditIndex
+                ? {
+                    ...d,
+                    image: {
+                      ...d.image,
+                      src: fixedUrl,
+                      file: fixedFile,
+                    },
+                  }
+                : d
+            )
+          );
+        }
+      }, data[currEditIndex].image.file.type);
+    }
+  };
+
+  const handleFlipY = async () => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (data[currEditIndex] && ctx) {
+      canvas.width = data[currEditIndex].image.width;
+      canvas.height = data[currEditIndex].image.height;
+
+      // ✅ Lật dọc bằng setTransform
+      ctx.setTransform(1, 0, 0, -1, 0, data[currEditIndex].image.height);
+      ctx.drawImage(await createImage(data[currEditIndex].image.src), 0, 0);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const fixedFile = new File(
+            [blob],
+            data[currEditIndex].image.file.name,
+            {
+              type: data[currEditIndex].image.file.type,
+            }
+          );
+
+          const fixedUrl = URL.createObjectURL(fixedFile);
+          URL.revokeObjectURL(data[currEditIndex].image.src);
+
+          setData((prev) =>
+            prev.map((d, idx) =>
+              idx === currEditIndex
+                ? {
+                    ...d,
+                    image: {
+                      ...d.image,
+                      src: fixedUrl,
+                      file: fixedFile,
+                    },
+                  }
+                : d
+            )
+          );
+        }
+      }, data[currEditIndex].image.file.type);
     }
   };
 
@@ -288,8 +372,11 @@ const ImageEditor = ({
             {...props}
             image={data[currEditIndex]?.image.src ?? ""}
             cropShape={cropShape}
-            // aspect={aspectRatioList ? aspectRatios[aspectRatio] : undefined}
-            aspect={1}
+            aspect={
+              data[currEditIndex]?.aspectRatio
+                ? aspectRatios[data[currEditIndex].aspectRatio]
+                : undefined
+            }
             crop={data[currEditIndex]?.crop}
             zoom={data[currEditIndex]?.zoom}
             rotation={data[currEditIndex]?.rotation}
@@ -305,14 +392,8 @@ const ImageEditor = ({
             <div className="flex flex-col gap-1">
               <Label className="text-muted-foreground text-sm">Tỉ lệ</Label>
               <Select
-                value={aspectRatio}
-                onValueChange={(v) =>
-                  setAspectRatio(
-                    v as NonNullable<
-                      ImageEditorProps["aspectRatioList"]
-                    >[number]
-                  )
-                }
+                value={data[currEditIndex]?.aspectRatio ?? ""}
+                onValueChange={handleAspectRatio}
               >
                 <SelectTrigger className="w-[100px]">
                   <SelectValue placeholder="Chọn tỉ lệ" />
@@ -333,10 +414,10 @@ const ImageEditor = ({
           <div className="flex flex-col gap-1">
             <Label className="text-muted-foreground text-sm">Lật</Label>
             <div className="flex items-center gap-1">
-              <Button variant="secondary" size="icon">
+              <Button variant="secondary" size="icon" onClick={handleFlipX}>
                 <FlipHorizontal />
               </Button>
-              <Button variant="secondary" size="icon">
+              <Button variant="secondary" size="icon" onClick={handleFlipY}>
                 <FlipVertical />
               </Button>
             </div>
@@ -380,8 +461,9 @@ const ImageEditor = ({
           </Button>
 
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (currEditIndex === maxEditIndex) {
+                await showCroppedImage();
                 setOpenModal(false);
               } else {
                 setCurrEditIndex((prev) => prev + 1);
