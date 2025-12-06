@@ -3,7 +3,7 @@ import type { Area } from "react-easy-crop";
 export type ImageFileData = {
   file: File;
   url: string;
-  image: HTMLImageElement;
+  html: HTMLImageElement;
   aspectFraction: string;
 };
 
@@ -74,16 +74,16 @@ export async function flipImage(
 
     if (!ctx) return reject(new Error("Create HTMLCanvasElement error."));
 
-    const { image, file, url } = data;
+    const { html, file, url } = data;
 
-    canvas.width = image.width;
-    canvas.height = image.height;
+    canvas.width = html.width;
+    canvas.height = html.height;
     // ✅ Lật ngang bằng setTransform
-    if (dir === "horizontal") ctx.setTransform(-1, 0, 0, 1, image.width, 0);
+    if (dir === "horizontal") ctx.setTransform(-1, 0, 0, 1, html.width, 0);
     // ✅ Lật dọc bằng setTransform
-    else ctx.setTransform(1, 0, 0, -1, 0, image.height);
+    else ctx.setTransform(1, 0, 0, -1, 0, html.height);
 
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(html, 0, 0);
 
     canvas.toBlob(async (blob) => {
       if (!blob) return reject(new Error("Flip image error."));
@@ -92,16 +92,16 @@ export async function flipImage(
         type: file.type,
       });
       const newURL = URL.createObjectURL(newFile);
-      const newImage = await createImage(url);
+      const newHTML = await createImage(url);
       const newAspectFraction = getAspectFraction(
-        newImage.width,
-        newImage.height
+        newHTML.width,
+        newHTML.height
       );
 
       return resolve({
         file: newFile,
         url: newURL,
-        image: newImage,
+        html: newHTML,
         aspectFraction: newAspectFraction,
       });
     }, file.type);
@@ -114,7 +114,7 @@ export async function getCroppedImg(
   rotation: number = 0
 ) {
   return new Promise<File>((resolve, reject) => {
-    const { image, file } = data;
+    const { html, file } = data;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -124,8 +124,8 @@ export async function getCroppedImg(
 
     // calculate bounding box of the rotated image
     const { width: bBoxWidth, height: bBoxHeight } = rotateSize(
-      image.width,
-      image.height,
+      html.width,
+      html.height,
       rotation
     );
 
@@ -137,10 +137,10 @@ export async function getCroppedImg(
     ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
     ctx.rotate(rotRad);
     // ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
-    ctx.translate(-image.width / 2, -image.height / 2);
+    ctx.translate(-html.width / 2, -html.height / 2);
 
     // draw rotated image
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(html, 0, 0);
 
     const croppedCanvas = document.createElement("canvas");
     const croppedCtx = croppedCanvas.getContext("2d");
@@ -185,7 +185,7 @@ export async function getCroppedCircleImg(
   rotation: number = 0
 ) {
   return new Promise<File>((resolve, reject) => {
-    const { image, file } = data;
+    const { html, file } = data;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -195,8 +195,8 @@ export async function getCroppedCircleImg(
 
     // calculate bounding box of the rotated image
     const { width: bBoxWidth, height: bBoxHeight } = rotateSize(
-      image.width,
-      image.height,
+      html.width,
+      html.height,
       rotation
     );
 
@@ -208,10 +208,10 @@ export async function getCroppedCircleImg(
     ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
     ctx.rotate(rotRad);
     // ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
-    ctx.translate(-image.width / 2, -image.height / 2);
+    ctx.translate(-html.width / 2, -html.height / 2);
 
     // draw rotated image
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(html, 0, 0);
 
     const croppedCanvas = document.createElement("canvas");
     const croppedCtx = croppedCanvas.getContext("2d");
@@ -233,8 +233,8 @@ export async function getCroppedCircleImg(
     // Draw the cropped image onto the new canvas
     croppedCtx.drawImage(
       canvas,
-      (image.width - size) / 2, // crop giữa theo chiều ngang
-      (image.height - size) / 2, // crop giữa theo chiều dọc
+      (html.width - size) / 2, // crop giữa theo chiều ngang
+      (html.height - size) / 2, // crop giữa theo chiều dọc
       size,
       size,
       0,
@@ -259,7 +259,7 @@ export async function getCroppedCircleImg(
 
 export async function getRotatedImage1(
   // image: HTMLImageElement,
-  { image, file }: ImageFileData,
+  { html, file }: ImageFileData,
   rotation: number = 0
 ) {
   const canvas = document.createElement("canvas");

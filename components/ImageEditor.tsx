@@ -7,7 +7,6 @@ import {
   createImage,
   flipImage,
   getAspectFraction,
-  getCroppedCircleImg,
   getCroppedImg,
   type ImageFileData,
 } from "./canvas-utils";
@@ -39,7 +38,6 @@ type ImageEditorProps = {
   description?: string;
   className?: string;
   children?: React.ReactNode;
-  cropShape?: "rect" | "round";
   showGrid?: boolean;
   accept?: string;
   multiple?: boolean;
@@ -96,7 +94,7 @@ export type ImageEditorData = {
   zoom: number;
   croppedArea: Area;
   aspectRatio?: NonNullable<ImageEditorProps["aspectRatioList"]>[number];
-  data: ImageFileData;
+  image: ImageFileData;
 };
 
 const ImageEditor = ({
@@ -104,7 +102,6 @@ const ImageEditor = ({
   title,
   description,
   aspectRatioList,
-  cropShape = "rect",
   className,
   onSaveImage,
   showGrid,
@@ -123,13 +120,10 @@ const ImageEditor = ({
   const croppedImage = async () => {
     const files: File[] = [];
     if (onSaveImage) {
-      for (const { data: imageData, croppedArea, rotation } of data) {
+      for (const { image, croppedArea, rotation } of data) {
         try {
-          // files.push(await getCroppedImg(imageData, croppedArea, rotation));
-          files.push(
-            await getCroppedCircleImg(imageData, croppedArea, rotation)
-          );
-          URL.revokeObjectURL(imageData.url);
+          files.push(await getCroppedImg(image, croppedArea, rotation));
+          URL.revokeObjectURL(image.url);
         } catch (e) {
           console.log(e);
           new Error("Crop image error.");
@@ -147,8 +141,8 @@ const ImageEditor = ({
       //   throw new Error("");
       for (const file of e.target.files) {
         const url = URL.createObjectURL(file);
-        const image = await createImage(url);
-        const aspectFraction = getAspectFraction(image.width, image.height);
+        const html = await createImage(url);
+        const aspectFraction = getAspectFraction(html.width, html.height);
         tempUpload.push({
           crop: { x: 0, y: 0 },
           rotation: 0,
@@ -160,10 +154,10 @@ const ImageEditor = ({
             height: 0,
           },
           aspectRatio: aspectRatioList?.[0],
-          data: {
+          image: {
             file,
             url,
-            image,
+            html,
             aspectFraction,
           },
         });
@@ -174,7 +168,7 @@ const ImageEditor = ({
         // gọi callback trả về hình ảnh đã upload
 
         if (onSaveImage) {
-          onSaveImage(tempUpload.map((d) => d.data.file));
+          onSaveImage(tempUpload.map((d) => d.image.file));
         }
         return;
       }
@@ -243,15 +237,15 @@ const ImageEditor = ({
 
   const handleFlipX = async () => {
     if (data[currEditIndex]) {
-      const { url } = data[currEditIndex].data;
-      const newData = await flipImage("horizontal", data[currEditIndex].data);
-      URL.revokeObjectURL(url);
+      const { image } = data[currEditIndex];
+      const newImage = await flipImage("horizontal", image);
+      URL.revokeObjectURL(image.url);
       setData((prev) =>
         prev.map((d, idx) =>
           idx === currEditIndex
             ? {
                 ...d,
-                data: newData,
+                image: newImage,
               }
             : d
         )
@@ -261,15 +255,15 @@ const ImageEditor = ({
 
   const handleFlipY = async () => {
     if (data[currEditIndex]) {
-      const { url } = data[currEditIndex].data;
-      const newData = await flipImage("vertical", data[currEditIndex].data);
-      URL.revokeObjectURL(url);
+      const { image } = data[currEditIndex];
+      const newImage = await flipImage("vertical", image);
+      URL.revokeObjectURL(image.url);
       setData((prev) =>
         prev.map((d, idx) =>
           idx === currEditIndex
             ? {
                 ...d,
-                data: newData,
+                image: newImage,
               }
             : d
         )
@@ -284,7 +278,7 @@ const ImageEditor = ({
         setOpenModal(open);
         if (data.length > 0 && !open) {
           for (const d of data) {
-            URL.revokeObjectURL(d.data.url);
+            URL.revokeObjectURL(d.image.url);
           }
         }
       }}
@@ -311,8 +305,8 @@ const ImageEditor = ({
         <div className="relative size-96 bg-foreground w-full">
           <Cropper
             {...props}
-            image={data[currEditIndex]?.data.url ?? ""}
-            cropShape={cropShape}
+            image={data[currEditIndex]?.image.url ?? ""}
+            cropShape={"rect"}
             aspect={
               data[currEditIndex]?.aspectRatio
                 ? aspectRatios[data[currEditIndex].aspectRatio]
