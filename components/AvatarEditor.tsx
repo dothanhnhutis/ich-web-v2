@@ -13,8 +13,10 @@ import {
 import type { ImageEditorData } from "./ImageEditor";
 import {
   AlertDialog,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
@@ -50,7 +52,7 @@ const AvatarEditor = ({
   ...props
 }: AvatarEditorProps) => {
   const id = React.useId();
-  const [data, setData] = React.useState<AvatarEditorData>();
+  const [data, setData] = React.useState<AvatarEditorData | null>(null);
   const [openModal, setOpenModal] = React.useState<boolean>(false);
 
   const onCropAreaChange = (croppedArea: Area, _croppedAreaPixels: Area) => {
@@ -59,17 +61,14 @@ const AvatarEditor = ({
 
   const croppedImage = async () => {
     const files: File[] = [];
-    if (onSaveImage) {
-      for (const { image, croppedArea, rotation } of data) {
-        try {
-          files.push(await getCroppedCircleImg(image, croppedArea, rotation));
-          URL.revokeObjectURL(image.url);
-        } catch (e) {
-          console.log(e);
-          new Error("Crop image error.");
-        }
-        onSaveImage(files);
+    if (onSaveImage && data) {
+      try {
+        await getCroppedCircleImg(data.image, data.croppedArea, data.rotation);
+      } catch (error) {
+        console.log(error);
+        new Error("Crop image error.");
       }
+      onSaveImage(files);
     }
   };
 
@@ -182,9 +181,9 @@ const AvatarEditor = ({
           <Cropper
             {...props}
             image={data?.image.url ?? ""}
-            cropShape={"rect"}
+            cropShape={"round"}
             aspect={1}
-            crop={data?.crop}
+            crop={data?.crop ?? { x: 0, y: 0 }}
             zoom={data?.zoom}
             rotation={data?.rotation}
             onCropChange={handleCropChange}
@@ -212,7 +211,7 @@ const AvatarEditor = ({
         <div className="flex flex-col gap-1">
           <Label className="text-muted-foreground text-sm"> Thu / Phóng</Label>
           <Slider
-            value={[data[currEditIndex] ? data[currEditIndex].zoom : 1]}
+            value={[data ? data.zoom : 1]}
             onValueChange={(v) => handleZoomChange(v[0])}
             min={1}
             max={3}
@@ -222,7 +221,7 @@ const AvatarEditor = ({
         <div className="flex flex-col gap-1">
           <Label className="text-muted-foreground text-sm">Xoay</Label>
           <Slider
-            value={[data[currEditIndex] ? data[currEditIndex].rotation : 1]}
+            value={[data ? data.rotation : 1]}
             onValueChange={(v) => handleRotationChange(v[0])}
             min={0}
             max={360}
@@ -232,31 +231,15 @@ const AvatarEditor = ({
 
         <AlertDialogFooter>
           <AlertDialogCancel>Huỷ</AlertDialogCancel>
-          <Button
-            type="button"
-            variant={"secondary"}
-            className={cn(currEditIndex === 0 ? "hidden" : "")}
-            onClick={() => {
-              if (currEditIndex > 0) {
-                setCurrEditIndex((prev) => prev - 1);
-              }
-            }}
-          >
-            Trở về
-          </Button>
 
           <Button
             type="button"
             onClick={async () => {
-              if (currEditIndex === maxEditIndex) {
-                await croppedImage();
-                setOpenModal(false);
-              } else {
-                setCurrEditIndex((prev) => prev + 1);
-              }
+              await croppedImage();
+              setOpenModal(false);
             }}
           >
-            {currEditIndex === maxEditIndex ? "Lưu" : "Lưu & tiếp tục"}
+            Lưu
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

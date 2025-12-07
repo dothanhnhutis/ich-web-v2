@@ -1,5 +1,6 @@
 "use client";
 import { EllipsisVerticalIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useUser } from "@/components/user-context";
 import type { FindManyPackagingAction } from "@/data/packaging/findManyPackagingAction";
+import { convertImage } from "@/lib/utils";
 import PackagingAlert from "./packaging-alert";
 
 const PackagingTable = ({
@@ -60,7 +62,20 @@ const PackagingTable = ({
         {packagings && packagings.length > 0 ? (
           packagings.map((p) => (
             <TableRow key={p.id}>
-              <TableCell className="font-medium">{p.name}</TableCell>
+              <TableCell className="font-medium">
+                <div className="flex items-center gap-2">
+                  <Image
+                    src={
+                      p.image ? convertImage(p.image).url : "/icons/box5.png"
+                    }
+                    alt="image"
+                    width={p.image?.width || 192}
+                    height={p.image?.height || 192}
+                    className="size-[60px] rounded-md bg-accent object-contain"
+                  />
+                  <p className="font-medium">{p.name}</p>
+                </div>
+              </TableCell>
               <TableCell className="text-center">
                 {p.status === "ACTIVE" ? "Hoạt động" : "Vô hiệu hoá"}
               </TableCell>
@@ -164,7 +179,7 @@ const PackagingTable = ({
                       </DropdownMenuItem>
                       {hasPermission("update:role") && (
                         <DropdownMenuItem asChild>
-                          <Link href={`/admin/warehouses/${p.id}/edit`}>
+                          <Link href={`/admin/packagings/${p.id}/edit`}>
                             Chỉnh sửa
                           </Link>
                         </DropdownMenuItem>

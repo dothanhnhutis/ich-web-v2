@@ -71,7 +71,7 @@ import { useUser } from "@/components/user-context";
 import { sortUserData } from "@/constants";
 import { createRoleAction } from "@/data/role/createRoleAction";
 import { findUsersByRoleIdAction } from "@/data/role/findUsersByRoleIdAction";
-import { updateRoleByIdAction } from "@/data/role/updateRoleById";
+import { updateRoleByIdAction } from "@/data/role/updateRoleByIdAction";
 import { findManyUserAction } from "@/data/user/findManyUserAction";
 import { cn, convertImage, getShortName } from "@/lib/utils";
 import type { Role, UserWithoutPassword } from "@/types/summary-types";

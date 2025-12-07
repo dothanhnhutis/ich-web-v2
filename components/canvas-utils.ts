@@ -74,7 +74,7 @@ export async function flipImage(
 
     if (!ctx) return reject(new Error("Create HTMLCanvasElement error."));
 
-    const { html, file, url } = data;
+    const { html, file } = data;
 
     canvas.width = html.width;
     canvas.height = html.height;
@@ -92,7 +92,7 @@ export async function flipImage(
         type: file.type,
       });
       const newURL = URL.createObjectURL(newFile);
-      const newHTML = await createImage(url);
+      const newHTML = await createImage(newURL);
       const newAspectFraction = getAspectFraction(
         newHTML.width,
         newHTML.height
@@ -257,43 +257,43 @@ export async function getCroppedCircleImg(
   });
 }
 
-export async function getRotatedImage1(
-  // image: HTMLImageElement,
-  { html, file }: ImageFileData,
-  rotation: number = 0
-) {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+// export async function getRotatedImage1(
+//   // image: HTMLImageElement,
+//   { html, file }: ImageFileData,
+//   rotation: number = 0
+// ) {
+//   const canvas = document.createElement("canvas");
+//   const ctx = canvas.getContext("2d");
 
-  const orientationChanged =
-    rotation === 90 ||
-    rotation === -90 ||
-    rotation === 270 ||
-    rotation === -270;
-  if (orientationChanged) {
-    canvas.width = image.height;
-    canvas.height = image.width;
-  } else {
-    canvas.width = image.width;
-    canvas.height = image.height;
-  }
+//   const orientationChanged =
+//     rotation === 90 ||
+//     rotation === -90 ||
+//     rotation === 270 ||
+//     rotation === -270;
+//   if (orientationChanged) {
+//     canvas.width = image.height;
+//     canvas.height = image.width;
+//   } else {
+//     canvas.width = image.width;
+//     canvas.height = image.height;
+//   }
 
-  ctx.translate(canvas.width / 2, canvas.height / 2);
-  ctx.rotate((rotation * Math.PI) / 180);
-  ctx.drawImage(image, -image.width / 2, -image.height / 2);
+//   ctx.translate(canvas.width / 2, canvas.height / 2);
+//   ctx.rotate((rotation * Math.PI) / 180);
+//   ctx.drawImage(image, -image.width / 2, -image.height / 2);
 
-  return new Promise<File>((resolve, reject) => {
-    // canvas.toBlob((file) => {
-    //   resolve(URL.createObjectURL(file));
-    // }, "image/png");
+//   return new Promise<File>((resolve, reject) => {
+//     // canvas.toBlob((file) => {
+//     //   resolve(URL.createObjectURL(file));
+//     // }, "image/png");
 
-    canvas.toBlob((blob) => {
-      if (!blob) return reject(new Error("Crop image error."));
+//     canvas.toBlob((blob) => {
+//       if (!blob) return reject(new Error("Crop image error."));
 
-      const newFile = new File([blob], file.name, {
-        type: file.type,
-      });
-      return resolve(newFile);
-    }, file.type);
-  });
-}
+//       const newFile = new File([blob], file.name, {
+//         type: file.type,
+//       });
+//       return resolve(newFile);
+//     }, file.type);
+//   });
+// }

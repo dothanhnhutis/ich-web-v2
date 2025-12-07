@@ -21,7 +21,7 @@ import { createWarehouseAction } from "@/data/warehouse/createWarehouseAction";
 import {
   type UpdateWarehouseByIdFormData,
   updateWarehouseByIdAction,
-} from "@/data/warehouse/updateWarehouseById";
+} from "@/data/warehouse/updateWarehouseByIdAction";
 import { cn } from "@/lib/utils";
 import type { Warehouse } from "@/types/summary-types";
 

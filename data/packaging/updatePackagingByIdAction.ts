@@ -10,38 +10,32 @@ import { getHeaders } from "../utils";
 import { packagingInstance } from "./instance";
 import uploadPackagingImageAction from "./uploadPackagingImageAction";
 
-export type CreatePackagingFormData =
-  | {
-      name: string;
-      unit: "CARTON";
-      pcs_ctn: number;
-      min_stock_level?: number;
-      file: File | null;
-    }
-  | {
-      name: string;
-      unit: "PIECE";
-      min_stock_level?: number;
-      file: File | null;
-    };
+export type UpdatePackagingByIdFormData = {
+  name?: string;
+  status?: "ACTIVE" | "DISABLE";
+  unit?: "CARTON" | "PIECE";
+  pcs_ctn?: number;
+  min_stock_level?: number;
+  file?: File | null;
+};
 
-type CreatePackagingAPIRes = {
+type UpdatePackagingByIdAPIRes = {
   statusCode: number;
   message: string;
   data: Packaging;
 };
 
-export type CreatePackagingAction = {
+export type UpdatePackagingAction = {
   success: boolean;
   message: string;
 };
 
-export const createPackagingAction = async (
-  data: CreatePackagingFormData
-): Promise<CreatePackagingAction> => {
+const updatePackagingByIdAction = async (
+  data: UpdatePackagingByIdFormData
+): Promise<UpdatePackagingAction> => {
   const { file, ...packagingData } = data;
   try {
-    const res = await packagingInstance.post<CreatePackagingAPIRes>(
+    const res = await packagingInstance.post<UpdatePackagingByIdAPIRes>(
       "/",
       packagingData,
       {
@@ -57,23 +51,25 @@ export const createPackagingAction = async (
     };
   } catch (error) {
     if (error instanceof FetchAPIError) {
-      const res = error.response as FetchAPIResponse<CreatePackagingAPIRes>;
+      const res = error.response as FetchAPIResponse<UpdatePackagingByIdAPIRes>;
       return {
         success: false,
         message: res.data.message,
       };
     }
     if (error instanceof FetchAPINetWorkError) {
-      console.log(`createPackagingAction func error: ${error.message}`);
+      console.log(`updatePackagingByIdAction func error: ${error.message}`);
       return {
         success: false,
         message: error.message,
       };
     }
-    console.log(`createPackagingAction func error: ${error}`);
+    console.log(`updatePackagingByIdAction func error: ${error}`);
     return {
       success: false,
-      message: "Tạo nhà kho thất bại.",
+      message: "Cập nhật nhà kho thất bại.",
     };
   }
 };
+
+export default updatePackagingByIdAction;

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { CopyIcon, HashIcon, SearchIcon, XIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import Pagination from "@/components/page1";
@@ -27,7 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { sortPackagingByWarehouseIdData } from "@/constants";
 import { findPackagingByIdAction } from "@/data/packaging/findPackagingByIdAction";
 import { findWarehousesByPackagingIdAction } from "@/data/packaging/findWarehousesByPackagingIdAction";
-import { cn } from "@/lib/utils";
+import { cn, convertImage } from "@/lib/utils";
 import PackagingAlert from "./packaging-alert";
 
 type PackagingViewProps = React.ComponentProps<typeof Sheet> & {
@@ -69,6 +70,21 @@ const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
           <SheetDescription>Chi tiết bao bì</SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-4 p-4 flex-1">
+          <div className="flex flex-col gap-2">
+            <Label className="text-muted-foreground">Hình</Label>
+            <Image
+              src={
+                packaging?.image
+                  ? convertImage(packaging.image).url
+                  : "/icons/box5.png"
+              }
+              alt={packaging?.name || ""}
+              width={packaging?.image?.width || 192}
+              height={packaging?.image?.height || 192}
+              className="size-[100px] rounded-md bg-accent object-contain"
+            />
+          </div>
+
           <div className="flex justify-between gap-1">
             <div className="flex flex-col gap-2">
               <Label className="text-muted-foreground">Tên bao bì</Label>
@@ -289,11 +305,17 @@ const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
                 </div>
               ) : (
                 <div
+                  style={{
+                    minHeight: warehousesData
+                      ? `${
+                          Math.min(3, warehousesData.warehouses.length) * 48 +
+                          (Math.min(3, warehousesData.warehouses.length) - 1) *
+                            8
+                        }px`
+                      : 0,
+                  }}
                   className={cn(
-                    "flex flex-col gap-2  overflow-auto",
-                    warehousesData && warehousesData.warehouses.length > 3
-                      ? "max-h-[calc(100vh_-_452px)] min-h-[264px]"
-                      : "h-auto"
+                    "flex flex-col gap-2 overflow-auto max-h-[calc(100vh_-_590px)]"
                   )}
                 >
                   {warehousesData?.warehouses.map((w) => (
@@ -333,7 +355,7 @@ const PackagingView = ({ id, children, ...props }: PackagingViewProps) => {
         <SheetFooter className="flex-row border-t">
           {!isLoading ? (
             <Link
-              href={`/admin/warehouses/${packaging?.id}/edit`}
+              href={`/admin/packagings/${packaging?.id}/edit`}
               className={cn("w-full", buttonVariants({ variant: "outline" }))}
             >
               Chỉnh Sửa

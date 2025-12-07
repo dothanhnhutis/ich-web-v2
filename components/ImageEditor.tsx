@@ -237,6 +237,7 @@ const ImageEditor = ({
 
   const handleFlipX = async () => {
     if (data[currEditIndex]) {
+      console.log("first");
       const { image } = data[currEditIndex];
       const newImage = await flipImage("horizontal", image);
       URL.revokeObjectURL(image.url);
@@ -336,11 +337,13 @@ const ImageEditor = ({
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Tỉ lệ</SelectLabel>
-                    {aspectRatioList.map((k) => (
-                      <SelectItem key={k} value={k}>
-                        {k}
-                      </SelectItem>
-                    ))}
+                    {aspectRatioList
+                      .filter((a, idx, arr) => arr.indexOf(a) === idx)
+                      .map((k) => (
+                        <SelectItem key={k} value={k}>
+                          {k}
+                        </SelectItem>
+                      ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>

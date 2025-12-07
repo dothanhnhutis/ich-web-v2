@@ -1,6 +1,7 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ImageUpIcon } from "lucide-react";
+import { Dice1, ImageUpIcon, XIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -36,7 +37,8 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createPackagingAction } from "@/data/packaging/createPackagingAction";
-import { cn } from "@/lib/utils";
+import { cn, convertImage } from "@/lib/utils";
+import type { Packaging } from "@/types/summary-types";
 
 type PackagingFormData = {
   name: string;
@@ -46,16 +48,20 @@ type PackagingFormData = {
   status: string;
 };
 
-const PackagingForm = () => {
+const PackagingForm = ({ packaging }: { packaging?: Packaging }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [packagingImg, setPackagingImg] = React.useState<File | null>(null);
+  const [imageURL, setImageURL] = React.useState<string | null>(
+    packaging?.image ? convertImage(packaging.image).url : null
+  );
 
   const [formData, setFormData] = React.useState<Required<PackagingFormData>>({
-    name: "",
-    unit: "PIECE",
-    pcs_ctn: 0,
-    min_stock_level: 0,
-    status: "ACTIVE",
+    name: packaging?.name ?? "",
+    unit: packaging?.unit ?? "PIECE",
+    pcs_ctn: packaging?.pcs_ctn ?? 0,
+    min_stock_level: packaging?.min_stock_level ?? 0,
+    status: packaging?.status ?? "ACTIVE",
   });
 
   const { isPending, mutate } = useMutation({
@@ -70,6 +76,7 @@ const PackagingForm = () => {
                 formData.min_stock_level === 0
                   ? undefined
                   : formData.min_stock_level,
+              file: packagingImg,
             }
           : {
               name: formData.name,
@@ -78,22 +85,24 @@ const PackagingForm = () => {
                 formData.min_stock_level === 0
                   ? undefined
                   : formData.min_stock_level,
+              file: packagingImg,
             }
       );
       if (!res.success) throw new Error(res.message);
+
       return res.message;
     },
     onSuccess: async (message: string) => {
       router.push("/admin/packagings");
       toast.success(message);
 
-      // await queryClient.invalidateQueries({
-      //   predicate: (query) =>
-      //     query.queryKey[0] === "packagings" ||
-      //     (!!warehouse &&
-      //       query.queryKey[0] === "packagings" &&
-      //       query.queryKey[1] === warehouse.id),
-      // });
+      await queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "packagings" ||
+          (!!packaging &&
+            query.queryKey[0] === "packagings" &&
+            query.queryKey[1] === packaging.id),
+      });
     },
     onError: (err: Error) => {
       setFormData({
@@ -112,46 +121,83 @@ const PackagingForm = () => {
     mutate();
   };
 
+  React.useEffect(() => {
+    return () => {
+      if (imageURL) {
+        URL.revokeObjectURL(imageURL);
+      }
+    };
+  });
+
   return (
     <form onSubmit={handleSubmit}>
       <FieldSet>
-        <FieldLegend>Tạo bao bì</FieldLegend>
+        <FieldLegend>{packaging ? "" : "Tạo bao bì"}</FieldLegend>
         <FieldDescription>Điền đầy đủ các thông tin bên dưới.</FieldDescription>
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor="name">Hình ảnh</FieldLabel>
-
-            <ImageEditor
-              multiple
-              accept="image/jpeg, image/png, image/jpg"
-              title="Chỉnh sửa hình ảnh"
-              cropShape="round"
-              description="Chỉnh sửa hình ảnh bao bì"
-              aspectRatioList={["1 : 1", "16 : 9", "3 : 4"]}
-              onSaveImage={(files) => {
-                console.log(files);
-                console.log(URL.createObjectURL(files[0]));
-              }}
-            >
-              <Empty className="border-2 hover:border-primary">
-                <EmptyHeader className="gap-1">
-                  <EmptyMedia>
-                    <ImageUpIcon className="size-12" />
-                  </EmptyMedia>
-                  <EmptyTitle>Tải hình ảnh</EmptyTitle>
-                  <EmptyDescription>asdasd</EmptyDescription>
-                </EmptyHeader>
-                <EmptyContent></EmptyContent>
-              </Empty>
-            </ImageEditor>
+            <div className="flex">
+              {imageURL ? (
+                <div className="relative overflow-hidden rounded-md  bg-foreground/30">
+                  <Image
+                    src={imageURL}
+                    width={200}
+                    height={200}
+                    alt="image"
+                    className="size-[200px] object-contain"
+                  />
+                  <button
+                    type="button"
+                    className="absolute top-1 right-1 bg-background/20 rounded-full"
+                    onClick={() => {
+                      setPackagingImg(null);
+                      URL.revokeObjectURL(imageURL);
+                      setImageURL(null);
+                    }}
+                  >
+                    <XIcon />
+                  </button>
+                </div>
+              ) : (
+                <ImageEditor
+                  accept="image/jpeg, image/png, image/jpg"
+                  title="Chỉnh sửa hình ảnh"
+                  description="Chỉnh sửa hình ảnh bao bì"
+                  aspectRatioList={[
+                    "1 : 1",
+                    "9 : 16",
+                    "16 : 9",
+                    "3 : 4",
+                    "4 : 3",
+                  ]}
+                  onSaveImage={(files) => {
+                    if (files[0]) {
+                      setPackagingImg(files[0]);
+                      setImageURL(URL.createObjectURL(files[0]));
+                    }
+                  }}
+                >
+                  <Empty className="border-2 hover:border-primary md:p-0 size-[200px]">
+                    <EmptyHeader className="gap-1">
+                      <EmptyMedia>
+                        <ImageUpIcon className="size-12" />
+                      </EmptyMedia>
+                      <EmptyTitle>Tải hình ảnh</EmptyTitle>
+                      <EmptyDescription></EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </ImageEditor>
+              )}
+            </div>
           </Field>
           <div
             className={cn(
               "grid items-center gap-4",
-              false ? "sm:grid-cols-3" : ""
+              packaging ? "sm:grid-cols-3" : ""
             )}
           >
-            <Field className={false ? "col-span-2" : ""}>
+            <Field className={packaging ? "col-span-2" : ""}>
               <FieldLabel htmlFor="name">Tên bao bì</FieldLabel>
               <Input
                 required
@@ -164,7 +210,7 @@ const PackagingForm = () => {
                 }}
               />
             </Field>
-            {false && (
+            {packaging && (
               <Field>
                 <FieldLabel>Trạng thái</FieldLabel>
 
@@ -196,7 +242,12 @@ const PackagingForm = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div
+            className={cn(
+              "grid gap-4",
+              formData.unit === "CARTON" ? " sm:grid-cols-3" : " sm:grid-cols-2"
+            )}
+          >
             <Field>
               <FieldLabel htmlFor="address">Đơn vị lưu trữ</FieldLabel>
               <Select
@@ -243,11 +294,7 @@ const PackagingForm = () => {
                 </FieldDescription>
               </Field>
             )}
-            <Field
-              className={cn(
-                formData.unit === "CARTON" ? "col-span-1" : "col-span-2"
-              )}
-            >
+            <Field>
               <FieldLabel htmlFor="address">Mức tồn kho tối thiểu</FieldLabel>
               <Input
                 type="number"
@@ -271,10 +318,10 @@ const PackagingForm = () => {
 
           <Field orientation="responsive" dir="rtl">
             <Button type="submit" disabled={isPending}>
-              {isPending && <Spinner />} {false ? "Lưu" : "Tạo"}
+              {isPending && <Spinner />} {packaging ? "Cập nhật" : "Tạo"}
             </Button>
             <Button type="button" variant="outline" asChild>
-              <Link href={"/admin/warehouses"}>Trở về</Link>
+              <Link href={"/admin/packaging"}>Trở về</Link>
             </Button>
           </Field>
         </FieldGroup>

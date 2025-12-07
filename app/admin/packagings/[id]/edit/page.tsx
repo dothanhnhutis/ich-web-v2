@@ -1,0 +1,66 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { findPackagingByIdAction } from "@/data/packaging/findPackagingByIdAction";
+import PackagingForm from "../../packaging-form";
+
+export const metadata: Metadata = {
+  title: "Tạo Nhà Kho",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+const UpdatePackagingPage = async (props: {
+  params: Promise<{ id: string }>;
+}) => {
+  const params = await props.params;
+  const packaging = await findPackagingByIdAction(params.id);
+
+  if (!packaging) notFound();
+
+  return (
+    <>
+      <header className="sticky top-0 right-0 z-50 bg-background/10 backdrop-blur-lg flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <SidebarTrigger className="-ml-1" />
+        <Separator
+          orientation="vertical"
+          className="mr-2 data-[orientation=vertical]:h-4"
+        />
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem className="hidden md:block">
+              <BreadcrumbPage className="text-muted-foreground">
+                Chức Năng Chính
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="hidden md:block" />
+            <BreadcrumbItem className="hidden xs:block">
+              <BreadcrumbLink href="/admin/packagings">
+                Trung tâm kho hàng
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="hidden xs:block" />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Tạo bao bì</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </header>
+      <div className="p-4 w-full max-w-3xl mx-auto">
+        <PackagingForm packaging={packaging} />
+      </div>
+    </>
+  );
+};
+
+export default UpdatePackagingPage;
